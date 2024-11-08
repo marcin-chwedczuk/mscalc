@@ -69,4 +69,8 @@ public class uint {
     public ulong multiply(uint other) {
         return ulong.of(this.value * other.toULong().raw());
     }
+
+    public uint bitOr(int other) {
+        return uint.of(this.value | other);
+    }
 }

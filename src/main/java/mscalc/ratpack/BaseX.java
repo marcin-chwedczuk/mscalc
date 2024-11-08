@@ -7,6 +7,7 @@ import mscalc.cpp.ulong;
 import mscalc.ratpack.RatPack.NUMBER;
 
 import static mscalc.ratpack.Conv.*;
+import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.RatPack.*;
 
 public interface BaseX {
@@ -222,11 +223,6 @@ public interface BaseX {
         }
     }
 
-    static void _divnumx(Ptr<NUMBER> pa, NUMBER b, int precision) {
-
-    }
-
-
     //----------------------------------------------------------------------------
     //
     //    FUNCTION: _divnumx
@@ -239,15 +235,14 @@ public interface BaseX {
     //    Assumes radix is the internal radix representation.
     //
     //----------------------------------------------------------------------------
-    /*
     static void _divnumx(Ptr<NUMBER> pa, NUMBER b, int precision)
     {
         NUMBER a = null;       // a is the dereferenced number pointer from *pa
         NUMBER c = null;       // c will contain the result.
         NUMBER lasttmp = null; // lasttmp allows a backup when the algorithm
         // guesses one bit too far.
-        NUMBER tmp = null;     // current guess being worked on for divide.
-        NUMBER rem = null;     // remainder after applying guess.
+        Ptr<NUMBER> tmp = new Ptr<>();     // current guess being worked on for divide.
+        Ptr<NUMBER> rem = new Ptr<>();     // remainder after applying guess.
         int cdigits;           // count of digits for answer.
         ArrayPtrUInt ptrc;            // ptrc is a pointer to the mantissa of c.
 
@@ -279,73 +274,73 @@ public interface BaseX {
 
         cdigits = 0;
 
-        rem = DUPNUM(a);
-        rem.sign = b.sign;
-        rem.exp = b.cdigit + b.exp - rem.cdigit;
+        rem.set(DUPNUM(a));
+        rem.deref().sign = b.sign;
+        rem.deref().exp = b.cdigit + b.exp - rem.deref().cdigit;
 
-        while (cdigits++ < thismax && !zernum(rem))
+        while (cdigits++ < thismax && !zernum(rem.deref()))
         {
-            int32_t digit = 0;
-        *ptrc = 0;
-            while (!lessnum(rem, b))
+            int digit = 0;
+            ptrc.set(uint.ZERO);
+
+            while (!lessnum(rem.deref(), b))
             {
                 digit = 1;
-                DUPNUM(tmp, b);
-                destroynum(lasttmp);
+                tmp.set(DUPNUM(b));
                 lasttmp = i32tonum(0, BASEX);
-                while (lessnum(tmp, rem))
+                while (lessnum(tmp.deref(), rem.deref()))
                 {
-                    destroynum(lasttmp);
-                    DUPNUM(lasttmp, tmp);
-                    addnum(&tmp, tmp, BASEX);
+                    lasttmp = DUPNUM(tmp.deref());
+                    addnum(tmp, tmp.deref(), BASEX);
                     digit *= 2;
                 }
-                if (lessnum(rem, tmp))
+                if (lessnum(rem.deref(), tmp.deref()))
                 {
                     // too far, back up...
-                    destroynum(tmp);
                     digit /= 2;
-                    tmp = lasttmp;
-                    lasttmp = nullptr;
+                    tmp.set(lasttmp);
+                    lasttmp = null;
                 }
 
-                tmp->sign *= -1;
-                addnum(&rem, tmp, BASEX);
-                destroynum(tmp);
-                destroynum(lasttmp);
-            *ptrc |= digit;
+                tmp.deref().sign *= -1;
+                addnum(rem, tmp.deref(), BASEX);
+
+                ptrc.set(ptrc.deref().bitOr(digit));
             }
-            rem->exp++;
-            ptrc--;
-        }
-        cdigits--;
-        if (c->mant != ++ptrc)
-        {
-            memmove(c->mant, ptrc, (int)(cdigits * sizeof(MANTTYPE)));
+
+            rem.deref().exp++;
+            ptrc.advance(-1);
         }
 
-        if (!cdigits)
+        cdigits--;
+        ptrc.advance();
+        if (!ptrc.atBeginning())
+        {
+            // memmove(c->mant, ptrc, (int)(cdigits * sizeof(MANTTYPE)));
+            for (int k = 0; k < cdigits; k++) {
+                c.mant.set(k, ptrc.at(k));
+            }
+        }
+
+        if (cdigits == 0)
         {
             // A zero, make sure no weird exponents creep in
-            c->exp = 0;
-            c->cdigit = 1;
+            c.exp = 0;
+            c.cdigit = 1;
         }
         else
         {
-            c->cdigit = cdigits;
-            c->exp -= cdigits;
+            c.cdigit = cdigits;
+            c.exp -= cdigits;
             // prevent different kinds of zeros, by stripping leading duplicate
             // zeros. digits are in order of increasing significance.
-            while (c->cdigit > 1 && c->mant[c->cdigit - 1] == 0)
+            while (c.cdigit > 1 && c.mant.at(c.cdigit - 1).isZero())
             {
-                c->cdigit--;
+                c.cdigit--;
             }
         }
 
-        destroynum(rem);
-
-        destroynum(*pa);
-    *pa = c;
+        pa.set(c);
     }
-    */
+
 }
