@@ -3,6 +3,7 @@ package mscalc.ratpack;
 import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.ratpack.RatPack.NUMBER;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static mscalc.ratpack.Conv.i32tonum;
@@ -114,6 +115,20 @@ public class NumberTests {
         assertEquals(300001, numtoi32(result.deref(), RADIX_10));
         // Check arguments not destroyed:
         assertEquals(299999, numtoi32(n299999, RADIX_10));
+        assertEquals(2, numtoi32(n2, RADIX_10));
+    }
+
+    @Test
+    public void addition_can_add_number_to_itself() {
+        NUMBER n2 = i32tonum(2, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        result.set(n2);
+        Num.addnum(result, n2, RADIX_10);
+        // Check addition
+        assertEquals(4, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
         assertEquals(2, numtoi32(n2, RADIX_10));
     }
 
@@ -247,4 +262,161 @@ public class NumberTests {
         assertEquals(-7, numtoi32(nm7, RADIX_10));
     }
 
+    @Test
+    public void multiplication_by_base() {
+        NUMBER n100 = i32tonum(100, RADIX_10);
+        NUMBER n5 = i32tonum(5, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 100 * 5 = 500
+        result.set(n100);
+        Num.mulnum(result, n5, RADIX_10);
+        // Check addition
+        assertEquals(500, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(100, numtoi32(n100, RADIX_10));
+        assertEquals(5, numtoi32(n5, RADIX_10));
+
+        // 5 * 100 = 500
+        result.set(n5);
+        Num.mulnum(result, n100, RADIX_10);
+        // Check addition
+        assertEquals(500, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(100, numtoi32(n100, RADIX_10));
+        assertEquals(5, numtoi32(n5, RADIX_10));
+    }
+
+    @Test
+    public void mutliplication_can_multiply_number_by_itself() {
+        NUMBER n5 = i32tonum(5, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        result.set(n5);
+        Num.mulnum(result, n5, RADIX_10);
+        // Check addition
+        assertEquals(25, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(5, numtoi32(n5, RADIX_10));
+    }
+
+    @Test
+    public void remainder_two_numbers() {
+        NUMBER n12 = i32tonum(12, RADIX_10);
+        NUMBER n7 = i32tonum(7, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 12 % 7 = 5
+        result.set(n12);
+        Num.remnum(result, n7, RADIX_10);
+        // Check addition
+        assertEquals(5, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(12, numtoi32(n12, RADIX_10));
+        assertEquals(7, numtoi32(n7, RADIX_10));
+    }
+
+    @Test
+    public void remainder_with_itself() {
+        NUMBER n12 = i32tonum(12, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 12 % 7 = 5
+        result.set(n12);
+        Num.remnum(result, n12, RADIX_10);
+        // Check addition
+        assertEquals(0, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(12, numtoi32(n12, RADIX_10));
+    }
+
+    @Test
+    public void reminder_is_entire_number() {
+        NUMBER n12 = i32tonum(12, RADIX_10);
+        NUMBER n100 = i32tonum(100, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 12 % 100 = 12
+        result.set(n12);
+        Num.remnum(result, n100, RADIX_10);
+        // Check addition
+        assertEquals(12, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(12, numtoi32(n12, RADIX_10));
+        assertEquals(100, numtoi32(n100, RADIX_10));
+    }
+
+    @Test
+    public void reminder_with_one() {
+        NUMBER n12 = i32tonum(12, RADIX_10);
+        NUMBER n1 = i32tonum(1, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 12 % 1 = 0
+        result.set(n12);
+        Num.remnum(result, n1, RADIX_10);
+        // Check addition
+        assertEquals(0, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(12, numtoi32(n12, RADIX_10));
+        assertEquals(1, numtoi32(n1, RADIX_10));
+    }
+
+    @Test
+    @Disabled("Infinite loop when dividing by zero instead of throwing an error. TODO")
+    public void reminder_with_zero_error() {
+        NUMBER n12 = i32tonum(12, RADIX_10);
+        NUMBER n0 = i32tonum(0, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 12 % 1 = 0
+        result.set(n12);
+        Num.remnum(result, n0, RADIX_10);
+        // Check addition
+        assertEquals(0, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(12, numtoi32(n12, RADIX_10));
+        assertEquals(0, numtoi32(n0, RADIX_10));
+    }
+
+    @Test
+    public void remainder_negative_number() {
+        NUMBER nm12 = i32tonum(-12, RADIX_10);
+        NUMBER n7 = i32tonum(7, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // -12 % 7 = -5
+        result.set(nm12);
+        Num.remnum(result, n7, RADIX_10);
+        // Check addition
+        assertEquals(-5, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(-12, numtoi32(nm12, RADIX_10));
+        assertEquals(7, numtoi32(n7, RADIX_10));
+    }
+
+    @Test
+    public void remainder_negative_number2() {
+        NUMBER n12 = i32tonum(12, RADIX_10);
+        NUMBER nm7 = i32tonum(-7, RADIX_10);
+
+        Ptr<NUMBER> result = new Ptr<>(null);
+
+        // 12 % -7 = 5
+        result.set(n12);
+        Num.remnum(result, nm7, RADIX_10);
+        // Check addition
+        assertEquals(5, numtoi32(result.deref(), RADIX_10));
+        // Check arguments not destroyed:
+        assertEquals(12, numtoi32(n12, RADIX_10));
+        assertEquals(-7, numtoi32(nm7, RADIX_10));
+    }
 }
