@@ -16,7 +16,7 @@ import static mscalc.ratpack.Num.addnum;
 import static mscalc.ratpack.RatPack.*;
 
 public interface Conv {
-    int UINT32_MAX = (int)0xffffffff;
+    int UINT32_MAX = (int) 0xffffffff;
 
     int MAX_ZEROS_AFTER_DECIMAL = 2;
 
@@ -30,15 +30,13 @@ public interface Conv {
     Ptr<Character> g_decimalSeparator = new Ptr<>('.');
 
     int CALC_INTSAFE_E_ARITHMETIC_OVERFLOW = (0x80070216); // 0x216 = 534 = ERROR_ARITHMETIC_OVERFLOW
-    int CALC_ULONG_ERROR = ((int)0xffffffff);
+    int CALC_ULONG_ERROR = ((int) 0xffffffff);
 
-    static int Calc_ULongAdd(uint ulAugend, uint ulAddend, Ptr<uint> pulResult)
-    {
+    static int Calc_ULongAdd(uint ulAugend, uint ulAddend, Ptr<uint> pulResult) {
         int hr = CALC_INTSAFE_E_ARITHMETIC_OVERFLOW;
         pulResult.set(uint.of(CALC_ULONG_ERROR));
 
-        if (ulAugend.add(ulAddend).compareTo(ulAugend) >= 0)
-        {
+        if (ulAugend.add(ulAddend).compareTo(ulAugend) >= 0) {
             pulResult.set(ulAugend.add(ulAddend));
             hr = S_OK;
         }
@@ -46,13 +44,11 @@ public interface Conv {
         return hr;
     }
 
-    static int Calc_ULongLongToULong(ulong ullOperand, Ptr<uint> pulResult)
-    {
+    static int Calc_ULongLongToULong(ulong ullOperand, Ptr<uint> pulResult) {
         int hr = CALC_INTSAFE_E_ARITHMETIC_OVERFLOW;
         pulResult.set(uint.of(CALC_ULONG_ERROR));
 
-        if (ullOperand.compareTo(0xffffffffL) <= 0)
-        {
+        if (ullOperand.compareTo(0xffffffffL) <= 0) {
             pulResult.set(ullOperand.toUInt());
             hr = S_OK;
         }
@@ -60,8 +56,7 @@ public interface Conv {
         return hr;
     }
 
-    static int Calc_ULongMult(uint ulMultiplicand, uint ulMultiplier, Ptr<uint> pulResult)
-    {
+    static int Calc_ULongMult(uint ulMultiplicand, uint ulMultiplier, Ptr<uint> pulResult) {
         ulong ull64Result = ulMultiplicand.toULong().multiply(ulMultiplier.toULong());
         return Calc_ULongLongToULong(ull64Result, pulResult);
     }
@@ -69,8 +64,7 @@ public interface Conv {
     // Used to strip trailing zeros, and prevent combinatorial explosions
     // TODO: bool stripzeroesnum(_Inout_ PNUMBER pnum, int32_t starting);
 
-    static void SetDecimalSeparator(char decimalSeparator)
-    {
+    static void SetDecimalSeparator(char decimalSeparator) {
         g_decimalSeparator.set(decimalSeparator);
     }
 
@@ -85,8 +79,7 @@ public interface Conv {
     //    DESCRIPTION: Copies the source to the destination
     //
     //-----------------------------------------------------------------------------
-    static void dupnum(NUMBER dest, NUMBER src)
-    {
+    static void dupnum(NUMBER dest, NUMBER src) {
         dest.sign = src.sign;
         for (int i = 0; i < src.mant.length(); i++) {
             dest.mant.set(i, src.mant.at(i));
@@ -106,8 +99,7 @@ public interface Conv {
     //    DESCRIPTION: Deletes the number and associated allocation
     //
     //-----------------------------------------------------------------------------
-    static void destroynum(NUMBER num)
-    {
+    static void destroynum(NUMBER num) {
         // No OP on Java
     }
 
@@ -123,8 +115,7 @@ public interface Conv {
     //    allocations.
     //
     //-----------------------------------------------------------------------------
-    static void destroyrat(RAT rat)
-    {
+    static void destroyrat(RAT rat) {
         // No OP on java
     }
 
@@ -139,25 +130,21 @@ public interface Conv {
     //    DESCRIPTION: allocates and zeros out number type.
     //
     //-----------------------------------------------------------------------------
-    static NUMBER createnum(uint size)
-    {
+    static NUMBER createnum(uint size) {
         NUMBER pnumret = null;
         Ptr<uint> cbAlloc = new Ptr<>();
 
         // sizeof( MANTTYPE ) is the size of a 'digit'
         if (SUCCEEDED(Calc_ULongAdd(size, uint.of(1), cbAlloc))
                 && SUCCEEDED(Calc_ULongMult(cbAlloc.deref(), uint.of(SIZEOF_MANTTYPE), cbAlloc))
-                && SUCCEEDED(Calc_ULongAdd(cbAlloc.deref(), uint.of(NUMBER.SIZE_OF), cbAlloc)))
-        {
+                && SUCCEEDED(Calc_ULongAdd(cbAlloc.deref(), uint.of(NUMBER.SIZE_OF), cbAlloc))) {
             try {
                 pnumret = new NUMBER();
                 pnumret.mant = new uintArray(size.raw() + 1); // TODO: Is this one really needed?
             } catch (OutOfMemoryError e) {
                 throw new ErrorCodeException(CALC_E_OUTOFMEMORY);
             }
-        }
-        else
-        {
+        } else {
             throw new ErrorCodeException(CALC_E_INVALIDRANGE);
         }
 
@@ -177,8 +164,7 @@ public interface Conv {
     //    form.  These number pointers are left pointing to null.
     //
     //-----------------------------------------------------------------------------
-    static RAT createrat()
-    {
+    static RAT createrat() {
         RAT prat;
 
         try {
@@ -206,15 +192,13 @@ public interface Conv {
     //    representation)  Where p and q are integers.
     //
     //-----------------------------------------------------------------------------
-    static RAT numtorat(NUMBER pin, uint radix)
-    {
+    static RAT numtorat(NUMBER pin, uint radix) {
         NUMBER pnRadixn = DUPNUM(pin);
 
         NUMBER qnRadixn = i32tonum(1, radix);
 
         // Ensure p and q start out as integers.
-        if (pnRadixn.exp < 0)
-        {
+        if (pnRadixn.exp < 0) {
             qnRadixn.exp -= pnRadixn.exp;
             pnRadixn.exp = 0;
         }
@@ -232,7 +216,7 @@ public interface Conv {
     }
 
 
-//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
 //
 //    FUNCTION: numtonRadixx
 //
@@ -245,40 +229,38 @@ public interface Conv {
 //    specified is the radix of the number passed in.
 //
 //-----------------------------------------------------------------------------
-static NUMBER numtonRadixx(NUMBER a, uint radix)
-{
-    Ptr<NUMBER> pnumret = new Ptr<>(i32tonum(0, BASEX)); // pnumret is the number in internal form.
-    Ptr<NUMBER> num_radix = new Ptr<>(i32tonum(radix.toInt(), BASEX));
-    ArrayPtrUInt ptrdigit = a.mant.pointer(); // pointer to digit being worked on.
+    static NUMBER numtonRadixx(NUMBER a, uint radix) {
+        Ptr<NUMBER> pnumret = new Ptr<>(i32tonum(0, BASEX)); // pnumret is the number in internal form.
+        Ptr<NUMBER> num_radix = new Ptr<>(i32tonum(radix.toInt(), BASEX));
+        ArrayPtrUInt ptrdigit = a.mant.pointer(); // pointer to digit being worked on.
 
-    // Digits are in reverse order, back over them LSD first.
-    ptrdigit.advance(a.cdigit - 1);
+        // Digits are in reverse order, back over them LSD first.
+        ptrdigit.advance(a.cdigit - 1);
 
-    NUMBER thisdigit = null; // thisdigit holds the current digit of a
-    for (int idigit = 0; idigit < a.cdigit; idigit++)
-    {
+        NUMBER thisdigit = null; // thisdigit holds the current digit of a
+        for (int idigit = 0; idigit < a.cdigit; idigit++) {
+            mulnumx(pnumret, num_radix.deref());
+            // WARNING:
+            // This should just smack in each digit into a 'special' thisdigit.
+            // and not do the overhead of recreating the number type each time.
+            thisdigit = i32tonum(ptrdigit.deref().raw(), BASEX);
+            ptrdigit.advance(-1);
+
+            addnum(pnumret, thisdigit, BASEX);
+            destroynum(thisdigit);
+        }
+
+        // Calculate the exponent of the external base for scaling.
+        numpowi32x(num_radix, a.exp);
+
+        // ... and scale the result.
         mulnumx(pnumret, num_radix.deref());
-        // WARNING:
-        // This should just smack in each digit into a 'special' thisdigit.
-        // and not do the overhead of recreating the number type each time.
-        thisdigit = i32tonum(ptrdigit.deref().raw(), BASEX);
-        ptrdigit.advance(-1);
 
-        addnum(pnumret, thisdigit, BASEX);
-        destroynum(thisdigit);
+        // And propagate the sign.
+        pnumret.deref().sign = a.sign;
+
+        return (pnumret.deref());
     }
-
-    // Calculate the exponent of the external base for scaling.
-    numpowi32x(num_radix, a.exp);
-
-    // ... and scale the result.
-    mulnumx(pnumret, num_radix.deref());
-
-    // And propagate the sign.
-    pnumret.deref().sign = a.sign;
-
-    return (pnumret.deref());
-}
 
     //-----------------------------------------------------------------------------
     //
@@ -292,26 +274,21 @@ static NUMBER numtonRadixx(NUMBER a, uint radix)
     //    base   requested of the int32_t value passed in.
     //
     //-----------------------------------------------------------------------------
-    static NUMBER i32tonum(int ini32, uint radix)
-    {
+    static NUMBER i32tonum(int ini32, uint radix) {
         NUMBER pnumret = createnum(MAX_LONG_SIZE);
 
         ArrayPtrUInt pmant = pnumret.mant.pointer();
         pnumret.cdigit = 0;
         pnumret.exp = 0;
 
-        if (ini32 < 0)
-        {
+        if (ini32 < 0) {
             pnumret.sign = -1;
             ini32 *= -1;
-        }
-        else
-        {
+        } else {
             pnumret.sign = 1;
         }
 
-        do
-        {
+        do {
             pmant.set(uint.of(ini32).modulo(radix));
             pmant.advance();
 
@@ -320,5 +297,42 @@ static NUMBER numtonRadixx(NUMBER a, uint radix)
         } while (ini32 != 0);
 
         return (pnumret);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: numtoi32
+    //
+    //    ARGUMENTS: number input and base of that number.
+    //
+    //    RETURN: int32_t
+    //
+    //    DESCRIPTION: returns the int32_t representation of the
+    //    number input.  Assumes that the number is really in the
+    //    base   claimed.
+    //
+    //-----------------------------------------------------------------------------
+    static int numtoi32(NUMBER pnum, uint radix)
+    {
+        int lret = 0;
+
+        ArrayPtrUInt pmant = pnum.mant.pointer();
+        pmant.advance(pnum.cdigit - 1);
+
+        int expt = pnum.exp;
+        for (int length = pnum.cdigit; length > 0 && length + expt > 0; length--)
+        {
+            lret *= radix.toInt();
+            lret += pmant.derefMinusMinus().toInt();
+        }
+
+        while (expt-- > 0)
+        {
+            lret *= radix.toInt();
+        }
+
+        lret *= pnum.sign;
+
+        return lret;
     }
 }
