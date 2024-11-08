@@ -1,6 +1,9 @@
 package mscalc.cpp;
 
 public class ulong {
+    public static final ulong ZERO = of(0);
+    public static final ulong ONE = of(1);
+
     public static ulong of(long value) {
         return new ulong(value);
     }
@@ -29,6 +32,22 @@ public class ulong {
         return ulong.of(this.value * other.value);
     }
 
+    public ulong modulo(uint other) {
+        return modulo(other.toULong());
+    }
+
+    public ulong modulo(ulong other) {
+        return ulong.of(Long.remainderUnsigned(this.value, other.value));
+    }
+
+    public ulong divide(uint other) {
+        return divide(other.toULong());
+    }
+
+    public ulong divide(ulong other) {
+        return ulong.of(Long.divideUnsigned(this.value, other.value));
+    }
+
     public boolean notEq(long other) {
         return Long.compareUnsigned(this.value, other) != 0;
     }
@@ -43,6 +62,10 @@ public class ulong {
 
     public ulong shiftRight(int n) {
         return ulong.of(value >>> n);
+    }
+
+    public boolean toBool() {
+        return value != 0;
     }
 }
 

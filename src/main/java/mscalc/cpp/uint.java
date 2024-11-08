@@ -65,4 +65,8 @@ public class uint {
     public boolean toBool() {
         return value != 0;
     }
+
+    public ulong multiply(uint other) {
+        return ulong.of(this.value * other.toULong().raw());
+    }
 }

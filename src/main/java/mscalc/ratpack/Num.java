@@ -3,6 +3,7 @@ package mscalc.ratpack;
 import mscalc.cpp.ArrayPtrUInt;
 import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
+import mscalc.cpp.ulong;
 import mscalc.ratpack.RatPack.NUMBER;
 
 import static java.lang.Math.max;
@@ -150,6 +151,120 @@ public interface Num {
         // Remove leading zeros, remember digits are in order of
         // increasing significance. i.e. 100 would be 0,0,1
         while (c.cdigit > 1 && pchc.minusMinusDeref().isZero())
+        {
+            c.cdigit--;
+        }
+
+        pa.set(c);
+    }
+
+
+    //----------------------------------------------------------------------------
+    //
+    //    FUNCTION: mulnum
+    //
+    //    ARGUMENTS: pointer to a number a second number, and the
+    //               radix.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the number equivalent of *pa *= b.
+    //    Assumes radix is the radix of both numbers.  This algorithm is the
+    //    same one you learned in grade school.
+    //
+    //----------------------------------------------------------------------------
+    static void mulnum(Ptr<NUMBER> pa, NUMBER b, uint radix)
+    {
+        if (b.cdigit > 1 || b.mant.at(0).notEq(1) || b.exp != 0)
+        { // If b is one we don't multiply exactly.
+            if (pa.deref().cdigit > 1 || pa.deref().mant.at(0).notEq(1) || pa.deref().exp != 0)
+            { // pa and b are both non-one.
+                _mulnum(pa, b, radix);
+            }
+        else
+            { // if pa is one and b isn't just copy b, and adjust the sign.
+                int sign = pa.deref().sign;
+                pa.set(DUPNUM(b));
+                pa.deref().sign *= sign;
+            }
+        }
+        else
+        { // But we do have to set the sign.
+            pa.deref().sign *= b.sign;
+        }
+    }
+
+    static void _mulnum(Ptr<NUMBER> pa, NUMBER b, uint radix)
+    {
+        NUMBER c = null;  // c will contain the result.
+        NUMBER a = null;  // a is the dereferenced number pointer from *pa
+        ArrayPtrUInt pcha;       // pcha is a pointer to the mantissa of a.
+        ArrayPtrUInt pchb;       // pchb is a pointer to the mantissa of b.
+        ArrayPtrUInt pchc;       // pchc is a pointer to the mantissa of c.
+        ArrayPtrUInt pchcoffset; // pchcoffset, is the anchor location of the next
+        // single digit multiply partial result.
+        int iadigit = 0;  // Index of digit being used in the first number.
+        int ibdigit = 0;  // Index of digit being used in the second number.
+        uint da = uint.ZERO;      // da is the digit from the fist number.
+        ulong cy = ulong.ZERO;  // cy is the carry resulting from the addition of
+        // a multiplied row into the result.
+        ulong mcy = ulong.ZERO; // mcy is the resultant from a single
+        // multiply, AND the carry of that multiply.
+        int icdigit = 0;  // Index of digit being calculated in final result.
+
+        a = pa.deref();
+        ibdigit = a.cdigit + b.cdigit - 1;
+        c = createnum(uint.of(ibdigit + 1));
+        c.cdigit = ibdigit;
+        c.sign = a.sign * b.sign;
+
+        c.exp = a.exp + b.exp;
+        pcha = a.mant.pointer();
+        pchcoffset = c.mant.pointer();
+
+        for (iadigit = a.cdigit; iadigit > 0; iadigit--)
+        {
+            da = pcha.derefPlusPlus();
+            pchb = b.mant.pointer();
+
+            // Shift pchc, and pchcoffset, one for each digit
+            pchc = pchcoffset.clone();
+            pchcoffset.advance();
+
+            for (ibdigit = b.cdigit; ibdigit > 0; ibdigit--)
+            {
+                cy = ulong.ZERO;
+                mcy = da.multiply(pchb.deref());
+                if (mcy.toBool())
+                {
+                    icdigit = 0;
+                    if (ibdigit == 1 && iadigit == 1)
+                    {
+                        c.cdigit++;
+                    }
+                }
+                // If result is nonzero, or while result of carry is nonzero...
+                while (mcy.toBool() || cy.toBool())
+                {
+                    // update carry from addition(s) and multiply.
+                    cy = cy.plus( pchc.at(icdigit).toULong().plus(mcy.modulo(radix.toULong())) );
+
+                    // update result digit from
+                    pchc.setAt(icdigit++, (cy.modulo(radix)).toUInt());
+
+                    // update carries from
+                    mcy = mcy.divide(radix);
+                    cy = cy.divide(radix);
+                }
+
+                pchb.advance();
+                pchc.advance();
+            }
+        }
+
+        // prevent different kinds of zeros, by stripping leading duplicate zeros.
+        // digits are in order of increasing significance.
+        while (c.cdigit > 1 && c.mant.at(c.cdigit - 1).isZero())
         {
             c.cdigit--;
         }
