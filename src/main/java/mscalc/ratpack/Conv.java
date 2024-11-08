@@ -81,7 +81,7 @@ public interface Conv {
     //-----------------------------------------------------------------------------
     static void dupnum(NUMBER dest, NUMBER src) {
         dest.sign = src.sign;
-        for (int i = 0; i < src.mant.length(); i++) {
+        for (int i = 0; i < src.cdigit; i++) {
             dest.mant.set(i, src.mant.at(i));
         }
         dest.exp = src.exp;

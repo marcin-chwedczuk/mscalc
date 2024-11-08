@@ -194,6 +194,7 @@ public interface Num {
         }
         else
         { // But we do have to set the sign.
+            pa.set(DUPNUM(pa.deref())); // mc: Make a defensive copy to not modify original argument
             pa.deref().sign *= b.sign;
         }
     }
