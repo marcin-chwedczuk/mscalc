@@ -7,8 +7,8 @@ public class uintArray {
         this.array = new int[size];
     }
 
-    private uintArray(int[] array) {
-        this.array = array;
+    public uintArray(int[] array) {
+        this.array = array.clone();
     }
 
     public uint at(int idx) {

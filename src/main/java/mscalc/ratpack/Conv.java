@@ -8,8 +8,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static mscalc.WinErrorCrossPlatform.SUCCEEDED;
 import static mscalc.WinErrorCrossPlatform.S_OK;
+import static mscalc.ratpack.BaseX.mulnumx;
+import static mscalc.ratpack.BaseX.numpowi32x;
 import static mscalc.ratpack.CalcErr.CALC_E_INVALIDRANGE;
 import static mscalc.ratpack.CalcErr.CALC_E_OUTOFMEMORY;
+import static mscalc.ratpack.Num.addnum;
 import static mscalc.ratpack.RatPack.*;
 
 public interface Conv {
@@ -242,8 +245,8 @@ public interface Conv {
 //-----------------------------------------------------------------------------
 static NUMBER numtonRadixx(NUMBER a, uint radix)
 {
-    NUMBER pnumret = i32tonum(0, BASEX); // pnumret is the number in internal form.
-    NUMBER num_radix = i32tonum(radix.toInt(), BASEX);
+    Ptr<NUMBER> pnumret = new Ptr<>(i32tonum(0, BASEX)); // pnumret is the number in internal form.
+    Ptr<NUMBER> num_radix = new Ptr<>(i32tonum(radix.toInt(), BASEX));
     ArrayPtrUInt ptrdigit = a.mant.pointer(); // pointer to digit being worked on.
 
     // Digits are in reverse order, back over them LSD first.
@@ -252,27 +255,27 @@ static NUMBER numtonRadixx(NUMBER a, uint radix)
     NUMBER thisdigit = null; // thisdigit holds the current digit of a
     for (int idigit = 0; idigit < a.cdigit; idigit++)
     {
-        mulnumx(&pnumret, num_radix);
+        mulnumx(pnumret, num_radix.deref());
         // WARNING:
         // This should just smack in each digit into a 'special' thisdigit.
         // and not do the overhead of recreating the number type each time.
-        thisdigit = i32tonum(*ptrdigit--, BASEX);
-        addnum(&pnumret, thisdigit, BASEX);
+        thisdigit = i32tonum(ptrdigit.deref().raw(), BASEX);
+        ptrdigit.advance(-1);
+
+        addnum(pnumret, thisdigit, BASEX);
         destroynum(thisdigit);
     }
 
     // Calculate the exponent of the external base for scaling.
-    numpowi32x(&num_radix, a->exp);
+    numpowi32x(num_radix, a.exp);
 
     // ... and scale the result.
-    mulnumx(&pnumret, num_radix);
-
-    destroynum(num_radix);
+    mulnumx(pnumret, num_radix.deref());
 
     // And propagate the sign.
-    pnumret.sign = a.sign;
+    pnumret.deref().sign = a.sign;
 
-    return (pnumret);
+    return (pnumret.deref());
 }
 
     //-----------------------------------------------------------------------------

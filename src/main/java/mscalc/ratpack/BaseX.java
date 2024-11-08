@@ -6,8 +6,7 @@ import mscalc.cpp.uint;
 import mscalc.cpp.ulong;
 import mscalc.ratpack.RatPack.NUMBER;
 
-import static mscalc.ratpack.Conv.createnum;
-import static mscalc.ratpack.Conv.destroynum;
+import static mscalc.ratpack.Conv.*;
 import static mscalc.ratpack.RatPack.*;
 
 public interface BaseX {
@@ -143,4 +142,210 @@ public interface BaseX {
 
         pa.set(c);
     }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: numpowi32x
+    //
+    //    ARGUMENTS: root as number power as int32_t
+    //               number.
+    //
+    //    RETURN: None root is changed.
+    //
+    //    DESCRIPTION: changes numeric representation of root to
+    //    root ** power. Assumes base BASEX
+    //    decomposes the exponent into it's sums of powers of 2, so on average
+    //    it will take n+n/2 multiplies where n is the highest on bit.
+    //
+    //-----------------------------------------------------------------------------
+    static void numpowi32x(Ptr<NUMBER> proot, int power)
+    {
+        Ptr<NUMBER> lret = new Ptr<>(i32tonum(1, BASEX));
+
+        // Once the power remaining is zero we are done.
+        while (power > 0)
+        {
+            // If this bit in the power decomposition is on, multiply the result
+            // by the root number.
+            if ((power & 1) != 0)
+            {
+                mulnumx(lret, proot.deref());
+            }
+
+            // multiply the root number by itself to scale for the next bit (i.e.
+            // square it.
+            mulnumx(proot, proot.deref());
+
+            // move the next bit of the power into place.
+            power >>= 1;
+        }
+
+        proot.set(lret.deref());
+    }
+
+    //----------------------------------------------------------------------------
+    //
+    //    FUNCTION: divnumx
+    //
+    //    ARGUMENTS: pointer to a number, a second number and precision.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the number equivalent of *pa /= b.
+    //    Assumes radix is the internal radix representation.
+    //    This is a stub which prevents division by 1, this is a big speed
+    //    improvement.
+    //
+    //----------------------------------------------------------------------------
+    static void divnumx(Ptr<NUMBER> pa, NUMBER b, int precision)
+    {
+        if (b.cdigit > 1 || b.mant.at(0).notEq(1) || b.exp != 0)
+        {
+            // b is not one.
+            if (pa.deref().cdigit > 1 || pa.deref().mant.at(0).notEq(1) || pa.deref().exp != 0)
+            {
+                // pa and b are both not one.
+                _divnumx(pa, b, precision);
+            }
+        else
+            {
+                // if pa is one and b is not one, just copy b, and adjust the sign.
+                int sign = pa.deref().sign;
+                pa.set(DUPNUM(b));
+                pa.deref().sign *= sign;
+            }
+        }
+        else
+        {
+            // b is one so don't divide, but set the sign.
+            pa.deref().sign *= b.sign;
+        }
+    }
+
+    static void _divnumx(Ptr<NUMBER> pa, NUMBER b, int precision) {
+
+    }
+
+
+    //----------------------------------------------------------------------------
+    //
+    //    FUNCTION: _divnumx
+    //
+    //    ARGUMENTS: pointer to a number, a second number and precision.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the number equivalent of *pa /= b.
+    //    Assumes radix is the internal radix representation.
+    //
+    //----------------------------------------------------------------------------
+    /*
+    static void _divnumx(Ptr<NUMBER> pa, NUMBER b, int precision)
+    {
+        NUMBER a = null;       // a is the dereferenced number pointer from *pa
+        NUMBER c = null;       // c will contain the result.
+        NUMBER lasttmp = null; // lasttmp allows a backup when the algorithm
+        // guesses one bit too far.
+        NUMBER tmp = null;     // current guess being worked on for divide.
+        NUMBER rem = null;     // remainder after applying guess.
+        int cdigits;           // count of digits for answer.
+        ArrayPtrUInt ptrc;            // ptrc is a pointer to the mantissa of c.
+
+        int thismax = precision + g_ratio.get(); // set a maximum number of internal digits
+        // to shoot for in the divide.
+
+        a = pa.deref();
+        if (thismax < a.cdigit)
+        {
+            // a has more digits than precision specified, bump up digits to shoot
+            // for.
+            thismax = a.cdigit;
+        }
+
+        if (thismax < b.cdigit)
+        {
+            // b has more digits than precision specified, bump up digits to shoot
+            // for.
+            thismax = b.cdigit;
+        }
+
+        // Create c (the divide answer) and set up exponent and sign.
+        c = createnum(uint.of(thismax + 1));
+        c.exp = (a.cdigit + a.exp) - (b.cdigit + b.exp) + 1;
+        c.sign = a.sign * b.sign;
+
+        ptrc = c.mant.pointer();
+        ptrc.advance(thismax);
+
+        cdigits = 0;
+
+        rem = DUPNUM(a);
+        rem.sign = b.sign;
+        rem.exp = b.cdigit + b.exp - rem.cdigit;
+
+        while (cdigits++ < thismax && !zernum(rem))
+        {
+            int32_t digit = 0;
+        *ptrc = 0;
+            while (!lessnum(rem, b))
+            {
+                digit = 1;
+                DUPNUM(tmp, b);
+                destroynum(lasttmp);
+                lasttmp = i32tonum(0, BASEX);
+                while (lessnum(tmp, rem))
+                {
+                    destroynum(lasttmp);
+                    DUPNUM(lasttmp, tmp);
+                    addnum(&tmp, tmp, BASEX);
+                    digit *= 2;
+                }
+                if (lessnum(rem, tmp))
+                {
+                    // too far, back up...
+                    destroynum(tmp);
+                    digit /= 2;
+                    tmp = lasttmp;
+                    lasttmp = nullptr;
+                }
+
+                tmp->sign *= -1;
+                addnum(&rem, tmp, BASEX);
+                destroynum(tmp);
+                destroynum(lasttmp);
+            *ptrc |= digit;
+            }
+            rem->exp++;
+            ptrc--;
+        }
+        cdigits--;
+        if (c->mant != ++ptrc)
+        {
+            memmove(c->mant, ptrc, (int)(cdigits * sizeof(MANTTYPE)));
+        }
+
+        if (!cdigits)
+        {
+            // A zero, make sure no weird exponents creep in
+            c->exp = 0;
+            c->cdigit = 1;
+        }
+        else
+        {
+            c->cdigit = cdigits;
+            c->exp -= cdigits;
+            // prevent different kinds of zeros, by stripping leading duplicate
+            // zeros. digits are in order of increasing significance.
+            while (c->cdigit > 1 && c->mant[c->cdigit - 1] == 0)
+            {
+                c->cdigit--;
+            }
+        }
+
+        destroynum(rem);
+
+        destroynum(*pa);
+    *pa = c;
+    }
+    */
 }

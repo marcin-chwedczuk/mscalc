@@ -41,4 +41,9 @@ public class ArrayPtrUInt {
     public void setAt(int index, uint value) {
         arr[curr + index] = value.raw();
     }
+
+    public uint minusMinusDeref() {
+        advance(-1);
+        return deref();
+    }
 }

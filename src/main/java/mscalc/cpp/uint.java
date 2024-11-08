@@ -3,6 +3,9 @@ package mscalc.cpp;
 // In C++ when you mix singed & unsigned numbers in an expression,
 // unsigned always *wins* and the result is unsigned.
 public class uint {
+    public static final uint ZERO = of(0);
+    public static final uint ONE = of(1);
+
     public static uint of(int value) {
         return new uint(value);
     }
@@ -17,6 +20,10 @@ public class uint {
 
     public uint add(uint other) {
         return new uint(this.value + other.value);
+    }
+
+    public uint subtract(uint other) {
+        return new uint(this.value - other.value);
     }
 
     public int compareTo(uint other) {
@@ -53,5 +60,9 @@ public class uint {
 
     public boolean isZero() {
         return value == 0;
+    }
+
+    public boolean toBool() {
+        return value != 0;
     }
 }

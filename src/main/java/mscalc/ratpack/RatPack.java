@@ -88,7 +88,7 @@ public interface RatPack {
 
     // DUPNUM Duplicates a number taking care of allocation and internals
     static NUMBER DUPNUM(NUMBER b) {
-        NUMBER a = createnum(b.cdigit);
+        NUMBER a = createnum(uint.of(b.cdigit));
         dupnum(a, b);
         return a;
     }
