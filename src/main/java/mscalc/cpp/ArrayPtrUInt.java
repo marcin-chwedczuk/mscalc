@@ -12,12 +12,23 @@ public class ArrayPtrUInt {
         this.curr = curr;
     }
 
+    public boolean atBeginning() {
+        return curr == 0;
+    }
+
     public uint deref() { return uint.of(arr[curr]); }
     public uint derefPlusPlus() {
         try {
             return uint.of(arr[curr]); // TODO:
         } finally {
             advance();
+        }
+    }
+    public uint derefMinusMinus() {
+        try {
+            return uint.of(arr[curr]); // TODO:
+        } finally {
+            advance(-1);
         }
     }
 
@@ -46,4 +57,6 @@ public class ArrayPtrUInt {
         advance(-1);
         return deref();
     }
+
+
 }

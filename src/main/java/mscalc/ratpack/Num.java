@@ -6,9 +6,13 @@ import mscalc.cpp.uint;
 import mscalc.cpp.ulong;
 import mscalc.ratpack.RatPack.NUMBER;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static mscalc.ratpack.Conv.createnum;
+import static mscalc.ratpack.Conv.i32tonum;
 import static mscalc.ratpack.RatPack.DUPNUM;
 
 public interface Num {
@@ -270,5 +274,325 @@ public interface Num {
         }
 
         pa.set(c);
+    }
+
+
+    //----------------------------------------------------------------------------
+    //
+    //    FUNCTION: remnum
+    //
+    //    ARGUMENTS: pointer to a number a second number, and the
+    //               radix.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the number equivalent of *pa %= b.
+    //            Repeatedly subtracts off powers of 2 of b until *pa < b.
+    //
+    //
+    //----------------------------------------------------------------------------
+    static void remnum(Ptr<NUMBER> pa, NUMBER b, uint radix)
+    {
+        Ptr<NUMBER> tmp = new Ptr<>(null);     // tmp is the working remainder.
+        NUMBER lasttmp = null; // lasttmp is the last remainder which worked.
+
+        // Once *pa is less than b, *pa is the remainder.
+        while (!lessnum(pa.deref(), b))
+        {
+            tmp.set(DUPNUM(b));
+            if (lessnum(tmp.deref(), pa.deref()))
+            {
+                // Start off close to the right answer for subtraction.
+                tmp.deref().exp = pa.deref().cdigit + pa.deref().exp - tmp.deref().cdigit;
+                if (pa.deref().MSD().compareTo(tmp.deref().MSD()) <= 0)
+                {
+                    // Don't take the chance that the numbers are equal.
+                    tmp.deref().exp--;
+                }
+            }
+
+            lasttmp = i32tonum(0, radix);
+
+            while (lessnum(tmp.deref(), pa.deref()))
+            {
+                lasttmp = DUPNUM(tmp.deref());
+                addnum(tmp, tmp.deref(), radix);
+            }
+
+            if (lessnum(pa.deref(), tmp.deref()))
+            {
+                // too far, back up...
+                tmp.set(lasttmp);
+                lasttmp = null;
+            }
+
+            // Subtract the working remainder from the remainder holder.
+            tmp.deref().sign = -1 * pa.deref().sign;
+            addnum(pa, tmp.deref(), radix);
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //    FUNCTION: divnum
+    //
+    //    ARGUMENTS: pointer to a number a second number, and the
+    //               radix.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the number equivalent of *pa /= b.
+    //    Assumes radix is the radix of both numbers.
+    //
+    //---------------------------------------------------------------------------
+    static void divnum(Ptr<NUMBER> pa, NUMBER b, uint radix, int precision)
+    {
+        if (b.cdigit > 1 || b.mant.at(0).notEq(1) || b.exp != 0)
+        {
+            // b is not one
+            _divnum(pa, b, radix, precision);
+        }
+        else
+        { // But we do have to set the sign.
+            pa.deref().sign *= b.sign;
+        }
+    }
+
+    static void _divnum(Ptr<NUMBER> pa, NUMBER b, uint radix, int precision)
+    {
+        NUMBER a = pa.deref();
+        int thismax = precision + 2;
+        if (thismax < a.cdigit)
+        {
+            thismax = a.cdigit;
+        }
+
+        if (thismax < b.cdigit)
+        {
+            thismax = b.cdigit;
+        }
+
+        NUMBER c = createnum(uint.of(thismax + 1));
+        c.exp = (a.cdigit + a.exp) - (b.cdigit + b.exp) + 1;
+        c.sign = a.sign * b.sign;
+
+        ArrayPtrUInt ptrc = c.mant.pointer();
+        ptrc.advance(thismax);
+
+        Ptr<NUMBER> rem = new Ptr<>(null);
+        NUMBER tmp = null;
+        rem.set(DUPNUM(a));
+        tmp = DUPNUM(b);
+        tmp.sign = a.sign;
+        rem.deref().exp = b.cdigit + b.exp - rem.deref().cdigit;
+
+        // Build a table of multiplications of the divisor, this is quicker for
+        // more than radix 'digits'
+        List<NUMBER> numberList = new ArrayList<>();
+        numberList.add(i32tonum(0, radix));
+
+        for (long i = 1; i < radix.toULong().raw(); i++)
+        {
+            // TODO: Very inefficient
+            Ptr<NUMBER> newValue = new Ptr<>(DUPNUM(numberList.getFirst()));
+            addnum(newValue, tmp, radix);
+
+            numberList.addFirst(newValue.deref());
+        }
+        tmp = null;
+
+        int digit;
+        int cdigits = 0;
+        while (cdigits++ < thismax && !zernum(rem.deref()))
+        {
+            digit = radix.toInt() - 1;
+            NUMBER multiple = null;
+            for (NUMBER num : numberList)
+            {
+                if (!lessnum(rem.deref(), num) || 0 == --digit)
+                {
+                    multiple = num;
+                    break;
+                }
+            }
+
+            if (digit != 0)
+            {
+                multiple.sign *= -1;
+                addnum(rem, multiple, radix);
+                multiple.sign *= -1;
+            }
+            rem.deref().exp++;
+
+            ptrc.set(uint.of(digit));
+            ptrc.advance(-1);
+        }
+        cdigits--;
+
+        ptrc.advance();
+        if (!ptrc.atBeginning())
+        {
+            //  memmove(c->mant, ptrc, (int)(cdigits * sizeof(MANTTYPE)));
+            for (int k = 0; k < cdigits; k++) {
+                c.mant.set(k, ptrc.at(k));
+            }
+        }
+
+        if (cdigits == 0)
+        {
+            c.cdigit = 1;
+            c.exp = 0;
+        }
+        else
+        {
+            c.cdigit = cdigits;
+            c.exp -= cdigits;
+            while (c.cdigit > 1 && c.mant.at(c.cdigit - 1).isZero())
+            {
+                c.cdigit--;
+            }
+        }
+
+        pa.set(c);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //    FUNCTION: equnum
+    //
+    //    ARGUMENTS: two numbers.
+    //
+    //    RETURN: Boolean
+    //
+    //    DESCRIPTION: Does the number equivalent of ( a == b )
+    //    Only assumes that a and b are the same radix.
+    //
+    //---------------------------------------------------------------------------
+    static boolean equnum(NUMBER a, NUMBER b)
+    {
+        int diff;
+        ArrayPtrUInt pa;
+        ArrayPtrUInt pb;
+        int cdigits;
+        int ccdigits;
+        uint da;
+        uint db;
+
+        diff = (a.cdigit + a.exp) - (b.cdigit + b.exp);
+        if (diff < 0)
+        {
+            // If the exponents are different, these are different numbers.
+            return false;
+        }
+        else
+        {
+            if (diff > 0)
+            {
+                // If the exponents are different, these are different numbers.
+                return false;
+            }
+            else
+            {
+                // OK the exponents match.
+                pa = a.mant.pointer();
+                pb = b.mant.pointer();
+                pa.advance(a.cdigit - 1);
+                pb.advance(b.cdigit - 1);
+                cdigits = max(a.cdigit, b.cdigit);
+                ccdigits = cdigits;
+
+                // Loop over all digits until we run out of digits or there is a
+                // difference in the digits.
+                for (; cdigits > 0; cdigits--)
+                {
+                    da = ((cdigits > (ccdigits - a.cdigit)) ? pa.derefMinusMinus() : uint.ZERO);
+                    db = ((cdigits > (ccdigits - b.cdigit)) ? pb.derefMinusMinus() : uint.ZERO);
+                    if (da != db)
+                    {
+                        return false;
+                    }
+                }
+
+                // In this case, they are equal.
+                return true;
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //    FUNCTION: lessnum
+    //
+    //    ARGUMENTS: two numbers.
+    //
+    //    RETURN: Boolean
+    //
+    //    DESCRIPTION: Does the number equivalent of ( abs(a) < abs(b) )
+    //    Only assumes that a and b are the same radix, WARNING THIS IS AN.
+    //    UNSIGNED COMPARE!
+    //
+    //---------------------------------------------------------------------------
+    static boolean lessnum(NUMBER a, NUMBER b)
+    {
+        int diff = (a.cdigit + a.exp) - (b.cdigit + b.exp);
+        if (diff < 0)
+        {
+            // The exponent of a is less than b
+            return true;
+        }
+        if (diff > 0)
+        {
+            return false;
+        }
+        ArrayPtrUInt pa = a.mant.pointer();
+        ArrayPtrUInt pb = b.mant.pointer();
+        pa.advance( a.cdigit - 1 );
+        pb.advance( b.cdigit - 1 );
+        int cdigits = max(a.cdigit, b.cdigit);
+        int ccdigits = cdigits;
+        for (; cdigits > 0; cdigits--)
+        {
+            uint da = ((cdigits > (ccdigits - a.cdigit)) ? pa.derefMinusMinus() : uint.ZERO);
+            uint db = ((cdigits > (ccdigits - b.cdigit)) ? pb.derefMinusMinus() : uint.ZERO);
+            diff = da.subtract(db).toInt();
+            if (diff != 0)
+            {
+                return (diff < 0);
+            }
+        }
+        // In this case, they are equal.
+        return false;
+    }
+
+    //----------------------------------------------------------------------------
+    //
+    //    FUNCTION: zernum
+    //
+    //    ARGUMENTS: number
+    //
+    //    RETURN: Boolean
+    //
+    //    DESCRIPTION: Does the number equivalent of ( !a )
+    //
+    //----------------------------------------------------------------------------
+    static boolean zernum(NUMBER a)
+    {
+        int length;
+        ArrayPtrUInt pcha;
+        length = a.cdigit;
+        pcha = a.mant.pointer();
+
+        // loop over all the digits until you find a nonzero or until you run
+        // out of digits
+        while (length-- > 0)
+        {
+            if (pcha.derefPlusPlus().notEq(0))
+            {
+                // One of the digits isn't zero, therefore the number isn't zero
+                return false;
+            }
+        }
+        // All of the digits are zero, therefore the number is zero
+        return true;
     }
 }

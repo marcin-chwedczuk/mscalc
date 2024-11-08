@@ -72,6 +72,10 @@ public interface RatPack {
         protected NUMBER clone() {
             return new NUMBER(sign, cdigit, exp, mant.clone());
         }
+
+        public uint MSD() {
+            return this.mant.at(this.cdigit - 1);
+        }
     }
 
     //-----------------------------------------------------------------------------
@@ -100,4 +104,6 @@ public interface RatPack {
         a.pq = DUPNUM(b.pq);
         return a;
     }
+
+
 }
