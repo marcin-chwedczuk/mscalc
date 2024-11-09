@@ -14,8 +14,13 @@ import static mscalc.ratpack.Conv.*;
 import static mscalc.ratpack.Exp._exprat;
 import static mscalc.ratpack.Exp.lograt;
 import static mscalc.ratpack.ITrans.asinrat;
+import static mscalc.ratpack.Logic.remrat;
+import static mscalc.ratpack.Num.equnum;
+import static mscalc.ratpack.Num.zernum;
 import static mscalc.ratpack.Rat.*;
 import static mscalc.ratpack.RatPack.*;
+import static mscalc.ratpack.Support.Global.num_one;
+import static mscalc.ratpack.Support.Global.rat_one;
 
 public interface Support {
     int RATIO_FOR_DECIMAL = 9;
@@ -130,7 +135,7 @@ public interface Support {
         {
             g_ftrueinfinite.set(false);
 
-            Global.num_one = i32tonum(1, BASEX);
+            num_one = i32tonum(1, BASEX);
             Global.num_two = i32tonum(2, BASEX);
             Global.num_five = i32tonum(5, BASEX);
             Global.num_six = i32tonum(6, BASEX);
@@ -138,7 +143,7 @@ public interface Support {
             Global.rat_six = i32torat(6);
             Global.rat_two = i32torat(2);
             Global.rat_zero = i32torat(0);
-            Global.rat_one = i32torat(1);
+            rat_one = i32torat(1);
             Global.rat_neg_one = i32torat(-1);
             Global.rat_ten = i32torat(10);
             Global.rat_word = i32torat(0xffff);
@@ -167,7 +172,7 @@ public interface Support {
             if (Global.rat_half == null)
             {
                 Global.rat_half = createrat();
-                Global.rat_half.pp =  DUPNUM(Global.num_one);
+                Global.rat_half.pp =  DUPNUM(num_one);
                 Global.rat_half.pq = DUPNUM(Global.num_two);
             }
 
@@ -183,7 +188,7 @@ public interface Support {
             numpowi32(ppp, 64, BASEX, precision);
             Global.rat_qword.pp = ppp.deref();
             Ptr<RAT> ratp = new Ptr<>(Global.rat_qword);
-            subrat(ratp, Global.rat_one, precision);
+            subrat(ratp, rat_one, precision);
             Global.rat_qword = ratp.deref();
 
             Global.rat_dword = DUPRAT(Global.rat_two);
@@ -191,7 +196,7 @@ public interface Support {
             numpowi32(ppp, 32, BASEX, precision);
             Global.rat_dword.pp = ppp.deref();
             ratp = new Ptr<>(Global.rat_dword);
-            subrat(ratp, Global.rat_one, precision);
+            subrat(ratp, rat_one, precision);
             Global.rat_dword = ratp.deref();
 
             Global.rat_max_i32 = DUPRAT(Global.rat_two);
@@ -200,7 +205,7 @@ public interface Support {
             Global.rat_max_i32.pp = ppp.deref();
             Global.rat_min_i32 = DUPRAT(Global.rat_max_i32);
             ratp = new Ptr<>(Global.rat_max_i32);
-            subrat(ratp, Global.rat_one, precision); // rat_max_i32 = 2^31 -1
+            subrat(ratp, rat_one, precision); // rat_max_i32 = 2^31 -1
             Global.rat_max_i32 = ratp.deref();
 
             Global.rat_min_i32.pp.sign *= -1; // rat_min_i32 = -2^31
@@ -240,7 +245,7 @@ public interface Support {
             _exprat(ratp, extraPrecision);
             Global.e_to_one_half = ratp.deref();
 
-            Global.rat_exp = DUPRAT(Global.rat_one);
+            Global.rat_exp = DUPRAT(rat_one);
             ratp = new Ptr<>(Global.rat_exp);
             _exprat(ratp, extraPrecision);
             Global.rat_exp = ratp.deref();
@@ -282,7 +287,7 @@ public interface Support {
     }
 
     static void _readconstants() {
-        Global.num_one = RatConst.init_num_one.clone();
+        num_one = RatConst.init_num_one.clone();
         Global.num_two = RatConst.init_num_two.clone();
         Global.num_five = RatConst.init_num_five.clone();
         Global.num_six = RatConst.init_num_six.clone();
@@ -292,7 +297,7 @@ public interface Support {
         Global.rat_six = new RAT(RatConst.init_p_rat_six, RatConst.init_q_rat_six);
         Global.rat_two = new RAT(RatConst.init_p_rat_two, RatConst.init_q_rat_two);
         Global.rat_zero = new RAT(RatConst.init_p_rat_zero, RatConst.init_q_rat_zero);
-        Global.rat_one = new RAT(RatConst.init_p_rat_one, RatConst.init_q_rat_one);
+        rat_one = new RAT(RatConst.init_p_rat_one, RatConst.init_q_rat_one);
         Global.rat_neg_one = new RAT(RatConst.init_p_rat_neg_one, RatConst.init_q_rat_neg_one);
         Global.rat_half = new RAT(RatConst.init_p_rat_half, RatConst.init_q_rat_half);
         Global.rat_ten = new RAT(RatConst.init_p_rat_ten, RatConst.init_q_rat_ten);
@@ -322,6 +327,161 @@ public interface Support {
         Global.rat_min_fact = new RAT(RatConst.init_p_rat_min_fact, RatConst.init_q_rat_min_fact);
         Global.rat_min_i32 = new RAT(RatConst.init_p_rat_min_i32, RatConst.init_q_rat_min_i32);
         Global.rat_max_i32 = new RAT(RatConst.init_p_rat_max_i32, RatConst.init_q_rat_max_i32);
+    }
+
+    //----------------------------------------------------------------------------
+    //
+    //  FUNCTION: intrat
+    //
+    //  ARGUMENTS:  pointer to x PRAT representation of number
+    //
+    //  RETURN: no return value x PRAT is smashed with integral number
+    //
+    //
+    //----------------------------------------------------------------------------
+    static void intrat(Ptr<RAT> px, uint radix, int precision)
+    {
+        // Only do the intrat operation if number is nonzero.
+        // and only if the bottom part is not one.
+        if (!zernum(px.deref().pp) && !equnum(px.deref().pq, num_one))
+        {
+            flatrat(px, radix, precision);
+
+            // Subtract the fractional part of the rational
+            Ptr<RAT> pret = new Ptr<>(DUPRAT(px.deref()));
+            remrat(pret, rat_one);
+
+            subrat(px, pret.deref(), precision);
+
+            // Simplify the value if possible to resolve rounding errors
+            flatrat(px, radix, precision);
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: rat_equ
+    //
+    //  ARGUMENTS:  PRAT a and PRAT b
+    //
+    //  RETURN: true if equal false otherwise.
+    //
+    //
+    //---------------------------------------------------------------------------
+    static boolean rat_equ(RAT a, RAT b, int precision)
+    {
+        Ptr<RAT> rattmp = new Ptr<>(DUPRAT(a));
+
+        rattmp.deref().pp.sign *= -1;
+        addrat(rattmp, b, precision);
+
+        boolean bret = zernum(rattmp.deref().pp);
+        return (bret);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: rat_ge
+    //
+    //  ARGUMENTS:  PRAT a, PRAT b and int32_t precision
+    //
+    //  RETURN: true if a is greater than or equal to b
+    //
+    //
+    //---------------------------------------------------------------------------
+    static boolean rat_ge(RAT a, RAT b, int precision)
+    {
+        Ptr<RAT> rattmp = new Ptr<>(DUPRAT(a));
+
+        b.pp.sign *= -1;
+        addrat(rattmp, b, precision);
+        b.pp.sign *= -1;
+
+        boolean bret = (zernum(rattmp.deref().pp) || rattmp.deref().SIGN() == 1);
+        return (bret);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: rat_gt
+    //
+    //  ARGUMENTS:  PRAT a and PRAT b
+    //
+    //  RETURN: true if a is greater than b
+    //
+    //
+    //---------------------------------------------------------------------------
+    static boolean rat_gt(RAT a, RAT b, int precision)
+    {
+        Ptr<RAT> rattmp = new Ptr<>(DUPRAT(a));
+        b.pp.sign *= -1;
+        addrat(rattmp, b, precision);
+        b.pp.sign *= -1;
+
+        boolean bret = (!zernum(rattmp.deref().pp) && rattmp.deref().SIGN() == 1);
+        return (bret);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: rat_le
+    //
+    //  ARGUMENTS:  PRAT a, PRAT b and int32_t precision
+    //
+    //  RETURN: true if a is less than or equal to b
+    //
+    //
+    //---------------------------------------------------------------------------
+    static boolean rat_le(RAT a, RAT b, int precision)
+    {
+        Ptr<RAT> rattmp = new Ptr<>(DUPRAT(a));
+        b.pp.sign *= -1;
+        addrat(rattmp, b, precision);
+        b.pp.sign *= -1;
+
+        boolean bret = (zernum(rattmp.deref().pp) || rattmp.deref().SIGN() == -1);
+        return (bret);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: rat_lt
+    //
+    //  ARGUMENTS:  PRAT a, PRAT b and int32_t precision
+    //
+    //  RETURN: true if a is less than b
+    //
+    //
+    //---------------------------------------------------------------------------
+    static boolean rat_lt(RAT a, RAT b, int precision)
+    {
+        Ptr<RAT> rattmp = new Ptr<>(DUPRAT(a));
+        b.pp.sign *= -1;
+        addrat(rattmp, b, precision);
+        b.pp.sign *= -1;
+
+        boolean bret = (!zernum(rattmp.deref().pp) && rattmp.deref().SIGN() == -1);
+        return (bret);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: rat_neq
+    //
+    //  ARGUMENTS:  PRAT a and PRAT b
+    //
+    //  RETURN: true if a is not equal to b
+    //
+    //
+    //---------------------------------------------------------------------------
+    static boolean rat_neq(RAT a, RAT b, int precision)
+    {
+        Ptr<RAT> rattmp = new Ptr<>(DUPRAT(a));
+        rattmp.deref().pp.sign *= -1;
+        addrat(rattmp, b, precision);
+
+        boolean bret = !(zernum(rattmp.deref().pp));
+        return (bret);
     }
 
     class Global {

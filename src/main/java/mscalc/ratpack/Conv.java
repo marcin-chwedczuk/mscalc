@@ -9,16 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static java.lang.Math.abs;
 import static mscalc.WinErrorCrossPlatform.SUCCEEDED;
 import static mscalc.WinErrorCrossPlatform.S_OK;
-import static mscalc.ratpack.BaseX.mulnumx;
-import static mscalc.ratpack.BaseX.numpowi32x;
-import static mscalc.ratpack.CalcErr.CALC_E_INVALIDRANGE;
-import static mscalc.ratpack.CalcErr.CALC_E_OUTOFMEMORY;
+import static mscalc.ratpack.BaseX.*;
+import static mscalc.ratpack.CalcErr.*;
 import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.Rat.mulrat;
 import static mscalc.ratpack.RatPack.*;
-import static mscalc.ratpack.Support.Global.num_two;
-import static mscalc.ratpack.Support.Global.num_two;
-import static mscalc.ratpack.Support.trimit;
+import static mscalc.ratpack.Support.*;
+import static mscalc.ratpack.Support.Global.*;
 
 public interface Conv {
     int UINT32_MAX = (int) 0xffffffff;
@@ -1099,5 +1096,95 @@ public interface Conv {
 
             proot.set(lret.deref());
         }
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: Ui32torat
+    //
+    //    ARGUMENTS: ui32
+    //
+    //    RETURN: Rational representation of uint32_t input.
+    //
+    //    DESCRIPTION: Converts uint32_t input to rational (p over q)
+    //    form, where q is 1 and p is the uint32_t. Being unsigned cant take negative
+    //    numbers, but the full range of unsigned numbers
+    //
+    //-----------------------------------------------------------------------------
+    static RAT Ui32torat(uint inui32)
+    {
+        RAT pratret = createrat();
+        pratret.pp = Ui32tonum(inui32, BASEX);
+        pratret.pq = i32tonum(1, BASEX);
+        return (pratret);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: Ui32tonum
+    //
+    //    ARGUMENTS: uint32_t input and radix requested.
+    //
+    //    RETURN: number
+    //
+    //    DESCRIPTION: Returns a number representation in the
+    //    base   requested of the uint32_t value passed in. Being unsigned number it has no
+    //    negative number and takes the full range of unsigned number
+    //
+    //-----------------------------------------------------------------------------
+    static NUMBER Ui32tonum(uint ini32, uint radix)
+    {
+        NUMBER pnumret = createnum(MAX_LONG_SIZE);
+
+        ArrayPtrUInt pmant = pnumret.mant.pointer();
+        pnumret.cdigit = 0;
+        pnumret.exp = 0;
+        pnumret.sign = 1;
+
+        do
+        {
+            pmant.set(ini32.modulo(radix));
+            pmant.advance();
+
+            ini32 = ini32.divide(radix);
+            pnumret.cdigit++;
+        } while (!ini32.isZero());
+
+        return (pnumret);
+    }
+
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: rattoi32
+    //
+    //    ARGUMENTS: rational number in internal base, integer radix and int32_t precision.
+    //
+    //    RETURN: int32_t
+    //
+    //    DESCRIPTION: returns the int32_t representation of the
+    //    number input.  Assumes that the number is in the internal
+    //    base.
+    //
+    //-----------------------------------------------------------------------------
+    static int rattoi32(RAT prat, uint radix, int precision)
+    {
+        if (rat_gt(prat, rat_max_i32, precision) || rat_lt(prat, rat_min_i32, precision))
+        {
+            // Don't attempt rattoi32 of anything too big or small
+            throw new ErrorCodeException(CALC_E_DOMAIN);
+        }
+
+        Ptr<RAT> pint = new Ptr<>(DUPRAT(prat));
+        intrat(pint, radix, precision);
+
+        Ptr<NUMBER> ppp = new Ptr<>(pint.deref().pp);
+        divnumx(ppp, pint.deref().pq, precision);
+        pint.deref().pp = ppp.deref();
+
+        pint.deref().pq = DUPNUM(num_one);
+
+        int lret = numtoi32(pint.deref().pp, BASEX);
+        return (lret);
     }
 }
