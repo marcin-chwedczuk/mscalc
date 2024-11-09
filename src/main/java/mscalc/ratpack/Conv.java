@@ -6,14 +6,16 @@ import mscalc.ratpack.RatPack.RAT;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Math.abs;
 import static mscalc.WinErrorCrossPlatform.SUCCEEDED;
 import static mscalc.WinErrorCrossPlatform.S_OK;
 import static mscalc.ratpack.BaseX.mulnumx;
 import static mscalc.ratpack.BaseX.numpowi32x;
 import static mscalc.ratpack.CalcErr.CALC_E_INVALIDRANGE;
 import static mscalc.ratpack.CalcErr.CALC_E_OUTOFMEMORY;
-import static mscalc.ratpack.Num.addnum;
+import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.RatPack.*;
+import static mscalc.ratpack.Support.num_two;
 
 public interface Conv {
     int UINT32_MAX = (int) 0xffffffff;
@@ -336,5 +338,263 @@ public interface Conv {
         return lret;
     }
 
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: bool stripzeroesnum
+    //
+    //    ARGUMENTS:            a number representation
+    //
+    //    RETURN: true if stripping done, modifies number in place.
+    //
+    //    DESCRIPTION: Strips off trailing zeros.
+    //
+    //-----------------------------------------------------------------------------
+    static boolean stripzeroesnum(Ptr<NUMBER> pnum, int starting)
+    {
+        boolean fstrip = false;
+        // point pmant to the LeastCalculatedDigit
+        ArrayPtrUInt pmant = pnum.deref().mant.pointer();
+        int cdigits = pnum.deref().cdigit;
+        // point pmant to the LSD
+        if (cdigits > starting)
+        {
+            pmant.advance( cdigits - starting );
+            cdigits = starting;
+        }
 
+        // Check we haven't gone too far, and we are still looking at zeros.
+        while ((cdigits > 0) && !pmant.deref().toBool())
+        {
+            // move to next significant digit and keep track of digits we can
+            // ignore later.
+            pmant.advance();
+            cdigits--;
+            fstrip = true;
+        }
+
+        // If there are zeros to remove.
+        if (fstrip)
+        {
+            // Remove them.
+            // memmove(pnum->mant, pmant, (int)(cdigits * sizeof(MANTTYPE)));
+            for (int k = 0; k < cdigits; k++) {
+                pnum.deref().mant.set(k, pmant.at(k));
+            }
+
+            // And adjust exponent and digit count accordingly.
+            pnum.deref().exp += (pnum.deref().cdigit - cdigits);
+            pnum.deref().cdigit = cdigits;
+        }
+
+        return (fstrip);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: NumberToString
+    //
+    //    ARGUMENTS: number representation
+    //          fmt, one of NumberFormat::Float, NumberFormat::Scientific or
+    //          NumberFormat::Engineering
+    //          integer radix and int32_t precision value
+    //
+    //    RETURN: String representation of number.
+    //
+    //    DESCRIPTION: Converts a number to its string
+    //    representation.
+    //
+    //-----------------------------------------------------------------------------
+    static String NumberToString(Ptr<NUMBER> pnum, NumberFormat format, uint radix, int precision)
+    {
+        stripzeroesnum(pnum, precision + 2);
+        int length = pnum.deref().cdigit;
+        int exponent = pnum.deref().exp + length; // Actual number of digits to the left of decimal
+
+        NumberFormat oldFormat = format;
+        if (exponent > precision && format == NumberFormat.Float)
+        {
+            // Force scientific mode to prevent user from assuming 33rd digit is exact.
+            format = NumberFormat.Scientific;
+        }
+
+        // Make length small enough to fit in pret.
+        if (length > precision)
+        {
+            length = precision;
+        }
+
+        // If there is a chance a round has to occur, round.
+        // - if number is zero no rounding
+        // - if number of digits is less than the maximum output no rounding
+        Ptr<NUMBER> round = new Ptr<>();
+        if (!zernum(pnum.deref()) && (pnum.deref().cdigit >= precision || (length - exponent > precision && exponent >= -MAX_ZEROS_AFTER_DECIMAL)))
+        {
+            // Otherwise round.
+            round.set(i32tonum(radix.toInt(), radix));
+            divnum(round, num_two, radix, precision);
+
+            // Make round number exponent one below the LSD for the number.
+            if (exponent > 0 || format == NumberFormat.Float)
+            {
+                round.deref().exp = pnum.deref().exp + pnum.deref().cdigit - round.deref().cdigit - precision;
+            }
+            else
+            {
+                round.deref().exp = pnum.deref().exp + pnum.deref().cdigit - round.deref().cdigit - precision - exponent;
+                length = precision + exponent;
+            }
+
+            round.deref().sign = pnum.deref().sign;
+        }
+
+        if (format == NumberFormat.Float)
+        {
+            // Figure out if the exponent will fill more space than the non-exponent field.
+            if ((length - exponent > precision) || (exponent > precision + 3))
+            {
+                if (exponent >= -MAX_ZEROS_AFTER_DECIMAL)
+                {
+                    round.deref().exp -= exponent;
+                    length = precision + exponent;
+                }
+                else
+                {
+                    // Case where too many zeros are to the right or left of the
+                    // decimal pt. And we are forced to switch to scientific form.
+                    format = NumberFormat.Scientific;
+                }
+            }
+            else if (length + abs(exponent) < precision && !round.isNull())
+            {
+                // Minimum loss of precision occurs with listing leading zeros
+                // if we need to make room for zeros sacrifice some digits.
+                round.deref().exp -= exponent;
+            }
+        }
+
+        if (!round.isNull())
+        {
+            addnum(pnum, round.deref(), radix);
+            int offset = (pnum.deref().cdigit + pnum.deref().exp) - (round.deref().cdigit + round.deref().exp);
+            if (stripzeroesnum(pnum, offset))
+            {
+                // WARNING: nesting/recursion, too much has been changed, need to
+                // re-figure format.
+                return NumberToString(pnum, oldFormat, radix, precision);
+            }
+        }
+        else
+        {
+            stripzeroesnum(pnum, precision);
+        }
+
+        // Set up all the post rounding stuff.
+        boolean useSciForm = false;
+        int eout = exponent - 1; // Displayed exponent.
+        ArrayPtrUInt pmant = pnum.deref().mant.pointer();
+        pmant.advance(pnum.deref().cdigit - 1);
+        // Case where too many digits are to the left of the decimal or
+        // NumberFormat::Scientific or NumberFormat::Engineering was specified.
+        if ((format == NumberFormat.Scientific) || (format == NumberFormat.Engineering))
+        {
+            useSciForm = true;
+            if (eout != 0)
+            {
+                if (format == NumberFormat.Engineering)
+                {
+                    exponent = (eout % 3);
+                    eout -= exponent;
+                    exponent++;
+
+                    // Fix the case where 0.02e-3 should really be 2.e-6 etc.
+                    if (exponent < 0)
+                    {
+                        exponent += 3;
+                        eout -= 3;
+                    }
+                }
+                else
+                {
+                    exponent = 1;
+                }
+            }
+        }
+        else
+        {
+            eout = 0;
+        }
+
+        // Begin building the result string
+        StringBuilder result = new StringBuilder();
+
+        // Make sure negative zeros aren't allowed.
+        if ((pnum.deref().sign == -1) && (length > 0))
+        {
+            result.append('-');
+        }
+
+        if (exponent <= 0 && !useSciForm)
+        {
+            result.append('0');
+            result.append(g_decimalSeparator.deref());
+            // Used up a digit unaccounted for.
+        }
+
+        while (exponent < 0)
+        {
+            result.append('0');
+            exponent++;
+        }
+
+        while (length > 0)
+        {
+            exponent--;
+            result.append( DIGITS.charAt(pmant.derefMinusMinus().toInt()) );
+            length--;
+
+            // Be more regular in using a decimal point.
+            if (exponent == 0)
+            {
+                result.append(g_decimalSeparator.deref());
+            }
+        }
+
+        while (exponent > 0)
+        {
+            result.append('0');
+            exponent--;
+            // Be more regular in using a decimal point.
+            if (exponent == 0)
+            {
+                result.append(g_decimalSeparator.deref());
+            }
+        }
+
+        if (useSciForm)
+        {
+            result.append(radix.toInt() == 10 ? 'e' : '^');
+            result.append(eout < 0 ? '-' : '+');
+            eout = abs(eout);
+
+            StringBuilder expString = new StringBuilder();
+            do
+            {
+                // TODO: Check % unsigned here?
+                expString.append( DIGITS.charAt(eout % radix.toInt()) );
+                eout /= radix.toInt();
+            } while (eout > 0);
+
+            // result.insert(result.end(), expString.crbegin(), expString.crend());
+            // TODO: May be buggy
+            result.append(expString.reverse());
+        }
+
+        // Remove trailing decimal
+        if (!result.isEmpty() && result.charAt(result.length()-1) == g_decimalSeparator.deref())
+        {
+            result.setLength(result.length()-1);
+        }
+
+        return result.toString();
+    }
 }

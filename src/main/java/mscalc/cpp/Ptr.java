@@ -18,4 +18,8 @@ public class Ptr<T> {
     public void set(T value) {
         this.value = value;
     }
+
+    public boolean isNull() {
+        return value == null;
+    }
 }

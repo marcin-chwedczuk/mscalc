@@ -1,14 +1,18 @@
 package mscalc.ratpack;
 
+import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.ratpack.RatPack.NUMBER;
 import org.junit.jupiter.api.Test;
 
-import static mscalc.ratpack.Conv.i32tonum;
-import static mscalc.ratpack.Conv.numtoi32;
+import static mscalc.ratpack.Conv.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConversionTests {
+    private static final uint RADIX_2 = uint.of(2);
+    private static final uint RADIX_10 = uint.of(10);
+    private static final uint RADIX_16 = uint.of(16);
+
     @Test
     public void number_int_roundtrip_conversion() {
         int[] data = { -1993, -2, -1, 0, 1, 2, 393, 1818383 };
@@ -22,5 +26,153 @@ public class ConversionTests {
                 assertEquals(d, roundtripped, "failed for d= " + d + ", r = " + r);
             }
         }
+    }
+
+    @Test
+    public void NumberToString_works_radix10_float() {
+        Ptr<NUMBER> n1993 = new Ptr<>(i32tonum(1993, RADIX_10));
+        Ptr<NUMBER> nm1993 = new Ptr<>(i32tonum(-1993, RADIX_10));
+        Ptr<NUMBER> n3899474 = new Ptr<>(i32tonum(3899474, RADIX_10));
+        Ptr<NUMBER> one = new Ptr<>(i32tonum(1, RADIX_10));
+        Ptr<NUMBER> zero = new Ptr<>(i32tonum(0, RADIX_10));
+
+        String result = NumberToString(n1993, RatPack.NumberFormat.Float, RADIX_10, 10);
+        assertEquals("1993", result);
+
+        result = NumberToString(nm1993, RatPack.NumberFormat.Float, RADIX_10, 10);
+        assertEquals("-1993", result);
+
+        result = NumberToString(n3899474, RatPack.NumberFormat.Float, RADIX_10, 10);
+        assertEquals("3899474", result);
+
+        // Lower precision aka number of significant digits
+        result = NumberToString(n3899474, RatPack.NumberFormat.Float, RADIX_10, 2);
+        assertEquals("3.9e+6", result);
+
+        result = NumberToString(one, RatPack.NumberFormat.Float, RADIX_10, 10);
+        assertEquals("1", result);
+
+        result = NumberToString(zero, RatPack.NumberFormat.Float, RADIX_10, 10);
+        assertEquals("0", result);
+    }
+
+    @Test
+    public void NumberToString_works_radix2_float() {
+        Ptr<NUMBER> n1993 = new Ptr<>(i32tonum(1993, RADIX_2));
+        Ptr<NUMBER> nm1993 = new Ptr<>(i32tonum(-1993, RADIX_2));
+        Ptr<NUMBER> n3899474 = new Ptr<>(i32tonum(3899474, RADIX_2));
+        Ptr<NUMBER> one = new Ptr<>(i32tonum(1, RADIX_2));
+        Ptr<NUMBER> zero = new Ptr<>(i32tonum(0, RADIX_2));
+
+        String result = NumberToString(n1993, RatPack.NumberFormat.Float, RADIX_2, 20);
+        assertEquals("11111001001", result);
+
+        result = NumberToString(nm1993, RatPack.NumberFormat.Float, RADIX_2, 20);
+        assertEquals("-11111001001", result);
+
+        result = NumberToString(n3899474, RatPack.NumberFormat.Float, RADIX_2, 40);
+        assertEquals("1110111000000001010010", result);
+
+        // Lower precision aka number of significant digits
+        result = NumberToString(n3899474, RatPack.NumberFormat.Float, RADIX_2, 20);
+        assertEquals("1.1101110000000010101^+10101", result); // TODO: Check with win calc.exe
+
+        result = NumberToString(one, RatPack.NumberFormat.Float, RADIX_2, 20);
+        assertEquals("1", result);
+
+        result = NumberToString(zero, RatPack.NumberFormat.Float, RADIX_2, 20);
+        assertEquals("0", result);
+    }
+
+    @Test
+    public void NumberToString_works_radix16_float() {
+        Ptr<NUMBER> n1993 = new Ptr<>(i32tonum(1993, RADIX_16));
+        Ptr<NUMBER> nm1993 = new Ptr<>(i32tonum(-1993, RADIX_16));
+        Ptr<NUMBER> n3899474 = new Ptr<>(i32tonum(3899474, RADIX_16));
+        Ptr<NUMBER> one = new Ptr<>(i32tonum(1, RADIX_16));
+        Ptr<NUMBER> zero = new Ptr<>(i32tonum(0, RADIX_16));
+
+        String result = NumberToString(n1993, RatPack.NumberFormat.Float, RADIX_16, 10);
+        assertEquals("7C9", result);
+
+        result = NumberToString(nm1993, RatPack.NumberFormat.Float, RADIX_16, 10);
+        assertEquals("-7C9", result);
+
+        result = NumberToString(n3899474, RatPack.NumberFormat.Float, RADIX_16, 10);
+        assertEquals("3B8052", result);
+
+        // Lower precision aka number of significant digits
+        result = NumberToString(n3899474, RatPack.NumberFormat.Float, RADIX_16, 2);
+        assertEquals("3.C^+5", result);
+
+        result = NumberToString(one, RatPack.NumberFormat.Float, RADIX_16, 10);
+        assertEquals("1", result);
+
+        result = NumberToString(zero, RatPack.NumberFormat.Float, RADIX_16, 10);
+        assertEquals("0", result);
+    }
+
+    @Test
+    public void NumberToString_works_radix10_scientific() {
+        Ptr<NUMBER> n1993 = new Ptr<>(i32tonum(1993, RADIX_10));
+        Ptr<NUMBER> nm1993 = new Ptr<>(i32tonum(-1993, RADIX_10));
+        Ptr<NUMBER> n3899474 = new Ptr<>(i32tonum(3899474, RADIX_10));
+        Ptr<NUMBER> one = new Ptr<>(i32tonum(1, RADIX_10));
+        Ptr<NUMBER> zero = new Ptr<>(i32tonum(0, RADIX_10));
+
+        String result = NumberToString(n1993, RatPack.NumberFormat.Scientific, RADIX_10, 10);
+        assertEquals("1.993e+3", result);
+
+        result = NumberToString(nm1993, RatPack.NumberFormat.Scientific, RADIX_10, 10);
+        assertEquals("-1.993e+3", result);
+
+        result = NumberToString(n3899474, RatPack.NumberFormat.Scientific, RADIX_10, 10);
+        assertEquals("3.899474e+6", result);
+
+        // Lower precision aka number of significant digits
+        result = NumberToString(n3899474, RatPack.NumberFormat.Scientific, RADIX_10, 2);
+        assertEquals("3.9e+6", result);
+
+        result = NumberToString(one, RatPack.NumberFormat.Scientific, RADIX_10, 10);
+        assertEquals("1.e+0", result);
+
+        result = NumberToString(zero, RatPack.NumberFormat.Scientific, RADIX_10, 10);
+        assertEquals("0.e+0", result);
+    }
+
+    @Test
+    public void NumberToString_works_radix10_engineering() {
+        /*
+        The only difference between scientific notation and engineering notation is
+        that for engineering notation the exponent is always a multiple of three.
+         */
+        Ptr<NUMBER> n1993 = new Ptr<>(i32tonum(1993, RADIX_10));
+        Ptr<NUMBER> nm1993 = new Ptr<>(i32tonum(-1993, RADIX_10));
+        Ptr<NUMBER> n3899474 = new Ptr<>(i32tonum(3899474, RADIX_10));
+        Ptr<NUMBER> one = new Ptr<>(i32tonum(1, RADIX_10));
+        Ptr<NUMBER> zero = new Ptr<>(i32tonum(0, RADIX_10));
+        Ptr<NUMBER> n19932 = new Ptr<>(i32tonum(19932, RADIX_10));
+
+        String result = NumberToString(n1993, RatPack.NumberFormat.Engineering, RADIX_10, 10);
+        assertEquals("1.993e+3", result);
+
+        result = NumberToString(nm1993, RatPack.NumberFormat.Engineering, RADIX_10, 10);
+        assertEquals("-1.993e+3", result);
+
+        result = NumberToString(n3899474, RatPack.NumberFormat.Engineering, RADIX_10, 10);
+        assertEquals("3.899474e+6", result);
+
+        // Lower precision aka number of significant digits
+        result = NumberToString(n3899474, RatPack.NumberFormat.Engineering, RADIX_10, 2);
+        assertEquals("3.9e+6", result);
+
+        result = NumberToString(one, RatPack.NumberFormat.Engineering, RADIX_10, 10);
+        assertEquals("1.e+0", result);
+
+        result = NumberToString(zero, RatPack.NumberFormat.Engineering, RADIX_10, 10);
+        assertEquals("0.e+0", result);
+
+        result = NumberToString(n19932, RatPack.NumberFormat.Engineering, RADIX_10, 10);
+        assertEquals("19.932e+3", result);
     }
 }
