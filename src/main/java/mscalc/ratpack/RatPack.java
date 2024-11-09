@@ -5,13 +5,17 @@ import mscalc.cpp.uint;
 import mscalc.cpp.uintArray;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import static mscalc.ratpack.BaseX.mulnumx;
 import static mscalc.ratpack.Conv.*;
+import static mscalc.ratpack.Num.addnum;
 import static mscalc.ratpack.Num.zernum;
 import static mscalc.ratpack.Rat.addrat;
 import static mscalc.ratpack.Rat.mulrat;
+import static mscalc.ratpack.Support.Global.num_one;
 import static mscalc.ratpack.Support.g_ftrueinfinite;
+import static mscalc.ratpack.Support.trimit;
 
 public interface RatPack {
     uint MAX_LONG_SIZE = uint.of(33); // Base 2 requires 32 'digits'
@@ -142,13 +146,25 @@ enum AngleType
     //-----------------------------------------------------------------------------
     class RAT // _rat
     {
-        NUMBER pp;
-        NUMBER pq;
+        public NUMBER pp;
+        public NUMBER pq;
 
         public RAT() { }
         public RAT(NUMBER pp, NUMBER pq) {
             this.pp = pp.clone();
             this.pq = pq.clone();
+        }
+
+        public void ppPtr(Consumer<Ptr<NUMBER>> work) {
+            Ptr<RatPack.NUMBER> ppp = new Ptr<>(this.pp);
+            work.accept(ppp);
+            pp = ppp.deref();
+        }
+
+        public void pqPtr(Consumer<Ptr<NUMBER>> work) {
+            Ptr<RatPack.NUMBER> ppq = new Ptr<>(this.pq);
+            work.accept(ppq);
+            pq = ppq.deref();
         }
 
         public int LOGRATRADIX() {
@@ -196,20 +212,35 @@ enum AngleType
         }
 
         public boolean SMALL_ENOUGH_RAT(int precision) {
-            return (zernum(pp) || (((pq.cdigit + pq.exp) - (pp.cdigit + pp.exp) - 1) * g_ratio.get() > precision));
+            return zernum(pp) || (((pq.cdigit + pq.exp) - (pp.cdigit + pp.exp) - 1) * g_ratio.get() > precision);
         }
     }
 
     class TYLOR {
+        private final int precision;
         public RAT xx = null;
         public NUMBER n2 = null;
         public RAT pret = null;
         public RAT thisterm = null;
 
-        public TYLOR(RAT px) {
-            xx = DUPRAT(px);
-            // mulrat(&xx, *px, precision);
-            // TODO: Finish
+        public TYLOR(RAT px, int precision) {
+            this.precision = precision;
+
+            Ptr<RAT> pxx = new Ptr<>(DUPRAT(px));
+            mulrat(pxx, px, precision);
+            this.xx = pxx.deref();
+
+            this.pret = new RAT();
+            pret.pp = i32tonum(0, BASEX);
+            pret.pq = i32tonum(0, BASEX);
+        }
+
+        public RAT RESULT() {
+            Ptr<RAT> prat = new Ptr<>(pret);
+            trimit(prat, precision);
+            this.pret = prat.deref();
+
+            return this.pret;
         }
 
         // MULNUM(b) is the rational equivalent of thisterm *= b where thisterm is
@@ -219,6 +250,19 @@ enum AngleType
             Ptr<NUMBER> ppp = new Ptr<>(thisterm.pp);
             mulnumx(ppp, b);
             thisterm.pp = ppp.deref();
+        }
+
+        // INC(a) is the rational equivalent of a++
+        // Check to see if we can avoid doing this the hard way.
+        public NUMBER INC(NUMBER a) {
+            if (a.mant.at(0).compareTo(BASEX.subtract(uint.ONE)) < 0) {
+                a.mant.set(0, a.mant.at(0).add(uint.ONE));
+                return a;
+            } else {
+                Ptr<NUMBER> tmp = new Ptr<>(a);
+                addnum(tmp, num_one, BASEX);
+                return tmp.deref();
+            }
         }
 
         // DIVNUM(b) is the rational equivalent of thisterm /= b where thisterm is

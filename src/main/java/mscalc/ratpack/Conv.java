@@ -981,7 +981,7 @@ public interface Conv {
         for (; cdigits > 0; ptr.advance(-1), cdigits--)
         {
             // Loop over all the bits from MSB to LSB
-            for (uint bitmask = BASEX.divide(uint.of(2)); !bitmask.isZero(); bitmask.divide(uint.of(2)))
+            for (uint bitmask = BASEX.divide(uint.of(2)); !bitmask.isZero(); bitmask = bitmask.divide(uint.of(2)))
             {
                 addnum(sum, sum.deref(), radix);
                 if (ptr.deref().bitAnd(bitmask).toBool())
@@ -1012,8 +1012,6 @@ public interface Conv {
 
         Ptr<NUMBER> p = new Ptr<>( nRadixxtonum(temprat.pp, radix, precision) );
         NUMBER q = nRadixxtonum(temprat.pq, radix, precision);
-
-        destroyrat(temprat);
 
         // finally take the time hit to actually divide.
         divnum(p, q, radix, precision);
@@ -1092,7 +1090,7 @@ public interface Conv {
                 mulrat(proot, proot.deref(), precision);
                 trimit(lret, precision);
                 trimit(proot, precision);
-                power >>= 1;
+                power >>>= 1;
             }
 
             proot.set(lret.deref());

@@ -90,7 +90,7 @@ public interface Support {
                     ArrayPtrUInt tmp = pq.mant.pointer();
                     tmp.advance(trim - pq.exp);
                     for (int k = 0; k < pq.cdigit - trim + pq.exp; k++) {
-                        pp.mant.set(k, tmp.derefPlusPlus());
+                        pq.mant.set(k, tmp.derefPlusPlus());
                     }
 
                     pq.cdigit -= trim - pq.exp;
@@ -242,12 +242,12 @@ public interface Support {
 
             Global.e_to_one_half = DUPRAT(Global.rat_half);
             ratp = new Ptr<>(Global.e_to_one_half);
-            _exprat(ratp, extraPrecision);
+            _exprat(ratp, radix, extraPrecision);
             Global.e_to_one_half = ratp.deref();
 
             Global.rat_exp = DUPRAT(rat_one);
             ratp = new Ptr<>(Global.rat_exp);
-            _exprat(ratp, extraPrecision);
+            _exprat(ratp, radix, extraPrecision);
             Global.rat_exp = ratp.deref();
 
             // WARNING: remember lograt uses exponent constants calculated above...
@@ -485,13 +485,13 @@ public interface Support {
     }
 
     class Global {
-        static NUMBER num_two = null;
-        static NUMBER num_one = null;
-        static NUMBER num_five = null;
-        static NUMBER num_six = null;
-        static NUMBER num_ten = null;
+        public static NUMBER num_two = null;
+        public static NUMBER num_one = null;
+        public static NUMBER num_five = null;
+        public static NUMBER num_six = null;
+        public static NUMBER num_ten = null;
 
-        static RAT ln_ten = null;
+        public static RAT ln_ten = null;
         static RAT ln_two = null;
         static RAT rat_zero = null;
         static RAT rat_one = null;
