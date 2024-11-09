@@ -22,4 +22,11 @@ public class Ptr<T> {
     public boolean isNull() {
         return value == null;
     }
+
+    @Override
+    public String toString() {
+        return "Ptr{" +
+                "value=" + value +
+                '}';
+    }
 }

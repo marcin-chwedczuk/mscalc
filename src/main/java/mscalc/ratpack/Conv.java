@@ -33,6 +33,73 @@ public interface Conv {
 
     int CALC_INTSAFE_E_ARITHMETIC_OVERFLOW = (0x80070216); // 0x216 = 534 = ERROR_ARITHMETIC_OVERFLOW
     int CALC_ULONG_ERROR = ((int) 0xffffffff);
+    //-----------------------------------------------------------------------------
+    //
+    //  FUNCTION: StringToNumber
+    //
+    //  ARGUMENTS:
+    //              wstring_view numberString
+    //              int radix
+    //              int32_t precision
+    //
+    //  RETURN: pnumber representation of string input.
+    //          Or nullptr if no number scanned.
+    //
+    //  EXPLANATION: This is a state machine,
+    //
+    //    State      Description            Example, ^shows just read position.
+    //                                                which caused the transition
+    //
+    //    START      Start state            ^1.0
+    //    MANTS      Mantissa sign          -^1.0
+    //    LZ         Leading Zero           0^1.0
+    //    LZDP       Post LZ dec. pt.       000.^1
+    //    LD         Leading digit          1^.0
+    //    DZ         Post LZDP Zero         000.0^1
+    //    DD         Post Decimal digit     .01^2
+    //    DDP        Leading Digit dec. pt. 1.^2
+    //    EXPB       Exponent Begins        1.0e^2
+    //    EXPS       Exponent sign          1.0e+^5
+    //    EXPD       Exponent digit         1.0e1^2 or  even 1.0e0^1
+    //    EXPBZ      Exponent begin post 0  0.000e^+1
+    //    EXPSZ      Exponent sign post 0   0.000e+^1
+    //    EXPDZ      Exponent digit post 0  0.000e+1^2
+    //    ERR        Error case             0.0.^
+    //
+    //    Terminal   Description
+    //
+    //    DP         '.'
+    //    ZR         '0'
+    //    NZ         '1'..'9' 'A'..'Z' 'a'..'z' '@' '_'
+    //    SG         '+' '-'
+    //    EX         'e' '^' e is used for radix 10, ^ for all other radixes.
+    //
+    //-----------------------------------------------------------------------------
+    final char DP = 0;
+    final char ZR = 1;
+    final char NZ = 2;
+
+    // Used to strip trailing zeros, and prevent combinatorial explosions
+    // TODO: bool stripzeroesnum(_Inout_ PNUMBER pnum, int32_t starting);
+    final char SG = 3;
+    final char EX = 4;
+    final char START = 0;
+    final char MANTS = 1;
+    final char LZ = 2;
+    final char LZDP = 3;
+    final char LD = 4;
+    final char DZ = 5;
+    final char DD = 6;
+    final char DDP = 7;
+    final char EXPB = 8;
+    final char EXPS = 9;
+    final char EXPD = 10;
+    final char EXPBZ = 11;
+    final char EXPSZ = 12;
+    final char EXPDZ = 13;
+    final char ERR = 14;
+    // New state is machine[state][terminal]
+    char[][] machine = initMachine();
 
     static int Calc_ULongAdd(uint ulAugend, uint ulAddend, Ptr<uint> pulResult) {
         int hr = CALC_INTSAFE_E_ARITHMETIC_OVERFLOW;
@@ -62,9 +129,6 @@ public interface Conv {
         ulong ull64Result = ulMultiplicand.toULong().multiply(ulMultiplier.toULong());
         return Calc_ULongLongToULong(ull64Result, pulResult);
     }
-
-    // Used to strip trailing zeros, and prevent combinatorial explosions
-    // TODO: bool stripzeroesnum(_Inout_ PNUMBER pnum, int32_t starting);
 
     static void SetDecimalSeparator(char decimalSeparator) {
         g_decimalSeparator.set(decimalSeparator);
@@ -216,7 +280,6 @@ public interface Conv {
 
         return (pout);
     }
-
 
     //-----------------------------------------------------------------------------
     //
@@ -598,73 +661,6 @@ public interface Conv {
         return result.toString();
     }
 
-
-    //-----------------------------------------------------------------------------
-    //
-    //  FUNCTION: StringToNumber
-    //
-    //  ARGUMENTS:
-    //              wstring_view numberString
-    //              int radix
-    //              int32_t precision
-    //
-    //  RETURN: pnumber representation of string input.
-    //          Or nullptr if no number scanned.
-    //
-    //  EXPLANATION: This is a state machine,
-    //
-    //    State      Description            Example, ^shows just read position.
-    //                                                which caused the transition
-    //
-    //    START      Start state            ^1.0
-    //    MANTS      Mantissa sign          -^1.0
-    //    LZ         Leading Zero           0^1.0
-    //    LZDP       Post LZ dec. pt.       000.^1
-    //    LD         Leading digit          1^.0
-    //    DZ         Post LZDP Zero         000.0^1
-    //    DD         Post Decimal digit     .01^2
-    //    DDP        Leading Digit dec. pt. 1.^2
-    //    EXPB       Exponent Begins        1.0e^2
-    //    EXPS       Exponent sign          1.0e+^5
-    //    EXPD       Exponent digit         1.0e1^2 or  even 1.0e0^1
-    //    EXPBZ      Exponent begin post 0  0.000e^+1
-    //    EXPSZ      Exponent sign post 0   0.000e+^1
-    //    EXPDZ      Exponent digit post 0  0.000e+1^2
-    //    ERR        Error case             0.0.^
-    //
-    //    Terminal   Description
-    //
-    //    DP         '.'
-    //    ZR         '0'
-    //    NZ         '1'..'9' 'A'..'Z' 'a'..'z' '@' '_'
-    //    SG         '+' '-'
-    //    EX         'e' '^' e is used for radix 10, ^ for all other radixes.
-    //
-    //-----------------------------------------------------------------------------
-    final char DP = 0;
-    final char ZR = 1;
-    final char NZ = 2;
-    final char SG = 3;
-    final char EX = 4;
-
-    final char START = 0;
-    final char MANTS = 1;
-    final char LZ = 2;
-    final char LZDP = 3;
-    final char LD = 4;
-    final char DZ = 5;
-    final char DD = 6;
-    final char DDP = 7;
-    final char EXPB = 8;
-    final char EXPS = 9;
-    final char EXPD = 10;
-    final char EXPBZ = 11;
-    final char EXPSZ = 12;
-    final char EXPDZ = 13;
-    final char ERR = 14;
-
-    // New state is machine[state][terminal]
-    char[][] machine = initMachine();
     private static char[][] initMachine() {
         char[][] machine = new char[ERR + 1][EX + 1];
 
@@ -855,5 +851,64 @@ public interface Conv {
         }
 
         return pnumret.deref();
+    }
+
+
+    //-----------------------------------------------------------------------------
+    //
+    //  FUNCTION: gcd
+    //
+    //  ARGUMENTS:
+    //              PNUMBER representation of a number.
+    //              PNUMBER representation of a number.
+    //              int for Radix
+    //
+    //  RETURN: Greatest common divisor in internal BASEX PNUMBER form.
+    //
+    //  DESCRIPTION: gcd uses remainders to find the greatest common divisor.
+    //
+    //  ASSUMPTIONS: gcd assumes inputs are integers.
+    //
+    //  NOTE: Before it was found that the TRIM macro actually kept the
+    //        size down cheaper than GCD, this routine was used extensively.
+    //        now it is not used but might be later.
+    //
+    //-----------------------------------------------------------------------------
+    static NUMBER gcd(NUMBER a, NUMBER b)
+    {
+        NUMBER r = null;
+        Ptr<NUMBER> larger = new Ptr<>();
+        NUMBER smaller = null;
+
+        if (zernum(a))
+        {
+            return b;
+        }
+        else if (zernum(b))
+        {
+            return a;
+        }
+
+        if (lessnum(a, b))
+        {
+            larger.set( DUPNUM(b) );
+            smaller = DUPNUM(a);
+        }
+        else
+        {
+            larger.set( DUPNUM(a) );
+            smaller = DUPNUM(b);
+        }
+
+        while (!zernum(smaller))
+        {
+            remnum(larger, smaller, BASEX);
+            // swap larger and smaller
+            r = larger.deref();
+            larger.set(smaller);
+            smaller = r;
+        }
+
+        return larger.deref();
     }
 }

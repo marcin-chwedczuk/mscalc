@@ -122,6 +122,12 @@ enum AngleType
                 }
             }
         }
+
+        @Override
+        public String toString() {
+            // Debug only
+            return "" + numtoi32(this, uint.of(10));
+        }
     }
 
     //-----------------------------------------------------------------------------

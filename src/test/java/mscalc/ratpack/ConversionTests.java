@@ -6,6 +6,8 @@ import mscalc.ratpack.RatPack.NUMBER;
 import org.junit.jupiter.api.Test;
 
 import static mscalc.ratpack.Conv.*;
+import static mscalc.ratpack.RatPack.BASEX;
+import static mscalc.ratpack.RatPack.DUPNUM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ConversionTests {
@@ -214,4 +216,43 @@ public class ConversionTests {
             }
         }
     }
+
+    @Test
+    public void gcd_works() {
+        // GCD expects args to be in BASEX format
+
+        NUMBER zero = i32tonum(0, BASEX);
+        NUMBER one = i32tonum(1, BASEX);
+        NUMBER n5 = i32tonum(5, BASEX);
+        NUMBER n15 = i32tonum(15, BASEX);
+        NUMBER n22 = i32tonum(22, BASEX);
+        NUMBER n25 = i32tonum(25, BASEX);
+
+        assertEquals(1, gcdSUT(one, zero));
+
+        assertEquals(5, gcdSUT(n15, n25));
+        assertEquals(5, gcdSUT(n25, n15));
+
+        assertEquals(15, gcdSUT(n15, n15));
+
+        assertEquals(1, gcdSUT(n22, n25));
+        assertEquals(1, gcdSUT(n25, n22));
+
+        assertEquals(5, gcdSUT(n5, n25));
+        assertEquals(5, gcdSUT(n25, n5));
+    }
+
+    private int gcdSUT(NUMBER a, NUMBER b) {
+        NUMBER aCopy = DUPNUM(a);
+        NUMBER bCopy = DUPNUM(b);
+
+        NUMBER result = gcd(a, b);
+
+        // Assert arguments not changed
+        assertEquals(numtoi32(aCopy, BASEX), numtoi32(a, BASEX));
+        assertEquals(numtoi32(bCopy, BASEX), numtoi32(b, BASEX));
+
+        return numtoi32(result, BASEX);
+    }
+
 }
