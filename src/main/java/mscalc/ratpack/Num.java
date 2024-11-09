@@ -355,6 +355,7 @@ public interface Num {
         }
         else
         { // But we do have to set the sign.
+            pa.set(DUPNUM(pa.deref()));
             pa.deref().sign *= b.sign;
         }
     }
@@ -508,7 +509,7 @@ public interface Num {
                 {
                     da = ((cdigits > (ccdigits - a.cdigit)) ? pa.derefMinusMinus() : uint.ZERO);
                     db = ((cdigits > (ccdigits - b.cdigit)) ? pb.derefMinusMinus() : uint.ZERO);
-                    if (da != db)
+                    if (da.compareTo(db) != 0)
                     {
                         return false;
                     }
