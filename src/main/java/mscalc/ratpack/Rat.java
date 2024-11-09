@@ -1,16 +1,22 @@
 package mscalc.ratpack;
 
+import mscalc.cpp.ErrorCodeException;
 import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.ratpack.RatPack.NUMBER;
 import mscalc.ratpack.RatPack.RAT;
 
 import static mscalc.ratpack.BaseX.divnumx;
+import static mscalc.ratpack.BaseX.mulnumx;
+import static mscalc.ratpack.CalcErr.CALC_E_DIVIDEBYZERO;
+import static mscalc.ratpack.CalcErr.CALC_E_INDEFINITE;
 import static mscalc.ratpack.Conv.flatrat;
 import static mscalc.ratpack.Conv.gcd;
 import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.RatPack.BASEX;
+import static mscalc.ratpack.RatPack.DUPNUM;
 import static mscalc.ratpack.Support.num_one;
+import static mscalc.ratpack.Support.trimit;
 
 public interface Rat {
     //-----------------------------------------------------------------------------
@@ -83,4 +89,109 @@ public interface Rat {
         pa.deref().RENORMALIZE();
     }
 
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: mulrat
+    //
+    //    ARGUMENTS: pointer to a rational a second rational.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the rational equivalent of *pa *= b.
+    //    Assumes radix is the radix of both numbers.
+    //
+    //-----------------------------------------------------------------------------
+    static void mulrat(Ptr<RAT> pa, RAT b, int precision)
+    {
+        // Only do the multiply if it isn't zero.
+        if (!zernum(pa.deref().pp))
+        {
+            Ptr<NUMBER> ppp = new Ptr<>(pa.deref().pp);
+            mulnumx(ppp, b.pp);
+            pa.deref().pp = ppp.deref();
+
+            Ptr<NUMBER> ppq = new Ptr<>(pa.deref().pq);
+            mulnumx(ppq, b.pq);
+            pa.deref().pq = ppq.deref();
+
+            trimit(pa, precision);
+        }
+        else
+        {
+            // If it is zero, blast a one in the denominator.
+            pa.deref().pp = DUPNUM(num_one);
+        }
+
+        // gcdrat(pa);
+    }
+
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: divrat
+    //
+    //    ARGUMENTS: pointer to a rational a second rational.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the rational equivalent of *pa /= b.
+    //    Assumes radix is the radix of both numbers.
+    //
+    //-----------------------------------------------------------------------------
+    static void divrat(Ptr<RAT> pa, RAT b, int precision)
+    {
+        if (!zernum(pa.deref().pp))
+        {
+            // Only do the divide if the top isn't zero.
+            Ptr<NUMBER> ppp = new Ptr<>(pa.deref().pp);
+            mulnumx(ppp, b.pq);
+            pa.deref().pp = ppp.deref();
+
+            Ptr<NUMBER> ppq = new Ptr<>(pa.deref().pq);
+            mulnumx(ppq, b.pp);
+            pa.deref().pq = ppq.deref();
+
+            if (zernum(pa.deref().pq))
+            {
+                // raise an exception if the bottom is 0.
+                throw new ErrorCodeException(CALC_E_DIVIDEBYZERO);
+            }
+            trimit(pa, precision);
+        }
+        else
+        {
+            // Top is zero.
+            if (zerrat(b))
+            {
+                // If bottom is zero
+                // 0 / 0 is indefinite, raise an exception.
+                throw new ErrorCodeException(CALC_E_INDEFINITE);
+            }
+            else
+            {
+                // 0/x make a unique 0.
+                pa.deref().pq = DUPNUM(num_one);
+            }
+        }
+
+        // gcdrat(pa);
+    }
+
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: zerrat
+    //
+    //    ARGUMENTS: Rational number.
+    //
+    //    RETURN: Boolean
+    //
+    //    DESCRIPTION: Returns true if input is zero.
+    //    False otherwise.
+    //
+    //-----------------------------------------------------------------------------
+    static boolean zerrat(RAT a)
+    {
+        return (zernum(a.pp));
+    }
 }

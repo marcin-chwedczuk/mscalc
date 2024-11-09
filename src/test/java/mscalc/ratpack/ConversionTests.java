@@ -255,4 +255,12 @@ public class ConversionTests {
         return numtoi32(result, BASEX);
     }
 
+    @Test
+    public void numpowi32_works() {
+        Ptr<NUMBER> p2 = new Ptr<>(i32tonum(2, RADIX_10));
+        numpowi32(p2, 6, RADIX_10, 10);
+
+        int result = numtoi32(p2.deref(), RADIX_10);
+        assertEquals(64, result);
+    }
 }
