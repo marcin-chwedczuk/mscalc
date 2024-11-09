@@ -12,6 +12,7 @@ import static mscalc.WinErrorCrossPlatform.S_OK;
 import static mscalc.ratpack.BaseX.*;
 import static mscalc.ratpack.CalcErr.*;
 import static mscalc.ratpack.Num.*;
+import static mscalc.ratpack.Rat.divrat;
 import static mscalc.ratpack.Rat.mulrat;
 import static mscalc.ratpack.RatPack.*;
 import static mscalc.ratpack.Support.*;
@@ -843,7 +844,7 @@ public interface Conv {
         // If we don't have a number, clear our result.
         if (pnumret.deref().cdigit == 0)
         {
-            pnumret = null;
+            pnumret.set(null);
         }
         else
         {
@@ -1186,5 +1187,166 @@ public interface Conv {
 
         int lret = numtoi32(pint.deref().pp, BASEX);
         return (lret);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: rattoUi32
+    //
+    //    ARGUMENTS: rational number in internal base, integer radix and int32_t precision.
+    //
+    //    RETURN: Ui32
+    //
+    //    DESCRIPTION: returns the Ui32 representation of the
+    //    number input.  Assumes that the number is in the internal
+    //    base.
+    //
+    //-----------------------------------------------------------------------------
+    static uint rattoUi32(RAT prat, uint radix, int precision)
+    {
+        if (rat_gt(prat, rat_dword, precision) || rat_lt(prat, rat_zero, precision))
+        {
+            // Don't attempt rattoui32 of anything too big or small
+            throw new ErrorCodeException(CALC_E_DOMAIN);
+        }
+
+        Ptr<RAT> pint = new Ptr<>(DUPRAT(prat));
+        intrat(pint, radix, precision);
+
+        Ptr<NUMBER> ppp = new Ptr<>(pint.deref().pp);
+        divnumx(ppp, pint.deref().pq, precision);
+        pint.deref().pp = ppp.deref();
+
+        pint.deref().pq = DUPNUM(num_one);
+
+        int lret = numtoi32(pint.deref().pp, BASEX); // This happens to work even if it is only signed
+        return uint.of(lret);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //  FUNCTION: RatToString
+    //
+    //  ARGUMENTS:
+    //              PRAT *representation of a number.
+    //              i32 representation of base  to  dump to screen.
+    //              fmt, one of NumberFormat::Float, NumberFormat::Scientific, or NumberFormat::Engineering
+    //              precision uint32_t
+    //
+    //  RETURN: string
+    //
+    //  DESCRIPTION: returns a string representation of rational number passed
+    //  in, at least to the precision digits.
+    //
+    //  NOTE: It may be that doing a GCD() could shorten the rational form
+    //       And it may eventually be worthwhile to keep the result.  That is
+    //       why a pointer to the rational is passed in.
+    //
+    //-----------------------------------------------------------------------------
+    static String RatToString(Ptr<RAT> prat, NumberFormat format, uint radix, int precision)
+    {
+        NUMBER p = RatToNumber(prat.deref(), radix, precision);
+        String result = NumberToString(new Ptr<>(p), format, radix, precision);
+        return result;
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //  FUNCTION: StringToRat
+    //
+    //  ARGUMENTS:
+    //              mantissaIsNegative true if mantissa is less than zero
+    //              mantissa a string representation of a number
+    //              exponentIsNegative  true if exponent is less than zero
+    //              exponent a string representation of a number
+    //              radix is the number base used in the source string
+    //
+    //  RETURN: PRAT representation of string input.
+    //          Or nullptr if no number scanned.
+    //
+    //  EXPLANATION: This is for calc.
+    //
+    //
+    //-----------------------------------------------------------------------------
+    static RAT StringToRat(boolean mantissaIsNegative, String mantissa,
+                           boolean exponentIsNegative, String exponent,
+                           uint radix, int precision)
+    {
+        Ptr<RAT> resultRat = new Ptr<>(); // holds exponent in rational form.
+
+        // Deal with mantissa
+        if (mantissa.isEmpty())
+        {
+            // Preset value if no mantissa
+            if (exponent.isEmpty())
+            {
+                // Exponent not specified, preset value to zero
+                resultRat.set(DUPRAT(rat_zero));
+            }
+            else
+            {
+                // Exponent specified, preset value to one
+                resultRat.set(DUPRAT(rat_one));
+            }
+        }
+        else
+        {
+            // Mantissa specified, convert to number form.
+            NUMBER pnummant = StringToNumber(mantissa, radix, precision);
+            if (pnummant == null)
+            {
+                return null;
+            }
+
+            resultRat.set( numtorat(pnummant, radix) );
+            // convert to rational form, and cleanup.
+            destroynum(pnummant);
+        }
+
+        // Deal with exponent
+        int expt = 0;
+        if (!exponent.isEmpty())
+        {
+            // Exponent specified, convert to number form.
+            // Don't use native stuff, as it is restricted in the bases it can
+            // handle.
+            NUMBER numExp = StringToNumber(exponent, radix, precision);
+            if (numExp == null)
+            {
+                return null;
+            }
+
+            // Convert exponent number form to native integral form,  and cleanup.
+            expt = numtoi32(numExp, radix);
+            destroynum(numExp);
+        }
+
+        // Convert native integral exponent form to rational multiplier form.
+        Ptr<NUMBER> pnumexp = new Ptr<>(i32tonum(radix.toInt(), BASEX));
+        numpowi32x(pnumexp, abs(expt));
+
+        RAT pratexp = createrat();
+        pratexp.pp = DUPNUM(pnumexp.deref());
+        pratexp.pq = i32tonum(1, BASEX);
+
+        if (exponentIsNegative)
+        {
+            // multiplier is less than 1, this means divide.
+            divrat(resultRat, pratexp, precision);
+        }
+        else if (expt > 0)
+        {
+            // multiplier is greater than 1, this means multiply.
+            mulrat(resultRat, pratexp, precision);
+        }
+        // multiplier can be 1, in which case it'd be a waste of time to multiply.
+
+        if (mantissaIsNegative)
+        {
+            // A negative number was used, adjust the sign.
+            resultRat.deref().pp.sign *= -1;
+        }
+
+        return resultRat.deref();
     }
 }
