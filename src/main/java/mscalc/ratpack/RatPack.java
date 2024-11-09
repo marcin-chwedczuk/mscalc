@@ -1,12 +1,16 @@
 package mscalc.ratpack;
 
+import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.cpp.uintArray;
 
 import java.util.Arrays;
 
+import static mscalc.ratpack.BaseX.mulnumx;
 import static mscalc.ratpack.Conv.*;
 import static mscalc.ratpack.Num.zernum;
+import static mscalc.ratpack.Rat.addrat;
+import static mscalc.ratpack.Rat.mulrat;
 import static mscalc.ratpack.Support.g_ftrueinfinite;
 
 public interface RatPack {
@@ -200,6 +204,40 @@ enum AngleType
             xx = DUPRAT(px);
             // mulrat(&xx, *px, precision);
             // TODO: Finish
+        }
+
+        // MULNUM(b) is the rational equivalent of thisterm *= b where thisterm is
+        // a rational and b is a number, NOTE this is a mixed type operation for
+        // efficiency reasons.
+        public void MULNUM(NUMBER b) {
+            Ptr<NUMBER> ppp = new Ptr<>(thisterm.pp);
+            mulnumx(ppp, b);
+            thisterm.pp = ppp.deref();
+        }
+
+        // DIVNUM(b) is the rational equivalent of thisterm /= b where thisterm is
+        // a rational and b is a number, NOTE this is a mixed type operation for
+        // efficiency reasons.
+        public void DIVNUM(NUMBER b) {
+            Ptr<NUMBER> ppq = new Ptr<>(thisterm.pq);
+            mulnumx(ppq, b);
+            thisterm.pq = ppq.deref();
+        }
+
+        // NEXTTERM(p,d) is the rational equivalent of
+        // thisterm *= p
+        // d    <d is usually an expansion of operations to get thisterm updated.>
+        // pret += thisterm
+        public void NEXTTERM(RAT p, Runnable d, int precision) {
+            Ptr<RAT> pthisterm = new Ptr<>(thisterm);
+            mulrat(pthisterm, p, precision);
+            thisterm = pthisterm.deref();
+
+            d.run();
+
+            Ptr<RAT> ppret = new Ptr<>(pret);
+            addrat(ppret, thisterm, precision);
+            pret = ppret.deref();
         }
     }
 }

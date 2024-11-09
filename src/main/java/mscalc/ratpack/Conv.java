@@ -14,8 +14,11 @@ import static mscalc.ratpack.BaseX.numpowi32x;
 import static mscalc.ratpack.CalcErr.CALC_E_INVALIDRANGE;
 import static mscalc.ratpack.CalcErr.CALC_E_OUTOFMEMORY;
 import static mscalc.ratpack.Num.*;
+import static mscalc.ratpack.Rat.mulrat;
 import static mscalc.ratpack.RatPack.*;
-import static mscalc.ratpack.Support.num_two;
+import static mscalc.ratpack.Support.Global.num_two;
+import static mscalc.ratpack.Support.Global.num_two;
+import static mscalc.ratpack.Support.trimit;
 
 public interface Conv {
     int UINT32_MAX = (int) 0xffffffff;
@@ -1025,5 +1028,76 @@ public interface Conv {
     {
         NUMBER pnum = RatToNumber(prat.deref(), radix, precision);
         prat.set( numtorat(pnum, radix) );
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: i32torat
+    //
+    //    ARGUMENTS: int32_t
+    //
+    //    RETURN: Rational representation of int32_t input.
+    //
+    //    DESCRIPTION: Converts int32_t input to rational (p over q)
+    //    form, where q is 1 and p is the int32_t.
+    //
+    //-----------------------------------------------------------------------------
+    static RAT i32torat(int ini32)
+    {
+        RAT pratret = createrat();
+        pratret.pp = i32tonum(ini32, BASEX);
+        pratret.pq = i32tonum(1, BASEX);
+        return (pratret);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: ratpowi32
+    //
+    //    ARGUMENTS: root as rational, power as int32_t and precision as int32_t.
+    //
+    //    RETURN: None root is changed.
+    //
+    //    DESCRIPTION: changes rational representation of root to
+    //    root ** power.
+    //
+    //-----------------------------------------------------------------------------
+    static void ratpowi32(Ptr<RAT> proot, int power, int precision)
+    {
+        if (power < 0)
+        {
+            // Take the positive power and invert answer.
+            NUMBER pnumtemp = null;
+            ratpowi32(proot, -power, precision);
+            pnumtemp = proot.deref().pp;
+            proot.deref().pp = proot.deref().pq;
+            proot.deref().pq = pnumtemp;
+        }
+        else
+        {
+            Ptr<RAT> lret = new Ptr<>();
+            lret.set( i32torat(1) );
+
+            while (power > 0)
+            {
+                if ((power & 1) != 0)
+                {
+                    Ptr<NUMBER> ppp = new Ptr<>(lret.deref().pp);
+                    mulnumx(ppp, proot.deref().pp);
+                    lret.deref().pp = ppp.deref();
+
+                    Ptr<NUMBER> ppq = new Ptr<>(lret.deref().pq);
+                    mulnumx(ppq, proot.deref().pq);
+                    lret.deref().pq = ppq.deref();
+                }
+
+                mulrat(proot, proot.deref(), precision);
+                trimit(lret, precision);
+                trimit(proot, precision);
+                power >>= 1;
+            }
+
+            proot.set(lret.deref());
+        }
     }
 }

@@ -14,7 +14,7 @@ import static mscalc.ratpack.Conv.flatrat;
 import static mscalc.ratpack.Conv.gcd;
 import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.RatPack.*;
-import static mscalc.ratpack.Support.num_one;
+import static mscalc.ratpack.Support.Global.num_one;
 import static mscalc.ratpack.Support.trimit;
 
 public interface Rat {
@@ -73,7 +73,7 @@ public interface Rat {
     {
         // Only do the flatrat operation if number is nonzero.
         // and only if the bottom part is not one.
-        if (!zernum(pa.deref().pp) && !equnum(pa.deref().pq, num_one))
+        if (!zernum(pa.deref().pp) && !equnum(pa.deref().pq, Support.Global.num_one))
         {
             // flatrat(*pa, radix, precision);
             // *pa passed by reference
@@ -118,7 +118,7 @@ public interface Rat {
         else
         {
             // If it is zero, blast a one in the denominator.
-            pa.deref().pp = DUPNUM(num_one);
+            pa.deref().pp = DUPNUM(Support.Global.num_one);
         }
 
         // gcdrat(pa);
@@ -169,7 +169,7 @@ public interface Rat {
             else
             {
                 // 0/x make a unique 0.
-                pa.deref().pq = DUPNUM(num_one);
+                pa.deref().pq = DUPNUM(Support.Global.num_one);
             }
         }
 
