@@ -175,4 +175,43 @@ public class ConversionTests {
         result = NumberToString(n19932, RatPack.NumberFormat.Engineering, RADIX_10, 10);
         assertEquals("19.932e+3", result);
     }
+
+    @Test
+    public void StringToNumber_radix10() {
+        assertEquals(0, string2numberSUT("0", RADIX_10));
+        assertEquals(0, string2numberSUT("00", RADIX_10));
+        assertEquals(0, string2numberSUT("000", RADIX_10));
+
+        assertEquals(1, string2numberSUT("1", RADIX_10));
+        assertEquals(1, string2numberSUT("01", RADIX_10));
+        assertEquals(1, string2numberSUT("001", RADIX_10));
+
+        assertEquals(32927, string2numberSUT("32927", RADIX_10));
+        assertEquals(-32927, string2numberSUT("-32927", RADIX_10));
+        assertEquals(1000, string2numberSUT("1000", RADIX_10));
+
+        assertEquals(1000, string2numberSUT("1e+3", RADIX_10));
+        assertEquals(1230, string2numberSUT("1.23e+3", RADIX_10));
+        assertEquals(-1230, string2numberSUT("-1.23e+3", RADIX_10));
+    }
+
+    private int string2numberSUT(String str, uint radix) {
+        NUMBER number = StringToNumber(str, radix, 20);
+        return numtoi32(number, radix);
+    }
+
+    @Test
+    public void StringNumber_roundtrips() {
+        int[] numbers = { -7372, 324, 83, 0, 2, 54, 8282, 47483883 };
+        int[] radix = { 2, 10, 16 };
+
+        for (int d : numbers) {
+            for (int r : radix) {
+                NUMBER number = StringToNumber(Integer.toString(d, r), uint.of(r), 40);
+                String str = NumberToString(new Ptr<>(number), RatPack.NumberFormat.Float, uint.of(r), 40);
+                int rd = Integer.parseInt(str, r);
+                assertEquals(d, rd, "failed for d = " + d + ", r = " + r);
+            }
+        }
+    }
 }
