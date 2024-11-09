@@ -217,18 +217,18 @@ public interface Conv {
 
 
     //-----------------------------------------------------------------------------
-//
-//    FUNCTION: numtonRadixx
-//
-//    ARGUMENTS: pointer to a number, radix of that number.
-//
-//    RETURN: number representation in internal radix.
-//
-//    DESCRIPTION: Does a radix conversion on a number from
-//    specified radix to requested radix.  Assumes the radix
-//    specified is the radix of the number passed in.
-//
-//-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: numtonRadixx
+    //
+    //    ARGUMENTS: pointer to a number, radix of that number.
+    //
+    //    RETURN: number representation in internal radix.
+    //
+    //    DESCRIPTION: Does a radix conversion on a number from
+    //    specified radix to requested radix.  Assumes the radix
+    //    specified is the radix of the number passed in.
+    //
+    //-----------------------------------------------------------------------------
     static NUMBER numtonRadixx(NUMBER a, uint radix) {
         Ptr<NUMBER> pnumret = new Ptr<>(i32tonum(0, BASEX)); // pnumret is the number in internal form.
         Ptr<NUMBER> num_radix = new Ptr<>(i32tonum(radix.toInt(), BASEX));
@@ -335,4 +335,6 @@ public interface Conv {
 
         return lret;
     }
+
+
 }
