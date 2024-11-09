@@ -911,4 +911,119 @@ public interface Conv {
 
         return larger.deref();
     }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: numpowi32
+    //
+    //    ARGUMENTS: root as number power as int32_t and radix of
+    //               number along with the precision value in int32_t.
+    //
+    //    RETURN: None root is changed.
+    //
+    //    DESCRIPTION: changes numeric representation of root to
+    //    root ** power. Assumes radix is the radix of root.
+    //
+    //-----------------------------------------------------------------------------
+    static void numpowi32(Ptr<NUMBER> proot, int power, uint radix, int precision)
+    {
+        Ptr<NUMBER> lret = new Ptr<>(i32tonum(1, radix));
+
+        while (power > 0)
+        {
+            if ((power & 1) != 0)
+            {
+                mulnum(lret, proot.deref(), radix);
+            }
+            mulnum(proot, proot.deref(), radix);
+            proot.deref().TRIMNUM(precision);
+            power >>= 1;
+        }
+
+        proot.set(lret.deref());
+    }
+
+    //----------------------------------------------------------------------------
+    //
+    //    FUNCTION: nRadixxtonum
+    //
+    //    ARGUMENTS: pointer to a number, base requested.
+    //
+    //    RETURN: number representation in radix requested.
+    //
+    //    DESCRIPTION: Does a base conversion on a number from
+    //    internal to requested base. Assumes number being passed
+    //    in is really in internal base form.
+    //
+
+    static NUMBER nRadixxtonum(NUMBER a, uint radix, int precision)
+    {
+        Ptr<NUMBER> sum = new Ptr<>(i32tonum(0, radix));
+        Ptr<NUMBER> powofnRadix = new Ptr<>(i32tonum(BASEX.toInt(), radix));
+
+        // A large penalty is paid for conversion of digits no one will see anyway.
+        // limit the digits to the minimum of the existing precision or the
+        // requested precision.
+        // TODO: Original uses uint's here. Do we really need more than 2 billions digits?
+        int cdigits = precision + 1;
+        if (cdigits > a.cdigit)
+        {
+            cdigits = a.cdigit;
+        }
+
+        // scale by the internal base to the internal exponent offset of the LSD
+        numpowi32(powofnRadix, a.exp + (a.cdigit - cdigits), radix, precision);
+
+        // Loop over all the relative digits from MSD to LSD
+        ArrayPtrUInt ptr = a.mant.pointer();
+        ptr.advance(a.cdigit - 1);
+        for (; cdigits > 0; ptr.advance(-1), cdigits--)
+        {
+            // Loop over all the bits from MSB to LSB
+            for (uint bitmask = BASEX.divide(uint.of(2)); !bitmask.isZero(); bitmask.divide(uint.of(2)))
+            {
+                addnum(sum, sum.deref(), radix);
+                if (ptr.deref().bitAnd(bitmask).toBool())
+                {
+                    uint tmp = sum.deref().mant.at(0).bitOr(1);
+                    sum.deref().mant.set(0, tmp);
+                }
+            }
+        }
+
+        // Scale answer by power of internal exponent.
+        mulnum(sum, powofnRadix.deref(), radix);
+
+        sum.deref().sign = a.sign;
+        return sum.deref();
+    }
+
+    static NUMBER RatToNumber(RAT prat, uint radix, int precision)
+    {
+        RAT temprat = DUPRAT(prat);
+        // Convert p and q of rational form from internal base to requested base.
+        // Scale by largest power of BASEX possible.
+        int scaleby = Math.min(temprat.pp.exp, temprat.pq.exp);
+        scaleby = Math.max(scaleby, 0);
+
+        temprat.pp.exp -= scaleby;
+        temprat.pq.exp -= scaleby;
+
+        Ptr<NUMBER> p = new Ptr<>( nRadixxtonum(temprat.pp, radix, precision) );
+        NUMBER q = nRadixxtonum(temprat.pq, radix, precision);
+
+        destroyrat(temprat);
+
+        // finally take the time hit to actually divide.
+        divnum(p, q, radix, precision);
+
+        return p.deref();
+    }
+
+    // Converts a PRAT to a PNUMBER and back to a PRAT, flattening/simplifying the rational in the process
+    static void flatrat(Ptr<RAT> prat, uint radix, int precision)
+    {
+        NUMBER pnum = RatToNumber(prat.deref(), radix, precision);
+        prat.set( numtorat(pnum, radix) );
+    }
 }

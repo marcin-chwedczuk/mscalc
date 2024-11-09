@@ -13,4 +13,5 @@ public interface Support {
     // precision used internally
 
     NUMBER num_two = i32tonum(2, BASEX);
+    NUMBER num_one = i32tonum(1, BASEX);
 }
