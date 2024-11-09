@@ -13,8 +13,7 @@ import static mscalc.ratpack.CalcErr.CALC_E_INDEFINITE;
 import static mscalc.ratpack.Conv.flatrat;
 import static mscalc.ratpack.Conv.gcd;
 import static mscalc.ratpack.Num.*;
-import static mscalc.ratpack.RatPack.BASEX;
-import static mscalc.ratpack.RatPack.DUPNUM;
+import static mscalc.ratpack.RatPack.*;
 import static mscalc.ratpack.Support.num_one;
 import static mscalc.ratpack.Support.trimit;
 
@@ -177,6 +176,108 @@ public interface Rat {
         // gcdrat(pa);
     }
 
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: subrat
+    //
+    //    ARGUMENTS: pointer to a rational a second rational.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the rational equivalent of *pa += b.
+    //    Assumes base is internal throughout.
+    //
+    //-----------------------------------------------------------------------------
+    static void subrat(Ptr<RAT> pa, RAT b, int precision)
+    {
+        b.pp.sign *= -1;
+        addrat(pa, b, precision);
+        b.pp.sign *= -1;
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: addrat
+    //
+    //    ARGUMENTS: pointer to a rational a second rational.
+    //
+    //    RETURN: None, changes first pointer.
+    //
+    //    DESCRIPTION: Does the rational equivalent of *pa += b.
+    //    Assumes base is internal throughout.
+    //
+    //-----------------------------------------------------------------------------
+    static void addrat(Ptr<RAT> pa, RAT b, int precision)
+    {
+        Ptr<NUMBER> bot = new Ptr<>();
+
+        if (equnum(pa.deref().pq, b.pq))
+        {
+            // Very special case, q's match.,
+            // make sure signs are involved in the calculation
+            // we have to do this since the optimization here is only
+            // working with the top half of the rationals.
+            pa.deref().pp.sign *= pa.deref().pq.sign;
+            pa.deref().pq.sign = 1;
+            b.pp.sign *= b.pq.sign;
+            b.pq.sign = 1;
+
+            Ptr<NUMBER> ppp = new Ptr<>(pa.deref().pp);
+            addnum(ppp, b.pp, BASEX);
+            pa.deref().pp = ppp.deref();
+        }
+        else
+        {
+            // Usual case q's aren't the same.
+            bot.set(DUPNUM(pa.deref().pq));
+            mulnumx(bot, b.pq);
+
+            Ptr<NUMBER> ppp = new Ptr<>(pa.deref().pp);
+            mulnumx(ppp, b.pq);
+            pa.deref().pp = ppp.deref();
+
+            Ptr<NUMBER> ppq = new Ptr<>(pa.deref().pq);
+            mulnumx(ppq, b.pp);
+            pa.deref().pq = ppq.deref();
+
+            ppp = new Ptr<>(pa.deref().pp);
+            addnum(ppp, pa.deref().pq, BASEX);
+            pa.deref().pp = ppp.deref();
+
+            pa.deref().pq = bot.deref();
+            trimit(pa, precision);
+
+            // Get rid of negative zeros here.
+            pa.deref().pp.sign *= pa.deref().pq.sign;
+            pa.deref().pq.sign = 1;
+        }
+
+        // gcdrat(pa);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //  FUNCTION: rootrat
+    //
+    //  PARAMETERS: y prat representation of number to take the root of
+    //              n prat representation of the root to take.
+    //
+    //  RETURN: bth root of a in rat form.
+    //
+    //  EXPLANATION: This is now a stub function to powrat().
+    //
+    //-----------------------------------------------------------------------------
+    static void rootrat(Ptr<RAT> py, RAT n, uint radix, int precision)
+    {
+        throw new RuntimeException("Not yet implemented");
+
+        // Initialize 1/n
+        /*
+        Ptr<RAT> oneovern = new Ptr<>(DUPRAT(rat_one));
+        divrat(oneovern, n, precision);
+        powrat(py, oneovern, radix, precision);
+        */
+    }
 
     //-----------------------------------------------------------------------------
     //
