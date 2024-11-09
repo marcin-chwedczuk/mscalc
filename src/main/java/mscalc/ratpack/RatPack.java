@@ -145,6 +145,12 @@ enum AngleType
         NUMBER pp;
         NUMBER pq;
 
+        public RAT() { }
+        public RAT(NUMBER pp, NUMBER pq) {
+            this.pp = pp.clone();
+            this.pq = pq.clone();
+        }
+
         public int LOGRATRADIX() {
             return pp.LOGNUMRADIX() - pq.LOGNUMRADIX();
         }

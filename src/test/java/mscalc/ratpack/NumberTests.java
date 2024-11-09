@@ -3,6 +3,7 @@ package mscalc.ratpack;
 import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.ratpack.RatPack.NUMBER;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 public class NumberTests {
     private static final uint RADIX_10 = uint.of(10);
     private static final int PRECISION = 10;
+
+    @BeforeAll
+    public static void beforeAll() {
+        Support.ChangeConstants(RADIX_10, 20);
+    }
 
     @Test
     public void addition_two_numbers() {

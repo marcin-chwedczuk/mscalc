@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Math.ceil;
-import static jdk.vm.ci.code.CodeUtil.log2;
 import static mscalc.ratpack.Conv.*;
 import static mscalc.ratpack.Exp._exprat;
 import static mscalc.ratpack.Exp.lograt;
@@ -283,7 +282,46 @@ public interface Support {
     }
 
     static void _readconstants() {
+        Global.num_one = RatConst.init_num_one.clone();
+        Global.num_two = RatConst.init_num_two.clone();
+        Global.num_five = RatConst.init_num_five.clone();
+        Global.num_six = RatConst.init_num_six.clone();
+        Global.num_ten = RatConst.init_num_six.clone();
 
+        Global.pt_eight_five = new RAT(RatConst.init_p_pt_eight_five, RatConst.init_q_pt_eight_five);
+        Global.rat_six = new RAT(RatConst.init_p_rat_six, RatConst.init_q_rat_six);
+        Global.rat_two = new RAT(RatConst.init_p_rat_two, RatConst.init_q_rat_two);
+        Global.rat_zero = new RAT(RatConst.init_p_rat_zero, RatConst.init_q_rat_zero);
+        Global.rat_one = new RAT(RatConst.init_p_rat_one, RatConst.init_q_rat_one);
+        Global.rat_neg_one = new RAT(RatConst.init_p_rat_neg_one, RatConst.init_q_rat_neg_one);
+        Global.rat_half = new RAT(RatConst.init_p_rat_half, RatConst.init_q_rat_half);
+        Global.rat_ten = new RAT(RatConst.init_p_rat_ten, RatConst.init_q_rat_ten);
+        Global.pi = new RAT(RatConst.init_p_pi, RatConst.init_q_pi);
+        Global.two_pi = new RAT(RatConst.init_p_two_pi, RatConst.init_q_two_pi);
+        Global.pi_over_two = new RAT(RatConst.init_p_pi_over_two, RatConst.init_q_pi_over_two);
+        Global.one_pt_five_pi = new RAT(RatConst.init_p_one_pt_five_pi, RatConst.init_q_one_pt_five_pi);
+        Global.e_to_one_half = new RAT(RatConst.init_p_e_to_one_half, RatConst.init_q_e_to_one_half);
+        Global.rat_exp = new RAT(RatConst.init_p_rat_exp, RatConst.init_q_rat_exp);
+        Global.ln_ten = new RAT(RatConst.init_p_ln_ten, RatConst.init_q_ln_ten);
+        Global.ln_two = new RAT(RatConst.init_p_ln_two, RatConst.init_q_ln_two);
+        Global.rad_to_deg = new RAT(RatConst.init_p_rad_to_deg, RatConst.init_q_rad_to_deg);
+        Global.rad_to_grad = new RAT(RatConst.init_p_rad_to_grad, RatConst.init_q_rad_to_grad);
+        Global.rat_qword = new RAT(RatConst.init_p_rat_qword, RatConst.init_q_rat_qword);
+        Global.rat_dword = new RAT(RatConst.init_p_rat_dword, RatConst.init_q_rat_dword);
+        Global.rat_word = new RAT(RatConst.init_p_rat_word, RatConst.init_q_rat_word);
+        Global.rat_byte = new RAT(RatConst.init_p_rat_byte, RatConst.init_q_rat_byte);
+        Global.rat_360 = new RAT(RatConst.init_p_rat_360, RatConst.init_q_rat_360);
+        Global.rat_400 = new RAT(RatConst.init_p_rat_400, RatConst.init_q_rat_400);
+        Global.rat_180 = new RAT(RatConst.init_p_rat_180, RatConst.init_q_rat_180);
+        Global.rat_200 = new RAT(RatConst.init_p_rat_200, RatConst.init_q_rat_200);
+        Global.rat_smallest = new RAT(RatConst.init_p_rat_smallest, RatConst.init_q_rat_smallest);
+        Global.rat_negsmallest = new RAT(RatConst.init_p_rat_negsmallest, RatConst.init_q_rat_negsmallest);
+        Global.rat_max_exp = new RAT(RatConst.init_p_rat_max_exp, RatConst.init_q_rat_max_exp);
+        Global.rat_min_exp = new RAT(RatConst.init_p_rat_min_exp, RatConst.init_q_rat_min_exp);
+        Global.rat_max_fact = new RAT(RatConst.init_p_rat_max_fact, RatConst.init_q_rat_max_fact);
+        Global.rat_min_fact = new RAT(RatConst.init_p_rat_min_fact, RatConst.init_q_rat_min_fact);
+        Global.rat_min_i32 = new RAT(RatConst.init_p_rat_min_i32, RatConst.init_q_rat_min_i32);
+        Global.rat_max_i32 = new RAT(RatConst.init_p_rat_max_i32, RatConst.init_q_rat_max_i32);
     }
 
     class Global {

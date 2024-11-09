@@ -3,6 +3,7 @@ package mscalc.ratpack;
 import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.ratpack.RatPack.NUMBER;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static mscalc.ratpack.Conv.*;
@@ -14,6 +15,11 @@ public class ConversionTests {
     private static final uint RADIX_2 = uint.of(2);
     private static final uint RADIX_10 = uint.of(10);
     private static final uint RADIX_16 = uint.of(16);
+
+    @BeforeAll
+    public static void beforeAll() {
+        Support.ChangeConstants(RADIX_10, 20);
+    }
 
     @Test
     public void number_int_roundtrip_conversion() {
