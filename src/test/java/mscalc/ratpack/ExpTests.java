@@ -96,4 +96,33 @@ public class ExpTests {
             assertEquals(expected, actual);
         }
     }
+
+    @Test
+    public void log10_works() {
+        // log10 is based on ln, no extensive testing needed
+        String[] data = new String[] {
+                // x,
+                "1", "0",
+                "10", "1",
+                "100", "2",
+                "0.1", "-1",
+
+                "77", "1.8864907251724818715"
+        };
+
+        for (int i = 0; i <= data.length - 2; i += 2) {
+            String x = data[i];
+            String expected = data[i+1];
+
+            Ptr<RAT> xRat = new Ptr<>(
+                    Conv.StringToRat(false, x, false, "0", RADIX_10, PRECISION)
+            );
+            Exp.log10rat(xRat, PRECISION);
+
+            String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
+
+            // System.out.printf("ln(%s) = %s%n", x, actual);
+            assertEquals(expected, actual);
+        }
+    }
 }
