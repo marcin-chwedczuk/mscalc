@@ -228,6 +228,13 @@ enum AngleType
             a.pq = Conv.numtonRadixx(this.pq.clone(), fromRadix);
             return a;
         }
+
+        public RAT fromBaseXTo(uint targetRadix, int precision) {
+            RAT a = createrat();
+            a.pp = Conv.nRadixxtonum(this.pp.clone(), targetRadix, precision);
+            a.pq = Conv.nRadixxtonum(this.pq.clone(), targetRadix, precision);
+            return a;
+        }
     }
 
     class TYLOR {
