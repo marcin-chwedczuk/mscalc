@@ -6,14 +6,14 @@ import mscalc.cpp.uint;
 import mscalc.ratpack.RatPack.RAT;
 import mscalc.ratpack.Support.Global;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static mscalc.ratpack.CalcErr.CALC_E_DIVIDEBYZERO;
 import static mscalc.ratpack.CalcErr.CALC_E_INDEFINITE;
 import static mscalc.ratpack.Rat.*;
 import static mscalc.ratpack.RatPack.BASEX;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RatTests {
     private static final uint BASE_10 = uint.of(10);
@@ -47,7 +47,7 @@ public class RatTests {
         fracrat(r, BASE_10, PRECISION);
 
         String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
-        assertEquals(result, "0.14159265358979323846");
+        assertEquals("0.14159265358979323846", result);
     }
 
     @Test
@@ -57,7 +57,7 @@ public class RatTests {
         fracrat(r, BASE_10, PRECISION);
 
         String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
-        assertEquals(result, "0");
+        assertEquals("0", result);
     }
 
     @Test
@@ -68,7 +68,7 @@ public class RatTests {
         mulrat(r, r6, PRECISION);
 
         String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASEX, PRECISION);
-        assertEquals(result, "0");
+        assertEquals("0", result);
 
         // Reverse parameters
 
@@ -78,7 +78,7 @@ public class RatTests {
         mulrat(r, r6, PRECISION);
 
         result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
-        assertEquals(result, "0");
+        assertEquals("0", result);
     }
 
     @Test
@@ -89,7 +89,7 @@ public class RatTests {
         mulrat(r, r6, PRECISION);
 
         String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
-        assertEquals(result, "12");
+        assertEquals("12", result);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class RatTests {
         divrat(r, rzero, PRECISION);
 
         String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
-        assertEquals(result, "0");
+        assertEquals("0", result);
     }
 
     @Test
@@ -131,6 +131,52 @@ public class RatTests {
         divrat(r, rzero, PRECISION);
 
         String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
-        assertEquals(result, "0.16666666666666666667");
+        assertEquals("0.16666666666666666667", result);
+    }
+
+    @Test
+    public void subrat_works() {
+        Ptr<RAT> r = new Ptr<>(Global.rat_one.toBaseXFrom(BASE_10));
+        RAT rzero = Global.rat_six.toBaseXFrom(BASE_10);
+
+        subrat(r, rzero, PRECISION);
+
+        String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
+        assertEquals("-5", result);
+    }
+
+    @Test
+    public void addrat_works_same_number() {
+        Ptr<RAT> r = new Ptr<>(Global.rat_six.toBaseXFrom(BASE_10));
+        RAT rzero = Global.rat_six.toBaseXFrom(BASE_10);
+
+        addrat(r, rzero, PRECISION);
+
+        String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
+        assertEquals("12", result);
+    }
+
+    @Test
+    public void addrat_works_different_numbers() {
+        Ptr<RAT> r = new Ptr<>(Global.rat_six.toBaseXFrom(BASE_10));
+        RAT rx = Conv.StringToRat(false, "0.034", false, "0", BASE_10, PRECISION);
+
+        addrat(r, rx, PRECISION);
+
+        String result = Conv.RatToString(r, RatPack.NumberFormat.Float, BASE_10, PRECISION);
+        assertEquals("6.034", result);
+    }
+
+    @Test
+    @Disabled("not impl yet.")
+    public void rootrat() {
+
+    }
+
+    @Test
+    public void zerrat_works() {
+        assertTrue(zerrat(Global.rat_zero.clone()));
+        assertFalse(zerrat(Global.rat_one.clone()));
+        assertFalse(zerrat(Global.rat_neg_one.clone()));
     }
 }
