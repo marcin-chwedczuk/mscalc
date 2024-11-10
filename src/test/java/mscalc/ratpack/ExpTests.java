@@ -125,4 +125,46 @@ public class ExpTests {
             assertEquals(expected, actual);
         }
     }
+
+    @Test
+    public void power_tests() {
+        String[] data = new String[] {
+                // x, y, x^y
+
+                // Integral powers
+                "8", "0", "1",
+                "7", "1", "7",
+
+                "2", "32", "4294967296",
+                "7", "13", "96889010407",
+
+                // Real x
+                "0.123", "9", "6.443858614676334363e-9",
+                "1.3", "7", "6.2748517",
+
+                // Real y
+                "8", "3.7", "2194.9920512743284003",
+                "9", "0.5", "3",
+
+                // Both real
+                "3.333", "4.4444", "210.71199939326800129"
+        };
+
+        for (int i = 0; i <= data.length - 3; i += 3) {
+            String x = data[i];
+            String y = data[i+1];
+            String expected = data[i+2];
+
+            Ptr<RAT> xRat = new Ptr<>(
+                    Conv.StringToRat(false, x, false, "0", RADIX_10, PRECISION)
+            );
+            RAT yRat = Conv.StringToRat(false, y, false, "0", RADIX_10, PRECISION);
+            Exp.powrat(xRat, yRat, RADIX_10, PRECISION);
+
+            String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
+
+            // System.out.printf("(%s)^(%s) = %s%n", x, y, actual);
+            assertEquals(expected, actual);
+        }
+    }
 }

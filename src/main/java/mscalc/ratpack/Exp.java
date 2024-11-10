@@ -238,4 +238,263 @@ public interface Exp {
         return bRet;
     }
 
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: powrat
+    //
+    //  ARGUMENTS: PRAT *px, PRAT y, uint32_t radix, int32_t precision
+    //
+    //  RETURN: none, sets *px to *px to the y.
+    //
+    //  EXPLANATION: Calculates the power of both px and
+    //  handles special cases where px is a perfect root.
+    //  Assumes, all checking has been done on validity of numbers.
+    //
+    //
+    //---------------------------------------------------------------------------
+    static void powrat(Ptr<RAT> px, RAT y, uint radix, int precision)
+    {
+        // Handle cases where px or y is 0 by calling powratcomp directly
+        if (zerrat(px.deref()) || zerrat(y))
+        {
+            powratcomp(px, y, radix, precision);
+            return;
+        }
+        // When y is 1, return px
+        if (rat_equ(y, rat_one, precision))
+        {
+            return;
+        }
+
+        try
+        {
+            powratNumeratorDenominator(px, y, radix, precision);
+        }
+        catch (ErrorCodeException e)
+        {
+            e.printStackTrace();
+
+            // If calculating the power using numerator/denominator
+            // failed, fall back to the less accurate method of
+            // passing in the original y
+            powratcomp(px, y, radix, precision);
+        }
+    }
+
+    static void powratNumeratorDenominator(Ptr<RAT> px, RAT y, uint radix, int precision)
+    {
+        // Prepare rationals
+        Ptr<RAT> yNumerator = new Ptr<>();
+        Ptr<RAT> yDenominator = new Ptr<>();
+        yNumerator.set( DUPRAT(rat_zero) );   // yNumerator->pq is 1 one
+        yDenominator.set( DUPRAT(rat_zero) ); // yDenominator->pq is 1 one
+        yNumerator.deref().pp = DUPNUM(y.pp);
+        yDenominator.deref().pp = DUPNUM(y.pq);
+
+        // Calculate the following use the Powers of Powers rule:
+        // px ^ (yNum/yDenom) == px ^ yNum ^ (1/yDenom)
+        // 1. For px ^ yNum, we call powratcomp directly which will call ratpowi32
+        //    and store the result in pxPowNum
+        // 2. For pxPowNum ^ (1/yDenom), we call powratcomp
+        // 3. Validate the result of 2 by adding/subtracting 0.5, flooring and call powratcomp with yDenom
+        //    on the floored result.
+
+        // 1. Initialize result.
+        Ptr<RAT> pxPow = new Ptr<>(DUPRAT(px.deref()));
+
+        // 2. Calculate pxPow = px ^ yNumerator
+        // if yNumerator is not 1
+        if (!rat_equ(yNumerator.deref(), rat_one, precision))
+        {
+            powratcomp(pxPow, yNumerator.deref(), radix, precision);
+        }
+
+        // 2. Calculate pxPowNumDenom = pxPowNum ^ (1/yDenominator),
+        // if yDenominator is not 1
+        if (!rat_equ(yDenominator.deref(), rat_one, precision))
+        {
+            // Calculate 1 over y
+            Ptr<RAT> oneoveryDenom = new Ptr<>( DUPRAT(rat_one) );
+            divrat(oneoveryDenom, yDenominator.deref(), precision);
+
+            // ##################################
+            // Take the oneoveryDenom power
+            // ##################################
+            Ptr<RAT> originalResult = new Ptr<>(DUPRAT(pxPow.deref()));
+            powratcomp(originalResult, oneoveryDenom.deref(), radix, precision);
+
+            // ##################################
+            // Round the originalResult to roundedResult
+            // ##################################
+            Ptr<RAT> roundedResult = new Ptr<>(DUPRAT(originalResult.deref()));
+            if (roundedResult.deref().pp.sign == -1)
+            {
+                subrat(roundedResult, rat_half, precision);
+            }
+            else
+            {
+                addrat(roundedResult, rat_half, precision);
+            }
+            intrat(roundedResult, radix, precision);
+
+            // ##################################
+            // Take the yDenom power of the roundedResult.
+            // ##################################
+            Ptr<RAT> roundedPower = new Ptr<>(DUPRAT(roundedResult.deref()));
+            powratcomp(roundedPower, yDenominator.deref(), radix, precision);
+
+            // ##################################
+            // if roundedPower == px,
+            // we found an exact power in roundedResult
+            // ##################################
+            if (rat_equ(roundedPower.deref(), pxPow.deref(), precision))
+            {
+                px.set(DUPRAT(roundedResult.deref()));
+            }
+            else
+            {
+                px.set(DUPRAT(originalResult.deref()));
+            }
+        }
+        else
+        {
+            px.set(DUPRAT(pxPow.deref()));
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: powratcomp
+    //
+    //  ARGUMENTS: PRAT *px, and PRAT y
+    //
+    //  RETURN: none, sets *px to *px to the y.
+    //
+    //  EXPLANATION: This uses x^y=e(y*ln(x)), or a more exact calculation where
+    //  y is an integer.
+    //  Assumes, all checking has been done on validity of numbers.
+    //
+    //
+    //---------------------------------------------------------------------------
+    static void powratcomp(Ptr<RAT> px, RAT y, uint radix, int precision)
+    {
+        int sign = px.deref().SIGN();
+
+        // Take the absolute value
+        px.deref().pp.sign = 1;
+        px.deref().pq.sign = 1;
+
+        if (zerrat(px.deref()))
+        {
+            // *px is zero.
+            if (rat_lt(y, rat_zero, precision))
+            {
+                throw new ErrorCodeException(CALC_E_DOMAIN);
+            }
+            else if (zerrat(y))
+            {
+                // *px and y are both zero, special case a 1 return.
+                px.set( DUPRAT(rat_one) );
+                // Ensure sign is positive.
+                sign = 1;
+            }
+        }
+        else
+        {
+            Ptr<RAT> pxint = new Ptr<>();
+            pxint.set( DUPRAT(px.deref()) );
+
+            subrat(pxint, rat_one, precision);
+
+            if (rat_gt(pxint.deref(), rat_negsmallest, precision) && rat_lt(pxint.deref(), rat_smallest, precision) && (sign == 1))
+            {
+                // *px is one, special case a 1 return.
+                px.set( DUPRAT(rat_one) );
+                // Ensure sign is positive.
+                sign = 1;
+            }
+            else
+            {
+                // Only do the exp if the number isn't zero or one
+                Ptr<RAT> podd = new Ptr<>(DUPRAT(y));
+                fracrat(podd, radix, precision);
+
+                if (rat_gt(podd.deref(), rat_negsmallest, precision) && rat_lt(podd.deref(), rat_smallest, precision))
+                {
+                    // If power is an integer let ratpowi32 deal with it.
+                    Ptr<RAT> iy = new Ptr<>(DUPRAT(y));
+                    subrat(iy, podd.deref(), precision);
+                    int inty = rattoi32(iy.deref(), radix, precision);
+
+                    Ptr<RAT> plnx = new Ptr<>(DUPRAT(px.deref()));
+                    lograt(plnx, precision);
+                    mulrat(plnx, iy.deref(), precision);
+
+                    if (rat_gt(plnx.deref(), rat_max_exp, precision) || rat_lt(plnx.deref(), rat_min_exp, precision))
+                    {
+                        // Don't attempt exp of anything large or small.A
+                        throw new ErrorCodeException(CALC_E_DOMAIN);
+                    }
+                    ratpowi32(px, inty, precision);
+                    if ((inty & 1) == 0)
+                    {
+                        sign = 1;
+                    }
+                }
+                else
+                {
+                    // power is a fraction
+                    if (sign == -1)
+                    {
+                        // Need to throw an error if the exponent has an even denominator.
+                        // As a first step, the numerator and denominator must be divided by 2 as many times as
+                        //     possible, so that 2/6 is allowed.
+                        // If the final numerator is still even, the end result should be positive.
+                        Ptr<RAT> pNumerator = new Ptr<>();
+                        Ptr<RAT> pDenominator = new Ptr<>();
+                        boolean fBadExponent = false;
+
+                        // Get the numbers in arbitrary precision rational number format
+                        pNumerator.set( DUPRAT(rat_zero) );   // pNumerator->pq is 1 one
+                        pDenominator.set( DUPRAT(rat_zero) ); // pDenominator->pq is 1 one
+
+                        pNumerator.deref().pp = DUPNUM(y.pp);
+                        pNumerator.deref().pp.sign = 1;
+
+                        pDenominator.deref().pp = DUPNUM(y.pq);
+                        pDenominator.deref().pp.sign = 1;
+
+                        while (IsEven(pNumerator.deref(), radix, precision) && IsEven(pDenominator.deref(), radix, precision)) // both Numerator & denominator is even
+                        {
+                            divrat(pNumerator, rat_two, precision);
+                            divrat(pDenominator, rat_two, precision);
+                        }
+                        if (IsEven(pDenominator.deref(), radix, precision)) // denominator is still even
+                        {
+                            fBadExponent = true;
+                        }
+                        if (IsEven(pNumerator.deref(), radix, precision)) // numerator is still even
+                        {
+                            sign = 1;
+                        }
+
+                        if (fBadExponent)
+                        {
+                            throw new ErrorCodeException(CALC_E_DOMAIN);
+                        }
+                    }
+                    else
+                    {
+                        // If the exponent is not odd disregard the sign.
+                        sign = 1;
+                    }
+
+                    lograt(px, precision);
+                    mulrat(px, y, precision);
+                    exprat(px, radix, precision);
+                }
+            }
+        }
+        px.deref().pp.sign *= sign;
+    }
 }
