@@ -553,6 +553,32 @@ public interface Support {
         addrat(px, pret.deref(), precision);
     }
 
+    //---------------------------------------------------------------------------
+    //
+    //  FUNCTION: inbetween
+    //
+    //  ARGUMENTS:  PRAT *px, and PRAT range.
+    //
+    //  RETURN: none, changes *px to -/+range, if px is outside -range..+range
+    //
+    //---------------------------------------------------------------------------
+    static void inbetween(Ptr<RAT> px, RAT range, int precision)
+    {
+        if (rat_gt(px.deref(), range, precision))
+        {
+            px.set(DUPRAT(range));
+        }
+        else
+        {
+            range.pp.sign *= -1;
+            if (rat_lt(px.deref(), range, precision))
+            {
+                px.set(DUPRAT(range));
+            }
+            range.pp.sign *= -1;
+        }
+    }
+
     class Global {
         public static NUMBER num_two = null;
         public static NUMBER num_one = null;
