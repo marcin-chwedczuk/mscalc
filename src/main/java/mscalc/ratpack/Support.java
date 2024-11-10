@@ -19,8 +19,7 @@ import static mscalc.ratpack.Num.equnum;
 import static mscalc.ratpack.Num.zernum;
 import static mscalc.ratpack.Rat.*;
 import static mscalc.ratpack.RatPack.*;
-import static mscalc.ratpack.Support.Global.num_one;
-import static mscalc.ratpack.Support.Global.rat_one;
+import static mscalc.ratpack.Support.Global.*;
 
 public interface Support {
     int RATIO_FOR_DECIMAL = 9;
@@ -169,11 +168,11 @@ public interface Support {
             Global.rat_negsmallest = DUPRAT(Global.rat_smallest);
             Global.rat_negsmallest.pp.sign = -1;
 
-            if (Global.rat_half == null)
+            if (rat_half == null)
             {
-                Global.rat_half = createrat();
-                Global.rat_half.pp =  DUPNUM(num_one);
-                Global.rat_half.pq = DUPNUM(Global.num_two);
+                rat_half = createrat();
+                rat_half.pp =  DUPNUM(num_one);
+                rat_half.pq = DUPNUM(Global.num_two);
             }
 
             if (Global.pt_eight_five == null)
@@ -218,7 +217,7 @@ public interface Support {
             // Apparently when dividing 180 by pi, another (internal) digit of
             // precision is needed.
             int extraPrecision = precision + g_ratio.get();
-            Global.pi = DUPRAT(Global.rat_half);
+            Global.pi = DUPRAT(rat_half);
             ratp = new Ptr<>(Global.pi);
             asinrat(ratp, radix, extraPrecision);
             mulrat(ratp, Global.rat_six, extraPrecision);
@@ -240,7 +239,7 @@ public interface Support {
             addrat(ratp, Global.pi_over_two, extraPrecision);
             Global.one_pt_five_pi = ratp.deref();
 
-            Global.e_to_one_half = DUPRAT(Global.rat_half);
+            Global.e_to_one_half = DUPRAT(rat_half);
             ratp = new Ptr<>(Global.e_to_one_half);
             _exprat(ratp, radix, extraPrecision);
             Global.e_to_one_half = ratp.deref();
@@ -299,7 +298,7 @@ public interface Support {
         Global.rat_zero = new RAT(RatConst.init_p_rat_zero, RatConst.init_q_rat_zero);
         Global.rat_one = new RAT(RatConst.init_p_rat_one, RatConst.init_q_rat_one);
         Global.rat_neg_one = new RAT(RatConst.init_p_rat_neg_one, RatConst.init_q_rat_neg_one);
-        Global.rat_half = new RAT(RatConst.init_p_rat_half, RatConst.init_q_rat_half);
+        rat_half = new RAT(RatConst.init_p_rat_half, RatConst.init_q_rat_half);
         Global.rat_ten = new RAT(RatConst.init_p_rat_ten, RatConst.init_q_rat_ten);
         Global.pi = new RAT(RatConst.init_p_pi, RatConst.init_q_pi);
         Global.two_pi = new RAT(RatConst.init_p_two_pi, RatConst.init_q_two_pi);
@@ -482,6 +481,76 @@ public interface Support {
 
         boolean bret = !(zernum(rattmp.deref().pp));
         return (bret);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  function: scale
+    //
+    //  ARGUMENTS:  pointer to x PRAT representation of number, and scaling factor
+    //
+    //  RETURN: no return, value x PRAT is smashed with a scaled number in the
+    //          range of the scalefact.
+    //
+    //---------------------------------------------------------------------------
+    static void scale(Ptr<RAT> px, RAT scalefact, uint radix, int precision)
+    {
+        Ptr<RAT> pret = new Ptr<>(DUPRAT(px.deref()));
+
+        // Logscale is a quick way to tell how much extra precision is needed for
+        // scaling by scalefact.
+        int logscale = g_ratio.get() * ((pret.deref().pp.cdigit + pret.deref().pp.exp) - (pret.deref().pq.cdigit + pret.deref().pq.exp));
+        if (logscale > 0)
+        {
+            precision += logscale;
+        }
+
+        divrat(pret, scalefact, precision);
+        intrat(pret, radix, precision);
+        mulrat(pret, scalefact, precision);
+        pret.deref().pp.sign *= -1;
+        addrat(px, pret.deref(), precision);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    //  function: scale2pi
+    //
+    //  ARGUMENTS:  pointer to x PRAT representation of number
+    //
+    //  RETURN: no return, value x PRAT is smashed with a scaled number in the
+    //          range of 0..2pi
+    //
+    //---------------------------------------------------------------------------
+    static void scale2pi(Ptr<RAT> px, uint radix, int precision)
+    {
+        Ptr<RAT> pret = new Ptr<>();
+        Ptr<RAT> my_two_pi = new Ptr<>();
+        pret.set(DUPRAT(px.deref()));
+
+        // Logscale is a quick way to tell how much extra precision is needed for
+        // scaling by 2 pi.
+        int logscale = g_ratio.get() * ((pret.deref().pp.cdigit + pret.deref().pp.exp) - (pret.deref().pq.cdigit + pret.deref().pq.exp));
+        if (logscale > 0)
+        {
+            precision += logscale;
+
+            my_two_pi.set(DUPRAT(rat_half));
+            asinrat(my_two_pi, radix, precision);
+            mulrat(my_two_pi, rat_six, precision);
+            mulrat(my_two_pi, rat_two, precision);
+        }
+        else
+        {
+            my_two_pi.set(DUPRAT(two_pi));
+            logscale = 0;
+        }
+
+        divrat(pret, my_two_pi.deref(), precision);
+        intrat(pret, radix, precision);
+        mulrat(pret, my_two_pi.deref(), precision);
+        pret.deref().pp.sign *= -1;
+        addrat(px, pret.deref(), precision);
     }
 
     class Global {

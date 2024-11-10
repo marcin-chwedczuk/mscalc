@@ -12,6 +12,7 @@ import static mscalc.ratpack.CalcErr.CALC_E_DIVIDEBYZERO;
 import static mscalc.ratpack.CalcErr.CALC_E_INDEFINITE;
 import static mscalc.ratpack.Conv.flatrat;
 import static mscalc.ratpack.Conv.gcd;
+import static mscalc.ratpack.Exp.powrat;
 import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.RatPack.*;
 import static mscalc.ratpack.Support.Global.num_one;
@@ -270,12 +271,10 @@ public interface Rat {
     //-----------------------------------------------------------------------------
     static void rootrat(Ptr<RAT> py, RAT n, uint radix, int precision)
     {
-        throw new RuntimeException("Not yet implemented");
-
         // Initialize 1/n
-        // Ptr<RAT> oneovern = new Ptr<>(DUPRAT(rat_one));
-        // divrat(oneovern, n, precision);
-        // TODO: powrat(py, oneovern, radix, precision);
+        Ptr<RAT> oneovern = new Ptr<>(DUPRAT(rat_one));
+        divrat(oneovern, n, precision);
+        powrat(py, oneovern.deref(), radix, precision);
     }
 
     //-----------------------------------------------------------------------------
