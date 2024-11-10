@@ -15,6 +15,7 @@ import static mscalc.ratpack.Conv.gcd;
 import static mscalc.ratpack.Num.*;
 import static mscalc.ratpack.RatPack.*;
 import static mscalc.ratpack.Support.Global.num_one;
+import static mscalc.ratpack.Support.Global.rat_one;
 import static mscalc.ratpack.Support.trimit;
 
 public interface Rat {
@@ -118,7 +119,7 @@ public interface Rat {
         else
         {
             // If it is zero, blast a one in the denominator.
-            pa.deref().pp = DUPNUM(Support.Global.num_one);
+            pa.deref().pq = DUPNUM(Support.Global.num_one);
         }
 
         // gcdrat(pa);
@@ -272,11 +273,9 @@ public interface Rat {
         throw new RuntimeException("Not yet implemented");
 
         // Initialize 1/n
-        /*
-        Ptr<RAT> oneovern = new Ptr<>(DUPRAT(rat_one));
-        divrat(oneovern, n, precision);
-        powrat(py, oneovern, radix, precision);
-        */
+        // Ptr<RAT> oneovern = new Ptr<>(DUPRAT(rat_one));
+        // divrat(oneovern, n, precision);
+        // TODO: powrat(py, oneovern, radix, precision);
     }
 
     //-----------------------------------------------------------------------------

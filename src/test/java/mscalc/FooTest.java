@@ -22,7 +22,7 @@ public class FooTest {
 
         RAT t = createrat();
         for (int i = 0; i < 10; i++) {
-            t = Conv.StringToRat(false, Double.toString(i), false, "0", BASE_10, 20);
+            t = Conv.StringToRat(false, "0." + Double.toString(i), false, "0", BASE_10, 20);
 
             Ptr<RAT> res = new Ptr<>(DUPRAT(t));
             Exp.exprat(res, BASE_10, 20);

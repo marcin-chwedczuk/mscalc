@@ -297,7 +297,7 @@ public interface Support {
         Global.rat_six = new RAT(RatConst.init_p_rat_six, RatConst.init_q_rat_six);
         Global.rat_two = new RAT(RatConst.init_p_rat_two, RatConst.init_q_rat_two);
         Global.rat_zero = new RAT(RatConst.init_p_rat_zero, RatConst.init_q_rat_zero);
-        rat_one = new RAT(RatConst.init_p_rat_one, RatConst.init_q_rat_one);
+        Global.rat_one = new RAT(RatConst.init_p_rat_one, RatConst.init_q_rat_one);
         Global.rat_neg_one = new RAT(RatConst.init_p_rat_neg_one, RatConst.init_q_rat_neg_one);
         Global.rat_half = new RAT(RatConst.init_p_rat_half, RatConst.init_q_rat_half);
         Global.rat_ten = new RAT(RatConst.init_p_rat_ten, RatConst.init_q_rat_ten);

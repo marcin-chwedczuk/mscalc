@@ -55,17 +55,6 @@ public interface Exp {
                 t.DIVNUM(t.n2);
             }, precision);
 
-
-            uint RADIX_10 = uint.of(10);
-            RAT tmp = new RAT();
-            tmp.pp = nRadixxtonum(t.thisterm.pp, RADIX_10, 10);
-            tmp.pq = nRadixxtonum(t.thisterm.pq, RADIX_10, 10);
-            String str = Conv.RatToString(new Ptr<>(tmp), RatPack.NumberFormat.Float, RADIX_10, 10);
-            System.out.println("STEP " + str);
-            try { Thread.sleep(10); } catch (Exception e) { }
-             // TODO: Cleanup
-
-
         } while (!t.thisterm.SMALL_ENOUGH_RAT(precision));
 
         px.set(t.RESULT());

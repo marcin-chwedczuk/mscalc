@@ -144,7 +144,7 @@ enum AngleType
     //  pp/pq, where pp and pq are pointers to integral NUMBER types.
     //
     //-----------------------------------------------------------------------------
-    class RAT // _rat
+    class RAT implements Cloneable // _rat
     {
         public NUMBER pp;
         public NUMBER pq;
@@ -213,6 +213,21 @@ enum AngleType
 
         public boolean SMALL_ENOUGH_RAT(int precision) {
             return zernum(pp) || (((pq.cdigit + pq.exp) - (pp.cdigit + pp.exp) - 1) * g_ratio.get() > precision);
+        }
+
+        @Override
+        public RAT clone() {
+            RAT a = createrat();
+            a.pp = this.pp.clone();
+            a.pq = this.pq.clone();
+            return a;
+        }
+
+        public RAT toRadixX(uint fromRadix) {
+            RAT a = createrat();
+            a.pp = Conv.numtonRadixx(this.pp.clone(), fromRadix);
+            a.pq = Conv.numtonRadixx(this.pq.clone(), fromRadix);
+            return a;
         }
     }
 
