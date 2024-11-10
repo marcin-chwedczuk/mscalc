@@ -4,7 +4,6 @@ import mscalc.cpp.Ptr;
 import mscalc.cpp.uint;
 import mscalc.cpp.uintArray;
 
-import java.util.Arrays;
 import java.util.function.Consumer;
 
 import static mscalc.ratpack.BaseX.mulnumx;
@@ -223,7 +222,7 @@ enum AngleType
             return a;
         }
 
-        public RAT toRadixX(uint fromRadix) {
+        public RAT toBaseXFrom(uint fromRadix) {
             RAT a = createrat();
             a.pp = Conv.numtonRadixx(this.pp.clone(), fromRadix);
             a.pq = Conv.numtonRadixx(this.pq.clone(), fromRadix);
