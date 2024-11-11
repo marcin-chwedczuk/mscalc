@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <artifactId>parent-project</artifactId>
+        <groupId>mscalc</groupId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>engine</artifactId>
+    <packaging>jar</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>MSCalc Computing Engine</description>
+
+    <properties>
+        <extra-jvm-options-when-running-tests>
+            <!-- Needed to make module code accessible outside module e.g. in unit tests. -->
+            --add-opens mscalc.engine/mscalc.engine=ALL-UNNAMED
+            --add-opens mscalc.engine/mscalc.engine.cpp=ALL-UNNAMED
+            --add-opens mscalc.engine/mscalc.engine.ratpack=ALL-UNNAMED
+        </extra-jvm-options-when-running-tests>
+    </properties>
+
+    <dependencies>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
