@@ -17,17 +17,27 @@ public class FactTests {
     }
 
     @Test
-    public void smoke_test() {
-        for (int i = 0; i < 10; i++) {
+    public void factorial_smoke_test() {
+        for (int i = 0; i < 20; i++) {
             Ptr<RatPack.RAT> xRat = new Ptr<>(
                     Conv.StringToRat(false, Integer.toString(i), false, "0", RADIX_10, PRECISION)
             );
             Fact.factrat(xRat, RADIX_10, PRECISION);
 
             String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
+            String expected = Long.toString(factorial(i));
 
-            System.out.printf("%d! = %s%n", i, actual);
-            // assertEquals(expected, actual);
+            assertEquals(expected, actual, "failed for i = " + i);
         }
+    }
+
+    private long factorial(int n) {
+        long f = 1;
+
+        for (int i = 2; i <= n; i++) {
+            f *= i;
+        }
+
+        return f;
     }
 }
