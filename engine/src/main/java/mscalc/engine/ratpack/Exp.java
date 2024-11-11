@@ -270,7 +270,7 @@ public interface Exp {
         }
         catch (ErrorCodeException e)
         {
-            e.printStackTrace();
+            //e.printStackTrace();
 
             // If calculating the power using numerator/denominator
             // failed, fall back to the less accurate method of

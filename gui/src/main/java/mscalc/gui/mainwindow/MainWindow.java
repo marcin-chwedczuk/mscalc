@@ -31,16 +31,7 @@ public class MainWindow implements Initializable {
         }
     }
 
-    @FXML
-    private Label label;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        label.setText("Hello, world!");
-    }
-
-    @FXML
-    private void clicked() {
-        label.setText("Clicked!!!");
     }
 }

@@ -58,6 +58,23 @@ public class ExpTests {
     }
 
     @Test
+    public void exp_cmp_test() {
+        var tester = new FunctionComparisonTester("exp", -4.0, 4.0, 0.17) {
+            @Override
+            double expected(double x) {
+                return Math.exp(x);
+            }
+
+            @Override
+            void actual(Ptr<RAT> x) {
+                Exp.exprat(x, RADIX_10, PRECISION);
+            }
+        };
+
+        tester.runTests();
+    }
+
+    @Test
     public void ln_works() {
         String[] data = new String[] {
                 // x,
@@ -98,6 +115,23 @@ public class ExpTests {
     }
 
     @Test
+    public void ln_cmp_test() {
+        var tester = new FunctionComparisonTester("ln", 0.00001, 4.0, 0.037) {
+            @Override
+            double expected(double x) {
+                return Math.log(x);
+            }
+
+            @Override
+            void actual(Ptr<RAT> x) {
+                Exp.lograt(x, PRECISION);
+            }
+        };
+
+        tester.runTests();
+    }
+
+    @Test
     public void log10_works() {
         // log10 is based on ln, no extensive testing needed
         String[] data = new String[] {
@@ -124,6 +158,23 @@ public class ExpTests {
             // System.out.printf("ln(%s) = %s%n", x, actual);
             assertEquals(expected, actual);
         }
+    }
+
+    @Test
+    public void log10_cmp_test() {
+        var tester = new FunctionComparisonTester("log10", 0.00001, 4.0, 0.037) {
+            @Override
+            double expected(double x) {
+                return Math.log10(x);
+            }
+
+            @Override
+            void actual(Ptr<RAT> x) {
+                Exp.log10rat(x, PRECISION);
+            }
+        };
+
+        tester.runTests();
     }
 
     @Test
@@ -166,5 +217,23 @@ public class ExpTests {
             // System.out.printf("(%s)^(%s) = %s%n", x, y, actual);
             assertEquals(expected, actual);
         }
+    }
+
+    @Test
+    public void pow_cmp_test() {
+        // TODO: Add tester for 2 parameters e.g. x and y
+        var tester = new FunctionComparisonTester("pow", 0.1, 4.0, 0.137) {
+            @Override
+            double expected(double x) {
+                return Math.pow(x, x);
+            }
+
+            @Override
+            void actual(Ptr<RAT> x) {
+                Exp.powrat(x, x.deref().clone(), RADIX_10, PRECISION);
+            }
+        };
+
+        tester.runTests();
     }
 }
