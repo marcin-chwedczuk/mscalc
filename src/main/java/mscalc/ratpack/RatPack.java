@@ -256,6 +256,19 @@ enum AngleType
             pret.pq = i32tonum(0, BASEX);
         }
 
+        // INC(a) is the rational equivalent of a++
+        // Check to see if we can avoid doing this the hard way.
+        public static NUMBER INC(NUMBER a) {
+            if (a.mant.at(0).compareTo(BASEX.subtract(uint.ONE)) < 0) {
+                a.mant.set(0, a.mant.at(0).add(uint.ONE));
+                return a;
+            } else {
+                Ptr<NUMBER> tmp = new Ptr<>(a);
+                addnum(tmp, num_one, BASEX);
+                return tmp.deref();
+            }
+        }
+
         public RAT RESULT() {
             Ptr<RAT> prat = new Ptr<>(pret);
             trimit(prat, precision);
@@ -271,19 +284,6 @@ enum AngleType
             Ptr<NUMBER> ppp = new Ptr<>(thisterm.pp);
             mulnumx(ppp, b);
             thisterm.pp = ppp.deref();
-        }
-
-        // INC(a) is the rational equivalent of a++
-        // Check to see if we can avoid doing this the hard way.
-        public NUMBER INC(NUMBER a) {
-            if (a.mant.at(0).compareTo(BASEX.subtract(uint.ONE)) < 0) {
-                a.mant.set(0, a.mant.at(0).add(uint.ONE));
-                return a;
-            } else {
-                Ptr<NUMBER> tmp = new Ptr<>(a);
-                addnum(tmp, num_one, BASEX);
-                return tmp.deref();
-            }
         }
 
         // DIVNUM(b) is the rational equivalent of thisterm /= b where thisterm is
