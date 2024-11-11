@@ -62,8 +62,12 @@ public abstract class FunctionComparisonTester {
         actual(actual);
         String actualString = Conv.RatToString(actual, RatPack.NumberFormat.Float, BASE_10, PRECISSION);
 
-        assertEquals(expected,
+        // TODO: Regex split into sign, mantissa, exponent
+        // Allow differences on the last digit
+
+        // There are cases when the roundtrip for doubles returns different values
+        assertEquals(Double.parseDouble(Double.toString(expected)),
                     Double.parseDouble(actualString),
-                    String.format("Failed for value x: %f", x));
+                    String.format("Failed for value x: %f (full actual: %s)", x, actualString));
     }
 }
