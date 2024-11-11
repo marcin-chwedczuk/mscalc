@@ -305,7 +305,7 @@ public interface BaseX {
                 tmp.deref().sign *= -1;
                 addnum(rem, tmp.deref(), BASEX);
 
-                ptrc.set(ptrc.deref().bitOr(digit));
+                ptrc.set(ptrc.deref().bitOr(uint.of(digit)));
             }
 
             rem.deref().exp++;

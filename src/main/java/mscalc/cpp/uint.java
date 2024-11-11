@@ -5,15 +5,14 @@ package mscalc.cpp;
 public class uint {
     public static final uint ZERO = of(0);
     public static final uint ONE = of(1);
-
-    public static uint of(int value) {
-        return new uint(value);
-    }
-
     private final int value;
 
     public uint(int value) {
         this.value = value;
+    }
+
+    public static uint of(int value) {
+        return new uint(value);
     }
 
     public int raw() { return value; }
@@ -70,7 +69,11 @@ public class uint {
         return ulong.of(this.value * other.toULong().raw());
     }
 
-    public uint bitOr(int other) {
-        return uint.of(this.value | other);
+    public uint bitOr(uint other) {
+        return uint.of(this.value | other.raw());
+    }
+
+    public uint bitXor(uint other) {
+        return uint.of(this.value ^ other.raw());
     }
 }

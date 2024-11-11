@@ -986,7 +986,7 @@ public interface Conv {
                 addnum(sum, sum.deref(), radix);
                 if (ptr.deref().bitAnd(bitmask).toBool())
                 {
-                    uint tmp = sum.deref().mant.at(0).bitOr(1);
+                    uint tmp = sum.deref().mant.at(0).bitOr(uint.ONE);
                     sum.deref().mant.set(0, tmp);
                 }
             }
