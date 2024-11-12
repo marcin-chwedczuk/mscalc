@@ -23,7 +23,7 @@
         <maven.compiler.release>21</maven.compiler.release>
 
         <!-- Versions of dependencies -->
-        <javafx.version>21.0.2</javafx.version>
+        <javafx.version>21.0.5</javafx.version>
 
         <!-- Versions of test dependencies -->
         <junit.version>5.8.2</junit.version>
@@ -84,6 +84,29 @@
                 <artifactId>javafx-base</artifactId>
                 <version>${javafx.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-swing</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-web</artifactId>
+                <version>${javafx.version}</version>
+            </dependency>
+
+            <!-- Css Tool -->
+            <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.10.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-sass-compiler</artifactId>
+                <version>0.9.13</version>
+            </dependency>
+
 
             <!-- Test dependencies -->
             <dependency>

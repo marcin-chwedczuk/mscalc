@@ -15,4 +15,11 @@ module mscalc.gui {
     opens mscalc.gui.views;
     opens mscalc.gui.views.basic;
     opens mscalc.gui.views.scientific;
+
+    // CSS Tool
+    exports csstool;
+    opens csstool;
+    requires org.reflections;
+    requires javafx.web;
+    requires vaadin.sass.compiler;
 }

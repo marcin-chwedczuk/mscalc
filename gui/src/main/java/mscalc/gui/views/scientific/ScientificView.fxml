@@ -6,7 +6,7 @@
 
 <fx:root xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
       type="javafx.scene.layout.VBox"
-      stylesheets="@ScientificView.css">
+      stylesheets="@ScientificView.css" styleClass="scientificView">
     <children>
         <TextField editable="false" />
         <HBox VBox.vgrow="NEVER">
@@ -28,7 +28,7 @@
                 </HBox>
             </children>
         </HBox>
-        <GridPane>
+        <GridPane styleClass="buttonGrid">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="8.0" />

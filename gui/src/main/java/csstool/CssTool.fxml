@@ -1,0 +1,55 @@
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Rectangle?>
+<?import csstool.AutocompleteTextArea?>
+<?import csstool.HtmlHelpViewer?>
+<?import csstool.ControlStructureTreeView?>
+<SplitPane prefHeight="850.0" prefWidth="1000.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="csstool.CssTool"
+           stylesheets="@CssTool.css">
+
+    <SplitPane orientation="VERTICAL">
+        <AutocompleteTextArea fx:id="cssText" styleClass="css-code" />
+        <HtmlHelpViewer fx:id="htmlHelpViewer" />
+    </SplitPane>
+
+    <SplitPane orientation="VERTICAL">
+        <VBox>
+            <HBox VBox.vgrow="NEVER" alignment="BASELINE_LEFT">
+                <ToolBar HBox.hgrow="ALWAYS">
+                    <Label>Control:</Label>
+                    <ComboBox fx:id="selectedControl" />
+
+                    <Separator orientation="VERTICAL" />
+
+                    <Label>Extra classes:</Label>
+                    <TextField fx:id="extraClasses" />
+                </ToolBar>
+            </HBox>
+            <TabPane VBox.vgrow="ALWAYS">
+                <Tab text="Preview" closable="false">
+                    <VBox>
+                        <BorderPane fx:id="controlContainer" VBox.vgrow="ALWAYS" />
+
+                        <HBox VBox.vgrow="NEVER" alignment="CENTER_LEFT">
+                            <ToolBar HBox.hgrow="ALWAYS">
+                                <Rectangle fx:id="statusIcon" width="16" height="16" />
+                                <Separator orientation="VERTICAL" />
+                                <CheckBox fx:id="controlEnabled" selected="true" text="Enabled" />
+                            </ToolBar>
+
+                            <ToolBar HBox.hgrow="NEVER">
+                                <Label labelFor="${zoomSlider}">Zoom:</Label>
+                                <Slider fx:id="zoomSlider" min="1" max="8" value="2" />
+                            </ToolBar>
+                        </HBox>
+                    </VBox>
+                </Tab>
+                <Tab text="Structure" closable="false">
+                    <ControlStructureTreeView fx:id="controlStructure" />
+                </Tab>
+            </TabPane>
+        </VBox>
+        <ListView fx:id="cssProperties" />
+    </SplitPane>
+</SplitPane>

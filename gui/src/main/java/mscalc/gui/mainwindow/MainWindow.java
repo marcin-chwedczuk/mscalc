@@ -1,5 +1,7 @@
 package mscalc.gui.mainwindow;
 
+import csstool.CssTool;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -7,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import mscalc.gui.views.scientific.ScientificView;
 
@@ -41,5 +44,12 @@ public class MainWindow implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         container.setCenter(new ScientificView());
+    }
+
+    public void showCssTool(ActionEvent event) {
+        Stage secondStage = new Stage();
+        secondStage.initModality(Modality.NONE);
+
+        CssTool.showOn(secondStage);
     }
 }

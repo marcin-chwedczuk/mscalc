@@ -1,0 +1,16 @@
+.go-back {
+    -fx-graphic: url("/icons/css-tool/back.png");
+}
+
+.go-forward {
+    -fx-graphic: url("/icons/css-tool/forward.png");
+}
+
+.table-of-contents {
+     -fx-graphic: url("/icons/css-tool/go-home.png");
+}
+
+.css-code {
+    -fx-font-family: 'Courier New', 'monospace';
+    -fx-font-size: 16;
+}

@@ -1,0 +1,13 @@
+.scientificView {
+  -fx-padding: 0.75em;
+}
+.scientificView .button {
+  -fx-pref-width: 3.5em;
+  
+}
+
+
+.scientificView .buttonGrid {
+  -fx-hgap: 0.25em;
+  -fx-vgap: 0.0em;
+}

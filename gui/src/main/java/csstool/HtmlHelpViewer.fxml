@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+<fx:root styleClass="help-view" type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <ToolBar>
+        <Button styleClass="go-back" onAction="#goBack">Go Back</Button>
+        <Button styleClass="go-forward" onAction="#goForward">Go Forward</Button>
+        <Separator />
+        <Button styleClass="table-of-contents" onAction="#goHome">Table of contents</Button>
+        <Separator />
+        <Label>Search:</Label>
+        <TextField fx:id="helpSearchField" />
+    </ToolBar>
+    <WebView fx:id="webView" />
+</fx:root>
