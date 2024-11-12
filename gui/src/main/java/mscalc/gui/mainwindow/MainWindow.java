@@ -5,7 +5,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import mscalc.gui.views.scientific.ScientificView;
 
 import java.io.IOException;
 import java.net.URL;
@@ -19,7 +21,7 @@ public class MainWindow implements Initializable {
             Scene scene = new Scene(loader.load());
             MainWindow controller = (MainWindow) loader.getController();
 
-            window.setTitle("Main Window");
+            window.setTitle("Calculator");
             window.setScene(scene);
             window.setResizable(false);
 
@@ -31,7 +33,11 @@ public class MainWindow implements Initializable {
         }
     }
 
+    @FXML
+    private BorderPane container;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        container.setCenter(new ScientificView());
     }
 }
