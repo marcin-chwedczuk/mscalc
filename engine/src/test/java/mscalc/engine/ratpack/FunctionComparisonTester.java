@@ -74,6 +74,10 @@ public abstract class FunctionComparisonTester {
     private static String round(String value) {
         double rawDouble = Double.parseDouble(value);
         BigDecimal rounded = new BigDecimal(rawDouble).round(new MathContext(CMP_TEST_PRECISION));
-        return rounded.toString();
+        String result = rounded.toPlainString();
+
+        // Fix case: 17 vs 17.0000
+        // Remove trailing zeros, with maybe decimal point
+        return result.replaceFirst("[.]?0+$", "");
     }
 }

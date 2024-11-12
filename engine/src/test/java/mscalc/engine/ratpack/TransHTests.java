@@ -5,7 +5,7 @@ import mscalc.engine.cpp.uint;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class ITransTests {
+public class TransHTests {
     private static final uint RADIX_10 = uint.of(10);
     private static final int PRECISION = 20;
 
@@ -14,17 +14,18 @@ public class ITransTests {
         Support.ChangeConstants(RADIX_10, PRECISION);
     }
 
+
     @Test
-    public void asin_cmp_tests() {
-        var tester = new FunctionComparisonTester("asin", -1, 1, 0.137) {
+    public void sinh_cmp_tests() {
+        var tester = new FunctionComparisonTester("sinh", -17, 17, 1.137) {
             @Override
             double expected(double x) {
-                return Math.asin(x);
+                return Math.sinh(x);
             }
 
             @Override
             void actual(Ptr<RatPack.RAT> x) {
-                ITrans.asinrat(x, RADIX_10, PRECISION);
+                TransH.sinhrat(x, RADIX_10, PRECISION);
             }
         };
 
@@ -32,16 +33,16 @@ public class ITransTests {
     }
 
     @Test
-    public void acos_cmp_tests() {
-        var tester = new FunctionComparisonTester("acos", -1, 1, 0.057) {
+    public void cosh_cmp_tests() {
+        var tester = new FunctionComparisonTester("cosh", -17, 17, 1.137) {
             @Override
             double expected(double x) {
-                return Math.acos(x);
+                return Math.cosh(x);
             }
 
             @Override
             void actual(Ptr<RatPack.RAT> x) {
-                ITrans.acosrat(x, RADIX_10, PRECISION);
+                TransH.coshrat(x, RADIX_10, PRECISION);
             }
         };
 
@@ -49,16 +50,16 @@ public class ITransTests {
     }
 
     @Test
-    public void atan_cmp_tests() {
-        var tester = new FunctionComparisonTester("atan", -400, 400, 5.157) {
+    public void tan_cmp_tests() {
+        var tester = new FunctionComparisonTester("tanh", -4, 4, 0.337) {
             @Override
             double expected(double x) {
-                return Math.atan(x);
+                return Math.tanh(x);
             }
 
             @Override
             void actual(Ptr<RatPack.RAT> x) {
-                ITrans.atanrat(x, RADIX_10, PRECISION);
+                TransH.tanhrat(x, RADIX_10, PRECISION);
             }
         };
 

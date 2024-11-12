@@ -5,7 +5,7 @@ import mscalc.engine.cpp.uint;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class ITransTests {
+public class ITransHTests {
     private static final uint RADIX_10 = uint.of(10);
     private static final int PRECISION = 20;
 
@@ -14,17 +14,21 @@ public class ITransTests {
         Support.ChangeConstants(RADIX_10, PRECISION);
     }
 
+    // There are no inverse hyperbolic functions in java Math class.
+    // We test that the round-trip was successful.
+
     @Test
-    public void asin_cmp_tests() {
-        var tester = new FunctionComparisonTester("asin", -1, 1, 0.137) {
+    public void asinh_cmp_tests() {
+        var tester = new FunctionComparisonTester("asinh", -10, 10, 0.537) {
             @Override
             double expected(double x) {
-                return Math.asin(x);
+                return x;
             }
 
             @Override
             void actual(Ptr<RatPack.RAT> x) {
-                ITrans.asinrat(x, RADIX_10, PRECISION);
+                TransH.sinhrat(x, RADIX_10, PRECISION);
+                ITransH.asinhrat(x, RADIX_10, PRECISION);
             }
         };
 
@@ -32,16 +36,17 @@ public class ITransTests {
     }
 
     @Test
-    public void acos_cmp_tests() {
-        var tester = new FunctionComparisonTester("acos", -1, 1, 0.057) {
+    public void acosh_cmp_tests() {
+        var tester = new FunctionComparisonTester("acosh", 0, 13, 0.157) {
             @Override
             double expected(double x) {
-                return Math.acos(x);
+                return x;
             }
 
             @Override
             void actual(Ptr<RatPack.RAT> x) {
-                ITrans.acosrat(x, RADIX_10, PRECISION);
+                TransH.coshrat(x, RADIX_10, PRECISION);
+                ITransH.acoshrat(x, RADIX_10, PRECISION);
             }
         };
 
@@ -49,16 +54,17 @@ public class ITransTests {
     }
 
     @Test
-    public void atan_cmp_tests() {
-        var tester = new FunctionComparisonTester("atan", -400, 400, 5.157) {
+    public void atanh_cmp_tests() {
+        var tester = new FunctionComparisonTester("atanh", -17, 17, 0.157) {
             @Override
             double expected(double x) {
-                return Math.atan(x);
+                return x;
             }
 
             @Override
             void actual(Ptr<RatPack.RAT> x) {
-                ITrans.atanrat(x, RADIX_10, PRECISION);
+                TransH.tanhrat(x, RADIX_10, PRECISION);
+                ITransH.atanhrat(x, PRECISION);
             }
         };
 
