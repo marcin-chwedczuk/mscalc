@@ -6,12 +6,16 @@ import mscalc.engine.cpp.uint;
 import mscalc.engine.ratpack.RatPack.RAT;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class FunctionComparisonTester {
-    private static final int PRECISSION = 20;
+    // Number of digits used in assertions
+    private static final int CMP_TEST_PRECISION = 10;
+
+    private static final int PRECISION = 20;
     private static final uint BASE_10 = uint.of(10);
 
     private final String sutName;
@@ -56,18 +60,20 @@ public abstract class FunctionComparisonTester {
 
         boolean negative = x < 0;
         String mantissa = new BigDecimal(Math.abs(x)).toPlainString();
-        RAT rx = Conv.StringToRat(negative, mantissa, false, "0", BASE_10, PRECISSION);
+        RAT rx = Conv.StringToRat(negative, mantissa, false, "0", BASE_10, PRECISION);
 
         Ptr<RAT> actual = new Ptr<>(rx);
         actual(actual);
-        String actualString = Conv.RatToString(actual, RatPack.NumberFormat.Float, BASE_10, PRECISSION);
+        String actualString = Conv.RatToString(actual, RatPack.NumberFormat.Float, BASE_10, PRECISION);
 
-        // TODO: Regex split into sign, mantissa, exponent
-        // Allow differences on the last digit
+        assertEquals(round(Double.toString(expected)),
+                     round(actualString),
+                     String.format("Failed for value x: %f (full actual: %s)", x, actualString));
+    }
 
-        // There are cases when the roundtrip for doubles returns different values
-        assertEquals(Double.parseDouble(Double.toString(expected)),
-                    Double.parseDouble(actualString),
-                    String.format("Failed for value x: %f (full actual: %s)", x, actualString));
+    private static String round(String value) {
+        double rawDouble = Double.parseDouble(value);
+        BigDecimal rounded = new BigDecimal(rawDouble).round(new MathContext(CMP_TEST_PRECISION));
+        return rounded.toString();
     }
 }
