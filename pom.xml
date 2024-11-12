@@ -5,7 +5,7 @@
     <packaging>pom</packaging>
 
     <groupId>mscalc</groupId>
-    <artifactId>parent-project</artifactId>
+    <artifactId>mscalc</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -23,13 +23,13 @@
         <maven.compiler.release>21</maven.compiler.release>
 
         <!-- Versions of dependencies -->
-        <javafx.version>22.0.1</javafx.version>
+        <javafx.version>22.0.2</javafx.version>
 
         <!-- Versions of test dependencies -->
         <junit.version>5.8.2</junit.version>
         <assertj.version>3.22.0</assertj.version>
         <testfx.version>4.0.16-alpha</testfx.version>
-        <openjfx-monocle.version>jdk-12.0.1+2</openjfx-monocle.version>
+        <openjfx-monocle.version>21.0.2</openjfx-monocle.version>
 
         <!-- Versions of plugins -->
         <maven-compiler.plugin.version>3.8.1</maven-compiler.plugin.version>
