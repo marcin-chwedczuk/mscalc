@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import mscalc.gui.views.scientific.ScientificView;
@@ -21,6 +22,7 @@ public class MainWindow implements Initializable {
             Scene scene = new Scene(loader.load());
             MainWindow controller = (MainWindow) loader.getController();
 
+            window.getIcons().add(new Image(MainWindow.class.getResourceAsStream("/calc-icon-48.png")));
             window.setTitle("Calculator");
             window.setScene(scene);
             window.setResizable(false);
