@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EmptyTest {
@@ -31,15 +32,16 @@ public class EmptyTest {
             String oldCW = System.setProperty("user.dir", srcRoot.toAbsolutePath().toString());
 
             try {
-                Files.writeString(Path.of("test-file.scss"), """
+                Path tmpFile = Files.createTempFile("css-tool-", ".scss");
+                Files.writeString(tmpFile, """
                 @import 'mscalc/gui/Base';
                 @import 'mscalc/gui/views/Common';
                 
                 
                 .bar { .foo { -fx-foo: $example-variable; } }
-                """.stripLeading());
+                """.stripLeading(), TRUNCATE_EXISTING);
 
-                ScssStylesheet scss = ScssStylesheet.get("test-file.scss");
+                ScssStylesheet scss = ScssStylesheet.get(tmpFile.toAbsolutePath().toString());
                 scss.addResolver(new ScssStylesheetResolver() {
                     @Override
                     public InputSource resolve(ScssStylesheet scssStylesheet, String s) {
@@ -64,6 +66,8 @@ public class EmptyTest {
 
                 StringWriter sw = new StringWriter();
                 scss.write(sw);
+
+                Files.delete(tmpFile);
 
                 System.out.println(sw.toString());
             } finally {
