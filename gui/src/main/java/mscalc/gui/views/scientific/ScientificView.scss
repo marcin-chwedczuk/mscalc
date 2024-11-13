@@ -2,16 +2,77 @@
 @import 'mscalc/gui/Base';
 @import 'mscalc/gui/views/Common';
 
+@mixin roundedBorder() {
+        -fx-border-color: darkgray;
+        -fx-border-radius: 4;
+}
+
+@mixin selectArea() {
+        @include roundedBorder();
+        -fx-padding: 0.25em 0.5em;
+        -fx-spacing: 1em;
+
+        -fx-alignment: center-left;
+}
+
+@mixin indicator() {
+        @include roundedBorder();
+        -fx-pref-width: 3.3em;
+        -fx-pref-height: 3.3em;
+        -fx-alignment: center;
+}
+
 .scientificView {
     -fx-padding: 0.75em;
 
     .button {
-        -fx-pref-width: 3em;
+        -fx-pref-width: 3.3em;
+
+        &.basicOperation {
+            -fx-text-fill: red;
+        }
+
+        &.inputButton {
+            -fx-text-fill: blue;
+        }
+
+        &.advancedOperation {
+            -fx-text-fill: magenta;
+        }
     }
 
     .buttonGrid {
         -fx-hgap: 0.25em;
         -fx-vgap: 0.0em;
+    }
+
+    .controlButtonsArea {
+        -fx-spacing: 0.25em;
+
+        .button {
+            -fx-pref-width: 6em;
+        }
+    }
+
+
+    .selectBaseArea {
+        @include selectArea();
+    }
+
+    .selectAngleTypeArea {
+        @include selectArea();
+    }
+
+    .functionSelectArea {
+        @include selectArea();
+    }
+
+    .parenthesesCounter {
+        @include indicator();
+    }
+
+    .memoryIndicator {
+        @include indicator();
     }
 }
 
