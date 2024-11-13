@@ -22,4 +22,5 @@ module mscalc.gui {
     requires org.reflections;
     requires javafx.web;
     requires vaadin.sass.compiler;
+    requires sac;
 }

@@ -2,6 +2,7 @@ package csstool;
 
 import com.vaadin.sass.SassCompiler;
 import com.vaadin.sass.internal.ScssStylesheet;
+import com.vaadin.sass.internal.resolver.ScssStylesheetResolver;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -21,8 +22,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.w3c.css.sac.InputSource;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -267,6 +270,26 @@ public class CssTool implements Initializable {
     }
 
     private void reloadCss() {
+        try {
+            ScssStylesheet scss = ScssStylesheet.get("foo");
+            scss.addResolver(new ScssStylesheetResolver() {
+                @Override
+                public InputSource resolve(ScssStylesheet scssStylesheet, String s) {
+                    System.out.println("REQUEST: " + scssStylesheet.getFileName() + ", " + scssStylesheet);
+                    throw new RuntimeException("not impl");
+                }
+            });
+
+            scss.compile();
+
+            StringWriter sw = new StringWriter();
+            scss.write(sw);
+
+            System.out.println(sw.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         InMemoryCssStylesheet.setContents(cssText.getText());
         Node node = controlContainer.getCenter();
         if (node != null) {
