@@ -26,8 +26,11 @@
           </Menu>
           <Menu text="_View">
             <items>
-                  <RadioMenuItem text="S_tandard" />
-                  <RadioMenuItem text="_Scientific" />
+                <fx:define>
+                    <ToggleGroup fx:id="viewToggleGroup" />
+                </fx:define>
+                <RadioMenuItem text="S_tandard" toggleGroup="${viewToggleGroup}" />
+                <RadioMenuItem text="_Scientific" toggleGroup="${viewToggleGroup}" selected="true" />
             </items>
           </Menu>
           <Menu text="_Help">

@@ -54,6 +54,10 @@
         }
     }
 
+    .selectorsContainer {
+        -fx-padding: 0.3em 0;
+        -fx-spacing: 0.3em;
+    }
 
     .selectBaseArea {
         @include selectArea();

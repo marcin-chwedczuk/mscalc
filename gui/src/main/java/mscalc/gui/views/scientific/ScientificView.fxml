@@ -8,10 +8,10 @@
       type="javafx.scene.layout.VBox"
       stylesheets="@ScientificView.css" styleClass="scientificView">
     <children>
-        <TextField editable="false" styleClass="display" />
+        <TextField disable="true" styleClass="display" />
         <HBox VBox.vgrow="NEVER" styleClass="selectorsContainer">
             <children>
-                <HBox styleClass="selectBaseArea">
+                <HBox styleClass="selectBaseArea" HBox.hgrow="ALWAYS">
                     <children>
                         <fx:define>
                             <ToggleGroup fx:id="baseToggleGroup" />
