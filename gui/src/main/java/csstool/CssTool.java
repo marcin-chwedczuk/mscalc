@@ -1,6 +1,5 @@
 package csstool;
 
-import com.vaadin.sass.SassCompiler;
 import com.vaadin.sass.internal.ScssStylesheet;
 import com.vaadin.sass.internal.resolver.ScssStylesheetResolver;
 import javafx.application.Platform;
@@ -25,10 +24,12 @@ import javafx.stage.WindowEvent;
 import org.w3c.css.sac.InputSource;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -270,33 +271,74 @@ public class CssTool implements Initializable {
     }
 
     private void reloadCss() {
-        try {
-            ScssStylesheet scss = ScssStylesheet.get("foo");
-            scss.addResolver(new ScssStylesheetResolver() {
-                @Override
-                public InputSource resolve(ScssStylesheet scssStylesheet, String s) {
-                    System.out.println("REQUEST: " + scssStylesheet.getFileName() + ", " + scssStylesheet);
-                    throw new RuntimeException("not impl");
-                }
-            });
-
-            scss.compile();
-
-            StringWriter sw = new StringWriter();
-            scss.write(sw);
-
-            System.out.println(sw.toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        InMemoryCssStylesheet.setContents(cssText.getText());
+        InMemoryCssStylesheet.setContents(compileScss(cssText.getText()));
         Node node = controlContainer.getCenter();
         if (node != null) {
             ((Control)node).getStylesheets().clear();
             ((Control)node).getStylesheets().add(InMemoryCssStylesheet.getStylesheetUrl());
         }
-
         statusIcon.setFill(Color.GREEN);
+    }
+
+    public String compileScss(String scss) {
+        try {
+            Path repoRoot = findRepoRoot();
+            Path importRoot = repoRoot.resolve("gui/src/main/java").toAbsolutePath();
+
+            Path tmpFile = Files.createTempFile("css-tool-", ".scss");
+            Files.writeString(tmpFile, scss, TRUNCATE_EXISTING);
+
+            String css = invokeScssCompiler(tmpFile, importRoot);
+
+            Files.delete(tmpFile);
+
+            return css;
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot compile SCSS to CSS", e);
+        }
+    }
+
+    private static String invokeScssCompiler(Path scssFile, Path importRoot) throws Exception {
+        ScssStylesheet scss = ScssStylesheet.get(scssFile.toAbsolutePath().toString());
+
+        // Resolver for imports
+        scss.addResolver((scssStylesheet, componentPath) -> {
+            // @import 'foo/Bar' -> './foo/_Bar.scss'
+            componentPath = componentPath.replaceAll("[\\\\/](\\w+)$", "/_$1.scss");
+            Path file = importRoot.resolve(componentPath).toAbsolutePath();
+            try {
+                InputStream is = Files.newInputStream(file);
+
+                InputSource source = new InputSource();
+                source.setByteStream(is);
+                source.setURI(file.toString());
+                return source;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+
+        scss.compile();
+
+        StringWriter sw = new StringWriter();
+        scss.write(sw);
+
+        return sw.toString();
+    }
+
+    private static Path findRepoRoot() {
+        Path currentDirectory = Paths.get(".").toAbsolutePath();
+        Path root = currentDirectory.getRoot();
+
+        while (!root.equals(currentDirectory)) {
+            Path tmp = currentDirectory.resolve(".git");
+            if (Files.isDirectory(tmp)) {
+                return currentDirectory;
+            }
+            currentDirectory = currentDirectory.getParent().toAbsolutePath();
+        }
+
+        return null;
     }
 }

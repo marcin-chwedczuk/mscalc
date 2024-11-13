@@ -1,13 +1,18 @@
+
+@import 'mscalc/gui/Base';
+@import 'mscalc/gui/views/Common';
+
 .scientificView {
-  -fx-padding: 0.75em;
-}
-.scientificView .button {
-  -fx-pref-width: 3.5em;
-  
+    -fx-padding: 0.75em;
+
+    .button {
+        -fx-pref-width: 3em;
+        -fx-background-color: $example-variable;
+    }
+
+    .buttonGrid {
+        -fx-hgap: 0.25em;
+        -fx-vgap: 0.0em;
+    }
 }
 
-
-.scientificView .buttonGrid {
-  -fx-hgap: 0.25em;
-  -fx-vgap: 0.0em;
-}
