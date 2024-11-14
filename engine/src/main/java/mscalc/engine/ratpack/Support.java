@@ -1,6 +1,6 @@
 package mscalc.engine.ratpack;
 
-import mscalc.engine.cpp.ArrayPtrUInt;
+import mscalc.engine.cpp.UIntArrayPtr;
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.ratpack.RatPack.NUMBER;
@@ -63,7 +63,7 @@ public interface Support {
                 else
                 {
                     // memmove(pp->mant, &(pp->mant[trim - pp->exp]), sizeof(MANTTYPE) * (pp->cdigit - trim + pp->exp));
-                    ArrayPtrUInt tmp = pp.mant.pointer();
+                    UIntArrayPtr tmp = pp.mant.pointer();
                     tmp.advance(trim - pp.exp);
                     for (int k = 0; k < pp.cdigit - trim + pp.exp; k++) {
                         pp.mant.set(k, tmp.derefPlusPlus());
@@ -80,7 +80,7 @@ public interface Support {
                 else
                 {
                     // memmove(pq->mant, &(pq->mant[trim - pq->exp]), sizeof(MANTTYPE) * (pq->cdigit - trim + pq->exp));
-                    ArrayPtrUInt tmp = pq.mant.pointer();
+                    UIntArrayPtr tmp = pq.mant.pointer();
                     tmp.advance(trim - pq.exp);
                     for (int k = 0; k < pq.cdigit - trim + pq.exp; k++) {
                         pq.mant.set(k, tmp.derefPlusPlus());

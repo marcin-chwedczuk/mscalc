@@ -1,13 +1,14 @@
 package mscalc.engine.cpp;
 
-public class ArrayPtrUInt {
+public class UIntArrayPtr {
     private final int[] arr;
     private int curr = 0;
 
-    public ArrayPtrUInt(int[] arr) {
+    public UIntArrayPtr(int[] arr) {
         this.arr = arr;
     }
-    private ArrayPtrUInt(int[] arr, int curr) {
+
+    private UIntArrayPtr(int[] arr, int curr) {
         this.arr = arr;
         this.curr = curr;
     }
@@ -17,6 +18,7 @@ public class ArrayPtrUInt {
     }
 
     public uint deref() { return uint.of(arr[curr]); }
+
     public uint derefPlusPlus() {
         try {
             return uint.of(arr[curr]); // TODO:
@@ -24,6 +26,7 @@ public class ArrayPtrUInt {
             advance();
         }
     }
+
     public uint derefMinusMinus() {
         try {
             return uint.of(arr[curr]); // TODO:
@@ -41,8 +44,8 @@ public class ArrayPtrUInt {
         arr[curr] = value.raw();
     }
 
-    public ArrayPtrUInt clone() {
-        return new ArrayPtrUInt(arr, curr);
+    public UIntArrayPtr copy() {
+        return new UIntArrayPtr(arr, curr);
     }
 
     public uint at(int index) {
@@ -57,6 +60,4 @@ public class ArrayPtrUInt {
         advance(-1);
         return deref();
     }
-
-
 }

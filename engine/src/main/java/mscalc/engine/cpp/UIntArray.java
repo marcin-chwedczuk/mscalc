@@ -1,13 +1,13 @@
 package mscalc.engine.cpp;
 
-public class uintArray {
+public class UIntArray {
     private int[] array;
 
-    public uintArray(int size) {
+    public UIntArray(int size) {
         this.array = new int[size];
     }
 
-    public uintArray(int[] array) {
+    public UIntArray(int[] array) {
         this.array = array.clone();
     }
 
@@ -19,15 +19,15 @@ public class uintArray {
         array[idx] = value.raw();
     }
 
-    public uintArray clone() {
-        return new uintArray(this.array.clone());
+    public UIntArray copy() {
+        return new UIntArray(this.array.clone());
     }
 
     public int length() {
         return this.array.length;
     }
 
-    public ArrayPtrUInt pointer() {
-        return new ArrayPtrUInt(array);
+    public UIntArrayPtr pointer() {
+        return new UIntArrayPtr(array);
     }
 }

@@ -205,7 +205,7 @@ public interface Conv {
                 && SUCCEEDED(Calc_ULongAdd(cbAlloc.deref(), uint.of(NUMBER.SIZE_OF), cbAlloc))) {
             try {
                 pnumret = new NUMBER();
-                pnumret.mant = new uintArray(size.raw() + 1); // TODO: Is this one really needed?
+                pnumret.mant = new UIntArray(size.raw() + 1); // TODO: Is this one really needed?
             } catch (OutOfMemoryError e) {
                 throw new ErrorCodeException(CALC_E_OUTOFMEMORY);
             }
@@ -296,7 +296,7 @@ public interface Conv {
     static NUMBER numtonRadixx(NUMBER a, uint radix) {
         Ptr<NUMBER> pnumret = new Ptr<>(i32tonum(0, BASEX)); // pnumret is the number in internal form.
         Ptr<NUMBER> num_radix = new Ptr<>(i32tonum(radix.toInt(), BASEX));
-        ArrayPtrUInt ptrdigit = a.mant.pointer(); // pointer to digit being worked on.
+        UIntArrayPtr ptrdigit = a.mant.pointer(); // pointer to digit being worked on.
 
         // Digits are in reverse order, back over them LSD first.
         ptrdigit.advance(a.cdigit - 1);
@@ -341,7 +341,7 @@ public interface Conv {
     static NUMBER i32tonum(int ini32, uint radix) {
         NUMBER pnumret = createnum(MAX_LONG_SIZE);
 
-        ArrayPtrUInt pmant = pnumret.mant.pointer();
+        UIntArrayPtr pmant = pnumret.mant.pointer();
         pnumret.cdigit = 0;
         pnumret.exp = 0;
 
@@ -380,7 +380,7 @@ public interface Conv {
     {
         int lret = 0;
 
-        ArrayPtrUInt pmant = pnum.mant.pointer();
+        UIntArrayPtr pmant = pnum.mant.pointer();
         pmant.advance(pnum.cdigit - 1);
 
         int expt = pnum.exp;
@@ -415,7 +415,7 @@ public interface Conv {
     {
         boolean fstrip = false;
         // point pmant to the LeastCalculatedDigit
-        ArrayPtrUInt pmant = pnum.deref().mant.pointer();
+        UIntArrayPtr pmant = pnum.deref().mant.pointer();
         int cdigits = pnum.deref().cdigit;
         // point pmant to the LSD
         if (cdigits > starting)
@@ -553,7 +553,7 @@ public interface Conv {
         // Set up all the post rounding stuff.
         boolean useSciForm = false;
         int eout = exponent - 1; // Displayed exponent.
-        ArrayPtrUInt pmant = pnum.deref().mant.pointer();
+        UIntArrayPtr pmant = pnum.deref().mant.pointer();
         pmant.advance(pnum.deref().cdigit - 1);
         // Case where too many digits are to the left of the decimal or
         // NumberFormat::Scientific or NumberFormat::Engineering was specified.
@@ -728,7 +728,7 @@ public interface Conv {
         pnumret.deref().sign = 1;
         pnumret.deref().cdigit = 0;
         pnumret.deref().exp = 0;
-        ArrayPtrUInt pmant = pnumret.deref().mant.pointer();
+        UIntArrayPtr pmant = pnumret.deref().mant.pointer();
         pmant.advance(numberString.length() - 1);
 
         char state = START; // state is the state of the input state machine.
@@ -974,7 +974,7 @@ public interface Conv {
         numpowi32(powofnRadix, a.exp + (a.cdigit - cdigits), radix, precision);
 
         // Loop over all the relative digits from MSD to LSD
-        ArrayPtrUInt ptr = a.mant.pointer();
+        UIntArrayPtr ptr = a.mant.pointer();
         ptr.advance(a.cdigit - 1);
         for (; cdigits > 0; ptr.advance(-1), cdigits--)
         {
@@ -1133,7 +1133,7 @@ public interface Conv {
     {
         NUMBER pnumret = createnum(MAX_LONG_SIZE);
 
-        ArrayPtrUInt pmant = pnumret.mant.pointer();
+        UIntArrayPtr pmant = pnumret.mant.pointer();
         pnumret.cdigit = 0;
         pnumret.exp = 0;
         pnumret.sign = 1;

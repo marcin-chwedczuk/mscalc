@@ -1,6 +1,6 @@
 package mscalc.engine.ratpack;
 
-import mscalc.engine.cpp.ArrayPtrUInt;
+import mscalc.engine.cpp.UIntArrayPtr;
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.cpp.ulong;
@@ -68,10 +68,10 @@ public interface BaseX {
     {
         NUMBER c = null;  // c will contain the result.
         NUMBER a = null;  // a is the dereferenced number pointer from *pa
-        ArrayPtrUInt ptra;       // ptra is a pointer to the mantissa of a.
-        ArrayPtrUInt ptrb;       // ptrb is a pointer to the mantissa of b.
-        ArrayPtrUInt ptrc;       // ptrc is a pointer to the mantissa of c.
-        ArrayPtrUInt ptrcoffset; // ptrcoffset, is the anchor location of the next
+        UIntArrayPtr ptra;       // ptra is a pointer to the mantissa of a.
+        UIntArrayPtr ptrb;       // ptrb is a pointer to the mantissa of b.
+        UIntArrayPtr ptrc;       // ptrc is a pointer to the mantissa of c.
+        UIntArrayPtr ptrcoffset; // ptrcoffset, is the anchor location of the next
         // single digit multiply partial result.
         int iadigit = 0;  // Index of digit being used in the first number.
         int ibdigit = 0;  // Index of digit being used in the second number.
@@ -99,7 +99,7 @@ public interface BaseX {
             ptrb = b.mant.pointer();
 
             // Shift ptrc, and ptrcoffset, one for each digit
-            ptrc = ptrcoffset.clone(); ptrcoffset.advance();
+            ptrc = ptrcoffset.copy(); ptrcoffset.advance();
 
             for (ibdigit = b.cdigit; ibdigit > 0; ibdigit--)
             {
@@ -243,7 +243,7 @@ public interface BaseX {
         Ptr<NUMBER> tmp = new Ptr<>();     // current guess being worked on for divide.
         Ptr<NUMBER> rem = new Ptr<>();     // remainder after applying guess.
         int cdigits;           // count of digits for answer.
-        ArrayPtrUInt ptrc;            // ptrc is a pointer to the mantissa of c.
+        UIntArrayPtr ptrc;            // ptrc is a pointer to the mantissa of c.
 
         int thismax = precision + Conv.g_ratio.get(); // set a maximum number of internal digits
         // to shoot for in the divide.

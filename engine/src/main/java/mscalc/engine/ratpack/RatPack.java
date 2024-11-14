@@ -2,7 +2,7 @@ package mscalc.engine.ratpack;
 
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
-import mscalc.engine.cpp.uintArray;
+import mscalc.engine.cpp.UIntArray;
 
 import java.util.function.Consumer;
 
@@ -67,7 +67,7 @@ enum AngleType
         // (decimal point in radix 10)
 
         // Array of UNSIGNED values;
-        public uintArray mant;
+        public UIntArray mant;
         // This is actually allocated as a continuation of the
         // NUMBER structure.
 
@@ -75,19 +75,19 @@ enum AngleType
             this.sign = 0;
             this.cdigit = 0;
             this.exp = 0;
-            this.mant = new uintArray(0);
+            this.mant = new UIntArray(0);
         }
 
-        public NUMBER(int sign, int cdigit, int exp, uintArray mant) {
+        public NUMBER(int sign, int cdigit, int exp, UIntArray mant) {
             this.sign = sign;
             this.cdigit = cdigit;
             this.exp = exp;
-            this.mant = (mant == null) ? null : mant.clone();
+            this.mant = (mant == null) ? null : mant.copy();
         }
 
         @Override
         protected NUMBER clone() {
-            return new NUMBER(sign, cdigit, exp, mant.clone());
+            return new NUMBER(sign, cdigit, exp, mant.copy());
         }
 
         // Most significand digit

@@ -1,6 +1,6 @@
 package mscalc.engine.ratpack;
 
-import mscalc.engine.cpp.ArrayPtrUInt;
+import mscalc.engine.cpp.UIntArrayPtr;
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.cpp.ulong;
@@ -49,9 +49,9 @@ public interface Num {
     {
         RatPack.NUMBER c = null; // c will contain the result.
         RatPack.NUMBER a = null; // a is the dereferenced number pointer from *pa
-        ArrayPtrUInt pcha;      // pcha is a pointer to the mantissa of a.
-        ArrayPtrUInt pchb;      // pchb is a pointer to the mantissa of b.
-        ArrayPtrUInt pchc;      // pchc is a pointer to the mantissa of c.
+        UIntArrayPtr pcha;      // pcha is a pointer to the mantissa of a.
+        UIntArrayPtr pchb;      // pchb is a pointer to the mantissa of b.
+        UIntArrayPtr pchc;      // pchc is a pointer to the mantissa of c.
         int cdigits;     // cdigits is the max count of the digits results used as a counter.
         int mexp;        // mexp is the exponent of the result.
         uint da;         // da is a single 'digit' after possible padding.
@@ -199,10 +199,10 @@ public interface Num {
     {
         RatPack.NUMBER c = null;  // c will contain the result.
         RatPack.NUMBER a = null;  // a is the dereferenced number pointer from *pa
-        ArrayPtrUInt pcha;       // pcha is a pointer to the mantissa of a.
-        ArrayPtrUInt pchb;       // pchb is a pointer to the mantissa of b.
-        ArrayPtrUInt pchc;       // pchc is a pointer to the mantissa of c.
-        ArrayPtrUInt pchcoffset; // pchcoffset, is the anchor location of the next
+        UIntArrayPtr pcha;       // pcha is a pointer to the mantissa of a.
+        UIntArrayPtr pchb;       // pchb is a pointer to the mantissa of b.
+        UIntArrayPtr pchc;       // pchc is a pointer to the mantissa of c.
+        UIntArrayPtr pchcoffset; // pchcoffset, is the anchor location of the next
         // single digit multiply partial result.
         int iadigit = 0;  // Index of digit being used in the first number.
         int ibdigit = 0;  // Index of digit being used in the second number.
@@ -229,7 +229,7 @@ public interface Num {
             pchb = b.mant.pointer();
 
             // Shift pchc, and pchcoffset, one for each digit
-            pchc = pchcoffset.clone();
+            pchc = pchcoffset.copy();
             pchcoffset.advance();
 
             for (ibdigit = b.cdigit; ibdigit > 0; ibdigit--)
@@ -374,7 +374,7 @@ public interface Num {
         c.exp = (a.cdigit + a.exp) - (b.cdigit + b.exp) + 1;
         c.sign = a.sign * b.sign;
 
-        ArrayPtrUInt ptrc = c.mant.pointer();
+        UIntArrayPtr ptrc = c.mant.pointer();
         ptrc.advance(thismax);
 
         Ptr<RatPack.NUMBER> rem = new Ptr<>(null);
@@ -469,8 +469,8 @@ public interface Num {
     static boolean equnum(RatPack.NUMBER a, RatPack.NUMBER b)
     {
         int diff;
-        ArrayPtrUInt pa;
-        ArrayPtrUInt pb;
+        UIntArrayPtr pa;
+        UIntArrayPtr pb;
         int cdigits;
         int ccdigits;
         uint da;
@@ -542,8 +542,8 @@ public interface Num {
         {
             return false;
         }
-        ArrayPtrUInt pa = a.mant.pointer();
-        ArrayPtrUInt pb = b.mant.pointer();
+        UIntArrayPtr pa = a.mant.pointer();
+        UIntArrayPtr pb = b.mant.pointer();
         pa.advance( a.cdigit - 1 );
         pb.advance( b.cdigit - 1 );
         int cdigits = max(a.cdigit, b.cdigit);
@@ -576,7 +576,7 @@ public interface Num {
     static boolean zernum(RatPack.NUMBER a)
     {
         int length;
-        ArrayPtrUInt pcha;
+        UIntArrayPtr pcha;
         length = a.cdigit;
         pcha = a.mant.pointer();
 

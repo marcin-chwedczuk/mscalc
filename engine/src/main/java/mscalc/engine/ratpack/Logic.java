@@ -1,6 +1,6 @@
 package mscalc.engine.ratpack;
 
-import mscalc.engine.cpp.ArrayPtrUInt;
+import mscalc.engine.cpp.UIntArrayPtr;
 import mscalc.engine.cpp.ErrorCodeException;
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
@@ -200,9 +200,9 @@ public interface Logic {
     {
         NUMBER c = null;
         NUMBER a = null;
-        ArrayPtrUInt pcha;
-        ArrayPtrUInt pchb;
-        ArrayPtrUInt pchc;
+        UIntArrayPtr pcha;
+        UIntArrayPtr pchb;
+        UIntArrayPtr pchc;
         int cdigits;
         int mexp;
         uint da;
