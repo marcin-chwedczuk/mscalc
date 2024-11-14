@@ -7,13 +7,13 @@ Engine source code was translated from C++, from the official Calculator reposit
 
 Current project status:
 
-[X] ratpack engine fully translated to Java with tests
-[X] UI for scientific view
+- [X] ratpack engine fully translated to Java with tests
+- [X] UI for scientific view
 
 What is missing:
 
-[ ] Glue code between UI & calculator engine
-[ ] A lot of polishing e.g. full keyboard support as in the original calc.
+- [ ] Glue code between UI & calculator engine
+- [ ] A lot of polishing e.g. full keyboard support as in the original calc.
 
 # JavaFX Opinionated Application Template
 
