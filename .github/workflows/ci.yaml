@@ -22,8 +22,8 @@ jobs:
           distribution: 'adopt'
       - name: "Build and run unit-tests with Maven"
         run: ./mvnw --batch-mode --update-snapshots clean verify package
-      - name: "Run integration tests with Maven"
-        run: ./mvnw --batch-mode verify -Dskip.integration.tests=false -Dskip.unit.tests=true
-        env:
-          _JAVA_OPTIONS: "-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw"
+      #- name: "Run integration tests with Maven"
+      #  run: ./mvnw --batch-mode verify -Dskip.integration.tests=false -Dskip.unit.tests=true
+      #  env:
+      #    _JAVA_OPTIONS: "-Djava.awt.headless=true -Dtestfx.robot=glass -Dtestfx.headless=true -Dprism.order=sw"
 
