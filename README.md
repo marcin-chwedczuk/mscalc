@@ -1,3 +1,20 @@
+
+# Rewrite of Microsoft Calculator in JavaFX
+
+Project under construction.
+
+Engine source code was translated from C++, from the official Calculator repository: https://github.com/microsoft/calculator
+
+Current project status:
+
+[X] ratpack engine fully translated to Java with tests
+[X] UI for scientific view
+
+What is missing:
+
+[ ] Glue code between UI & calculator engine
+[ ] A lot of polishing e.g. full keyboard support as in the original calc.
+
 # JavaFX Opinionated Application Template
 
 ![Build Status](https://github.com/marcin-chwedczuk/javafx-template/actions/workflows/ci.yaml/badge.svg)
