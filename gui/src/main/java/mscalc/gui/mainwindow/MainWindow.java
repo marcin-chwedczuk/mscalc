@@ -6,12 +6,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import mscalc.gui.about.AboutDialog;
 import mscalc.gui.statisticsbox.StatisticsBox;
 import mscalc.gui.views.scientific.ScientificView;
 
@@ -57,7 +57,8 @@ public class MainWindow implements Initializable {
 
     @FXML
     public void showAboutDialog() {
-        StatisticsBox.showModal(getCurrentWindow());
+        AboutDialog.showModal(getCurrentWindow());
+        // StatisticsBox.showUtility(getCurrentWindow());
     }
 
     private Window getCurrentWindow() {

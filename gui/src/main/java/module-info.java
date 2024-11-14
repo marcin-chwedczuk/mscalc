@@ -10,6 +10,7 @@ module mscalc.gui {
     exports mscalc.gui.views.basic;
     exports mscalc.gui.views.scientific;
     exports mscalc.gui.statisticsbox;
+    exports mscalc.gui.about;
 
     // Allow @FXML injection to private fields.
     opens mscalc.gui.mainwindow;
@@ -17,6 +18,7 @@ module mscalc.gui {
     opens mscalc.gui.views.basic;
     opens mscalc.gui.views.scientific;
     opens mscalc.gui.statisticsbox;
+    opens mscalc.gui.about;
 
     // CSS Tool
     exports csstool;

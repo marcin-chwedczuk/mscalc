@@ -1,4 +1,4 @@
-package mscalc.gui.statisticsbox;
+package mscalc.gui.about;
 
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -13,16 +13,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class StatisticsBox extends VBox implements Initializable {
-    public static void showUtility(Window owner) {
+public class AboutDialog extends VBox implements Initializable {
+    public static void showModal(Window owner) {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    StatisticsBox.class.getResource("StatisticsBox.fxml"));
+                    AboutDialog.class.getResource("AboutDialog.fxml"));
 
             var childWindow = new Stage();
             childWindow.initOwner(owner);
-            childWindow.initModality(Modality.NONE);
-            childWindow.initStyle(StageStyle.UTILITY);
+            childWindow.initModality(Modality.APPLICATION_MODAL);
             childWindow.setTitle("About...");
             childWindow.setResizable(false);
             childWindow.setScene(new Scene(loader.load()));
