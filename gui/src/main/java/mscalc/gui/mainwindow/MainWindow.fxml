@@ -35,7 +35,7 @@
           </Menu>
           <Menu text="_Help">
             <items>
-                <MenuItem text="_About Calculator" />
+                <MenuItem text="_About Calculator..." onAction="#showAboutDialog" />
                 <SeparatorMenuItem />
                 <MenuItem text="Css Tool..." onAction="#showCssTool" />
             </items>

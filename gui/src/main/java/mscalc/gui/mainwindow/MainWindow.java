@@ -11,6 +11,8 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
+import mscalc.gui.statisticsbox.StatisticsBox;
 import mscalc.gui.views.scientific.ScientificView;
 
 import java.io.IOException;
@@ -51,5 +53,14 @@ public class MainWindow implements Initializable {
         secondStage.initModality(Modality.NONE);
 
         CssTool.showOn(secondStage);
+    }
+
+    @FXML
+    public void showAboutDialog() {
+        StatisticsBox.showModal(getCurrentWindow());
+    }
+
+    private Window getCurrentWindow() {
+        return container.getScene().getWindow();
     }
 }
