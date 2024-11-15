@@ -47,7 +47,7 @@ public class Number {
         return exp;
     }
 
-    public UIntArray mantiassa() {
+    public UIntArray mantissa() {
         return mantissa.copy();
     }
 
@@ -58,5 +58,9 @@ public class Number {
         }
 
         return true;
+    }
+
+    public Number negated() {
+        return new Number(-sign, exp, mantissa);
     }
 }

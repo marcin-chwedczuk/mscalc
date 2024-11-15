@@ -2,11 +2,13 @@ package mscalc.engine.ratpack;
 
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
+import mscalc.engine.cpp.ulong;
 import mscalc.engine.ratpack.RatPack.NUMBER;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import static mscalc.engine.ratpack.Conv.*;
 import static mscalc.engine.ratpack.RatPack.BASEX;
 import static mscalc.engine.ratpack.RatPack.DUPNUM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -268,5 +270,18 @@ public class ConversionTests {
 
         int result = Conv.numtoi32(p2.deref(), RADIX_10);
         assertEquals(64, result);
+    }
+
+    @Test
+    public void rattoUi64_works() {
+        // Max UInt value
+        RatPack.RAT maxUInt = StringToRat(false, "4294967295", false, "0", RADIX_10, 10);
+        ulong ul = rattoUi64(maxUInt, RADIX_10, 10);
+        assertEquals("4294967295", Long.toUnsignedString(ul.raw()));
+
+        // Max ULong value
+        maxUInt = StringToRat(false, "18446744073709551615", false, "0", RADIX_10, 10);
+        ul = rattoUi64(maxUInt, RADIX_10, 10);
+        assertEquals("18446744073709551615", Long.toUnsignedString(ul.raw()));
     }
 }

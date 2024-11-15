@@ -11,6 +11,8 @@ import static mscalc.engine.WinErrorCrossPlatform.SUCCEEDED;
 import static mscalc.engine.WinErrorCrossPlatform.S_OK;
 import static mscalc.engine.ratpack.BaseX.*;
 import static mscalc.engine.ratpack.CalcErr.*;
+import static mscalc.engine.ratpack.Logic.andrat;
+import static mscalc.engine.ratpack.Logic.rshrat;
 import static mscalc.engine.ratpack.Num.*;
 import static mscalc.engine.ratpack.RatPack.*;
 import static mscalc.engine.ratpack.Support.*;
@@ -361,6 +363,38 @@ public interface Conv {
         } while (ini32 != 0);
 
         return (pnumret);
+    }
+
+    //-----------------------------------------------------------------------------
+    //
+    //    FUNCTION: rattoUi64
+    //
+    //    ARGUMENTS: rational number in internal base, integer radix and int32_t precision
+    //
+    //    RETURN: Ui64
+    //
+    //    DESCRIPTION: returns the 64 bit (irrespective of which processor this is running in) representation of the
+    //    number input.  Assumes that the number is in the internal
+    //    base. Can throw exception if the number exceeds 2^64
+    //    Implementation by getting the HI & LO 32 bit words and concatenating them, as the
+    //    internal base chosen happens to be 2^32, this is easier.
+    //-----------------------------------------------------------------------------
+    static ulong rattoUi64(RAT prat, uint radix, int precision)
+    {
+        // first get the LO 32 bit word
+        Ptr<RAT> pint = new Ptr<>(DUPRAT(prat));
+
+        andrat(pint, rat_dword, radix, precision);      // & 0xFFFFFFFF   (2 ^ 32 -1)
+        uint lo = rattoUi32(pint.deref(), radix, precision); // wont throw exception because already hi-dword chopped off
+
+        pint.set(DUPRAT(prat)); // previous pint will get freed by this as well
+        RAT prat32 = i32torat(32);
+        rshrat(pint, prat32, radix, precision);
+        intrat(pint, radix, precision);
+        andrat(pint, rat_dword, radix, precision); // & 0xFFFFFFFF   (2 ^ 32 -1)
+        uint hi = rattoUi32(pint.deref(), radix, precision);
+
+        return (hi.toULong().shiftLeft(32)).bitOr(lo);
     }
 
     //-----------------------------------------------------------------------------

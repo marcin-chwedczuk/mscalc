@@ -67,5 +67,13 @@ public class ulong {
     public boolean toBool() {
         return value != 0;
     }
+
+    public ulong bitOr(uint other) {
+        return ulong.of(this.value | other.toULong().raw());
+    }
+
+    public ulong shiftLeft(int n) {
+        return ulong.of(value << n);
+    }
 }
 
