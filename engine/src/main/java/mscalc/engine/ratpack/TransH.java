@@ -84,7 +84,7 @@ public class TransH {
         px.set(t.RESULT());
     }
 
-    static void sinhrat(Ptr<RAT> px, uint radix, int precision)
+    public static void sinhrat(Ptr<RAT> px, uint radix, int precision)
     {
         Ptr<RAT> tmpx = new Ptr<>();
 
@@ -166,7 +166,7 @@ public class TransH {
         px.set(t.RESULT());
     }
 
-    static void coshrat(Ptr<RAT> px, uint radix, int precision)
+    public static void coshrat(Ptr<RAT> px, uint radix, int precision)
     {
         Ptr<RAT> tmpx = new Ptr<>();
 
@@ -206,7 +206,7 @@ public class TransH {
     //  EXPLANATION: This uses sinhrat and coshrat
     //
     //-----------------------------------------------------------------------------
-    static void tanhrat(Ptr<RAT> px, uint radix, int precision)
+    public static void tanhrat(Ptr<RAT> px, uint radix, int precision)
     {
         Ptr<RAT> ptmp = new Ptr<>();
         ptmp.set(DUPRAT(px.deref()));

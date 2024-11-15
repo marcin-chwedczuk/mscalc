@@ -33,7 +33,7 @@ public class ITransH {
     //   For abs(x) >= .85
     //
     //-----------------------------------------------------------------------------
-    static void asinhrat(Ptr<RatPack.RAT> px, uint radix, int precision)
+    public static void asinhrat(Ptr<RatPack.RAT> px, uint radix, int precision)
     {
         Ptr<RatPack.RAT> neg_pt_eight_five = new Ptr<>();
 
@@ -90,7 +90,7 @@ public class ITransH {
     //   For x >= 1
     //
     //-----------------------------------------------------------------------------
-    static void acoshrat(Ptr<RatPack.RAT> px, uint radix, int precision)
+    public static void acoshrat(Ptr<RatPack.RAT> px, uint radix, int precision)
     {
         if (Support.rat_lt(px.deref(), Support.Global.rat_one, precision))
         {
@@ -123,7 +123,7 @@ public class ITransH {
     //             2     x-1
     //
     //-----------------------------------------------------------------------------
-    static void atanhrat(Ptr<RatPack.RAT> px, int precision)
+    public static void atanhrat(Ptr<RatPack.RAT> px, int precision)
     {
         Ptr<RatPack.RAT> ptmp = new Ptr<>(RatPack.DUPRAT(px.deref()));
         Rat.subrat(ptmp, Support.Global.rat_one, precision);

@@ -63,4 +63,8 @@ public class Number {
     public Number negated() {
         return new Number(-sign, exp, mantissa);
     }
+
+    public Number abs() {
+        return new Number(1, exp, mantissa);
+    }
 }

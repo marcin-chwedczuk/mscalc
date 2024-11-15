@@ -29,7 +29,7 @@
                         </fx:define>
                         <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Degrees" />
                         <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Radians" />
-                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Gradients" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Gradians" />
                     </children>
                 </HBox>
             </children>

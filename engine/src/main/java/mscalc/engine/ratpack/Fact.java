@@ -167,7 +167,7 @@ public class Fact {
         pn.set(RatPack.DUPRAT(sum.deref()));
     }
 
-    static void factrat(Ptr<RatPack.RAT> px, uint radix, int precision)
+    public static void factrat(Ptr<RatPack.RAT> px, uint radix, int precision)
     {
         Ptr<RatPack.RAT> fact = new Ptr<>();
         Ptr<RatPack.RAT> frac = new Ptr<>();
