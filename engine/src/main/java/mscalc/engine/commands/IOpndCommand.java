@@ -11,5 +11,5 @@ public interface IOpndCommand extends IExpressionCommand {
     boolean isSciFmt();
     boolean isDecimalPresent();
     String getToken(char decimalSymbol);
-    void SetCommands(List<Integer> commands);
+    void setCommands(List<Integer> commands);
 }

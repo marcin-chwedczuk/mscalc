@@ -1,4 +1,4 @@
-package mscalc.engine;
+package mscalc.engine.commands;
 
 public enum CommandType {
     UnaryCommand,

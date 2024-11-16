@@ -1,8 +1,8 @@
 package mscalc.engine.commands;
 
 public interface ISerializeCommandVisitor {
-    void Visit(IOpndCommand opndCmd);
-    void Visit(IUnaryCommand unaryCmd);
-    void Visit(IBinaryCommand binaryCmd);
-    void Visit(IParenthesisCommand paraCmd);
+    void visit(IOpndCommand opndCmd);
+    void visit(IUnaryCommand unaryCmd);
+    void visit(IBinaryCommand binaryCmd);
+    void visit(IParenthesisCommand paraCmd);
 }
