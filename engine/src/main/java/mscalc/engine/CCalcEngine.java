@@ -2,6 +2,8 @@ package mscalc.engine;
 
 import mscalc.engine.ratpack.RatPack;
 import mscalc.engine.ratpack.RatPack.AngleType;
+import mscalc.engine.resource.JavaBundleResourceProvider;
+import mscalc.engine.resource.ResourceProvider;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,6 +14,13 @@ import static mscalc.engine.Commands.*;
 import static mscalc.engine.EngineStrings.*;
 
 public class CCalcEngine {
+    private static final Map<String, String> engineStrings = new HashMap<>();
+
+    // TODO: Remove
+    static {
+        loadEngineStrings(new JavaBundleResourceProvider());
+    }
+
 
     // Unary operator Function Name table Element
     // since unary operators button names aren't exactly friendly for history purpose,
@@ -87,7 +96,18 @@ public class CCalcEngine {
             entry(IDC_MOD, new FunctionNameElement(SIDS_MOD, "", "", "", "", "", SIDS_PROGRAMMER_MOD))
             );
 
-    private static final Map<String, String> engineStrings = new HashMap<>();
+    static void loadEngineStrings(ResourceProvider resourceProvider)
+    {
+        for (var sid : g_sids)
+        {
+            var locString = resourceProvider.getCEngineString(sid);
+            if (!locString.isEmpty())
+            {
+                System.out.printf("Loaded: %s -> %s%n", sid, locString);
+                engineStrings.put(sid, locString);
+            }
+        }
+    }
 
     // returns the ptr to string representing the operator. Mostly same as the button, but few special cases for x^y etc.
     private static String GetString(int ids)
