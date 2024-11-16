@@ -3,4 +3,6 @@ module mscalc.engine {
     exports mscalc.engine.ratpack;
     exports mscalc.engine;
     exports mscalc.engine.commands;
+
+    requires java.xml;
 }
