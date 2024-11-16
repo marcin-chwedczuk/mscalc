@@ -9,7 +9,7 @@ public interface CalcDisplay {
      void setPrimaryDisplay(String text, boolean isError);
      void setIsInError(boolean isInError);
      void setExpressionDisplay(
-             List<Map.Entry<String, Integer>> tokens,
+             List<Pair<String, Integer>> tokens,
              List<IExpressionCommand> commands);
 
      void setParenthesisNumber(int count);
