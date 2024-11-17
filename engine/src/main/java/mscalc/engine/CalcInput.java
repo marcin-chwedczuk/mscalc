@@ -7,7 +7,7 @@ import static mscalc.engine.ratpack.Conv.StringToRat;
 
 public class CalcInput {
     // Space to hold enough digits for a quadword binary number (64) plus digit separator strings for that number (20)
-    private static final int MAX_STRLEN = 84;
+    static final int MAX_STRLEN = 84;
     private static final int C_NUM_MAX_DIGITS = MAX_STRLEN;
     private static final int C_EXP_MAX_DIGITS = 4;
 
@@ -17,6 +17,17 @@ public class CalcInput {
     private char decimalSymbol = '.';
     private CalcNumberSign base = new CalcNumberSign();
     private CalcNumberSign exponent = new CalcNumberSign();
+
+    public CalcInput() {
+        this('.');
+    }
+
+    public CalcInput(char decimalSymbol) {
+        this.hasExponent = false;
+        this.hasDecimal = false;
+        this.decimalSymbol = decimalSymbol;
+        this.decimalPointIndex = 0;
+    }
 
     public void clear() {
         base.clear();
@@ -56,7 +67,7 @@ public class CalcInput {
         return true;
     }
 
-    public boolean TryAddDigit(int value, uint radix, boolean isIntegerMode, String maxNumStr, int wordBitWidth, int maxDigits)
+    public boolean tryAddDigit(int value, uint radix, boolean isIntegerMode, String maxNumStr, int wordBitWidth, int maxDigits)
     {
         // Convert from an integer into a character
         // This includes both normal digits and alpha 'digits' for radixes > 10

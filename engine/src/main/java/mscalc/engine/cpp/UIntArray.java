@@ -36,6 +36,12 @@ public class UIntArray {
         return new UIntArray(this.array.clone());
     }
 
+    public UIntArray copyFirst(int nItems) {
+        int[] dest = new int[nItems];
+        System.arraycopy(this.array, 0, dest, 0, nItems);
+        return new UIntArray(dest);
+    }
+
     public int length() {
         return this.array.length;
     }

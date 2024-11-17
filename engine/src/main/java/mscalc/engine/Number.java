@@ -22,11 +22,18 @@ public class Number {
         this.mantissa = mantissa.copy();
     }
 
+    private Number(int sign, int exp, UIntArray mantissa, int cdigits) {
+        this.sign = sign;
+        this.exp = exp;
+        this.mantissa = mantissa.copyFirst(cdigits);
+    }
+
     public static Number fromCNumber(RatPack.NUMBER cnumber) {
         return new Number(
                 cnumber.sign,
                 cnumber.exp,
-                cnumber.mant
+                cnumber.mant,
+                cnumber.cdigit
         );
     }
 
