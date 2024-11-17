@@ -70,6 +70,10 @@ public class History {
         }
     }
 
+    void addOpndToHistory(String numStr, Rational rat) {
+        addOpndToHistory(numStr, rat, false);
+    }
+
     void addOpndToHistory(String numStr, Rational rat, boolean fRepetition) {
         int iCommandEnd = addCommand(getOperandCommandsFromString(numStr, rat));
         lastOpStartIndex = ichAddSzToEquationSz(numStr, iCommandEnd);
@@ -114,6 +118,10 @@ public class History {
             enclosePrecInversionBrackets();
         }
         addBinOpToHistory(nOpCode, isIntegerMode);
+    }
+
+    void pushLastOpndStart() {
+        pushLastOpndStart(-1);
     }
 
     void pushLastOpndStart(int ichOpndStart) {
