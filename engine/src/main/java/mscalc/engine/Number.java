@@ -43,7 +43,7 @@ public class Number {
         cnumber.exp = this.exp;
         cnumber.cdigit = this.mantissa.length();
         UIntArray.copyTo(cnumber.mant, this.mantissa);
-        return null;
+        return cnumber;
     }
 
     public int sign() {

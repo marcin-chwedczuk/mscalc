@@ -6,7 +6,7 @@ public class UIntArray {
     }
 
     public static void copyTo(UIntArray dest, UIntArray src) {
-        if (dest.length() != src.length())
+        if (dest.length() < src.length())
             throw new IllegalArgumentException();
 
         for (int i = 0; i < src.length(); i++) {
