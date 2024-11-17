@@ -598,10 +598,10 @@ public interface Support {
         static RAT rat_exp = null;
         static RAT rad_to_deg = null;
         static RAT rad_to_grad = null;
-        static RAT rat_qword = null;
-        static RAT rat_dword = null; // unsigned max ui32
-        static RAT rat_word = null;
-        static RAT rat_byte = null;
+        public static RAT rat_qword = null;
+        public static RAT rat_dword = null; // unsigned max ui32
+        public static RAT rat_word = null;
+        public static RAT rat_byte = null;
         static RAT rat_360 = null;
         static RAT rat_400 = null;
         static RAT rat_180 = null;

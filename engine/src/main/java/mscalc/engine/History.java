@@ -18,7 +18,7 @@ import static mscalc.engine.WinErrorCrossPlatform.E_BOUNDS;
 // rely on CCalcEngine calling it in appropriate order.
 public class History {
     // maximum depth you can get by precedence. It is just an array's size limit.
-    private static final int MAXPRECDEPTH = 25;
+    static final int MAXPRECDEPTH = 25;
     private static final int ASCII_0 = 48;
 
     private HistoryDisplay historyDisplay;
