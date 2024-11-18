@@ -72,6 +72,14 @@ public class ulong {
         return ulong.of(this.value | other.toULong().raw());
     }
 
+    public ulong bitOr(ulong other) {
+        return ulong.of(this.value | other.raw());
+    }
+
+    public ulong bitAnd(ulong other) {
+        return ulong.of(this.value & other.raw());
+    }
+
     public ulong shiftLeft(int n) {
         return ulong.of(value << n);
     }

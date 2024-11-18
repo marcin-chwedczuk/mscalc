@@ -3,6 +3,7 @@ package mscalc.engine;
 import mscalc.engine.commands.IExpressionCommand;
 import mscalc.engine.cpp.ErrorCodeException;
 import mscalc.engine.cpp.uint;
+import mscalc.engine.cpp.ulong;
 import mscalc.engine.ratpack.RatPack;
 import mscalc.engine.ratpack.RatPack.AngleType;
 import mscalc.engine.resource.JavaBundleResourceProvider;
@@ -16,8 +17,8 @@ import static mscalc.engine.CalcUtils.*;
 import static mscalc.engine.Commands.*;
 import static mscalc.engine.EngineStrings.*;
 import static mscalc.engine.History.MAXPRECDEPTH;
-import static mscalc.engine.ratpack.CalcErr.CALC_E_DOMAIN;
-import static mscalc.engine.ratpack.CalcErr.CALC_E_OVERFLOW;
+import static mscalc.engine.WinErrorCrossPlatform.SCODE_CODE;
+import static mscalc.engine.ratpack.CalcErr.*;
 import static mscalc.engine.ratpack.Conv.SetDecimalSeparator;
 import static mscalc.engine.ratpack.Conv.StringToRat;
 import static mscalc.engine.ratpack.Support.ChangeConstants;
@@ -518,7 +519,7 @@ public class CCalcEngine {
         ProcessCommandWorker(wParam);
     }
 
-    void CCalcEngine::ProcessCommandWorker(int wParam)
+    void ProcessCommandWorker(int wParam)
     {
         // Save the last command.  Some commands are not saved in this manor, these
         // commands are:
@@ -1505,7 +1506,7 @@ public class CCalcEngine {
             // Displayed number can go through transformation. So copy it after transformation
             gldPrevious.value = m_currentVal;
 
-            if ((m_radix.toInt() == 10) && IsNumberInvalid(m_numberString, MAX_EXPONENT, m_precision, m_radix))
+            if ((m_radix.toInt() == 10) && IsNumberInvalid(m_numberString, MAX_EXPONENT, m_precision, m_radix) != 0)
             {
                 DisplayError(CALC_E_OVERFLOW);
             }
@@ -1606,31 +1607,807 @@ public class CCalcEngine {
      \****************************************************************************/
     List<Integer> DigitGroupingStringToGroupingVector(String groupingString)
     {
-        List<Integer> grouping;
+        List<Integer> grouping = new ArrayList<>();
+
         int currentGroup = 0;
-        wchar_t* next = nullptr;
-        const wchar_t* begin = groupingString.data();
-        const wchar_t* end = begin + groupingString.length();
-        for (auto itr = begin; itr != end; ++itr)
+        for (int itr = 0; itr < groupingString.length(); ++itr)
         {
             // Try to parse a grouping number from the string
-            currentGroup = wcstoul(itr, &next, 10);
+            currentGroup = 0;
+            while (itr < groupingString.length() && Character.isDigit(groupingString.charAt(itr))) {
+                currentGroup = currentGroup*10 + (groupingString.charAt(itr) - '0');
+                itr++;
+            }
 
             // If we successfully parsed a group, add it to the grouping.
             if (currentGroup < MAX_GROUPING_SIZE)
             {
-                grouping.emplace_back(currentGroup);
+                grouping.add(currentGroup);
             }
 
             // If we found a grouping and aren't at the end of the string yet,
             // jump to the next position in the string (the ';').
             // The loop will then increment us to the next character, which should be a number.
-            if (next && (static_cast<size_t>(next - begin) < groupingString.length()))
-            {
-                itr = next;
-            }
         }
 
         return grouping;
     }
+
+    String GroupDigitsPerRadix(String numberString, uint radix)
+    {
+        if (numberString.isEmpty())
+        {
+            return "";
+        }
+
+        switch (radix.toInt())
+        {
+            case 10:
+                return GroupDigits(Character.toString(m_groupSeparator), m_decGrouping, numberString, ('-' == numberString.charAt(0)));
+            case 8:
+                return GroupDigits(" ", new int[] { 3, 0 }, numberString);
+            case 2:
+            case 16:
+                return GroupDigits(" ", new int[] { 4, 0 }, numberString);
+            default:
+                return numberString;
+        }
+    }
+
+    /****************************************************************************\
+     *
+     * GroupDigits
+     *
+     * Description:
+     *   This routine will take a grouping vector and the display string and
+     *   add the separator according to the pattern indicated by the separator.
+     *
+     *   Grouping
+     *   0,0      - no grouping
+     *   3,0      - group every 3 digits
+     *   3        - group 1st 3, then no grouping after
+     *   3,0,0    - group 1st 3, then no grouping after
+     *   3,2,0    - group 1st 3 and then every 2 digits
+     *   4,0      - group every 4 digits
+     *   5,3,2,0  - group 5, then 3, then every 2
+     *   5,3,2    - group 5, then 3, then 2, then no grouping after
+     *
+     \***************************************************************************/
+    String GroupDigits(String delimiter, List<Integer> grouping, String displayString, boolean isNumNegative)
+    {
+        // if there's nothing to do, bail
+        if (delimiter.isEmpty() || grouping.isEmpty())
+        {
+            return displayString;
+        }
+
+        // Find the position of exponential 'e' in the string
+        int exp = displayString.indexOf('e');
+        boolean hasExponent = (exp != (-1));
+
+        // Find the position of decimal point in the string
+        int dec = displayString.indexOf(m_decimalSeparator);
+        boolean hasDecimal = (dec != (-1));
+
+        // Create an iterator that points to the end of the portion of the number subject to grouping (i.e. left of the decimal)
+        var ritr = displayString.length();
+        if (hasDecimal)
+        {
+            ritr -= dec;
+        }
+        else if (hasExponent)
+        {
+            ritr -= exp;
+        }
+        else
+        {
+            ritr = 0;
+        }
+
+        StringBuilder result = new StringBuilder();
+        int groupingSize = 0;
+
+        var groupItr = 0; // grouping.begin();
+        var currGrouping = grouping.get(groupItr);
+        // Mark the 'end' of the string as either rend() or rend()-1 if there is a negative sign
+        // We exclude the sign here because we don't want to end up with e.g. "-,123,456"
+        // Then, iterate from back to front, adding group delimiters as needed.
+        var reverse_end = displayString.length() - (isNumNegative ? 1 : 0); // displayString
+        while (ritr != reverse_end)
+        {
+            result.append( displayString.charAt(ritr++) );
+            groupingSize++;
+
+            // If a group is complete, add a separator
+            // Do not add a separator if:
+            // - grouping size is 0
+            // - we are at the end of the digit string
+            if (currGrouping != 0 && (groupingSize % currGrouping) == 0 && ritr != reverse_end)
+            {
+                result.append( delimiter );
+                groupingSize = 0; // reset for a new group
+
+                // Shift the grouping to next values if they exist
+                if (groupItr != grouping.size())
+                {
+                    ++groupItr;
+
+                    // Loop through grouping vector until we find a non-zero value.
+                    // "0" values may appear in a form of either e.g. "3;0" or "3;0;0".
+                    // A 0 in the last position means repeat the previous grouping.
+                    // A 0 in another position is a group. So, "3;0;0" means "group 3, then group 0 repeatedly"
+                    // This could be expressed as just "3" but GetLocaleInfo is returning 3;0;0 in some cases instead.
+                    for (currGrouping = 0; groupItr != grouping.size(); ++groupItr)
+                    {
+                        // If it's a non-zero value, that's our new group
+                        if (grouping.get(groupItr) != 0)
+                        {
+                            currGrouping = grouping.get(groupItr);
+                            break;
+                        }
+
+                        // Otherwise, save the previous grouping in case we need to repeat it
+                        currGrouping = grouping.get(groupItr - 1);
+                    }
+                }
+            }
+        }
+
+        // now copy the negative sign if it is there
+        if (isNumNegative)
+        {
+            result.append( displayString.charAt(0) );
+        }
+
+        result.reverse();
+        // Add the right (fractional or exponential) part of the number to the final string.
+        if (hasDecimal)
+        {
+            result.append( displayString.substring(dec) ); // substr
+        }
+        else if (hasExponent)
+        {
+            result.append( displayString.substring(exp) ); // substr
+        }
+
+        return result.toString();
+    }
+
+
+    /* Routines for more complex mathematical functions/error checking. */
+    Rational SciCalcFunctions(Rational rat, int op)
+    {
+        Rational result = Rational.of(0);
+        try
+        {
+            switch (op)
+            {
+                case IDC_CHOP:
+                    result = m_bInv ? RationalMath.frac(rat) : RationalMath.integer(rat);
+                    break;
+
+                /* Return complement. */
+                case IDC_COM:
+                    if (m_radix.toInt() == 10 && !m_fIntegerMode)
+                    {
+                        result = (RationalMath.integer(rat).plus(Rational.of(1))).negated();
+                    }
+                    else
+                    {
+                        result = rat.bitXor(GetChopNumber());
+                    }
+                    break;
+
+                case IDC_ROL:
+                case IDC_ROLC:
+                    if (m_fIntegerMode)
+                    {
+                        result = RationalMath.integer(rat);
+
+                        ulong w64Bits = result.toULong();
+                        ulong msb = (w64Bits.shiftRight((m_dwWordBitWidth - 1))).bitAnd(ulong.ONE);
+                        w64Bits = w64Bits.shiftLeft(1); // LShift by 1
+
+                        if (op == IDC_ROL)
+                        {
+                            w64Bits = w64Bits.bitOr( msb ); // Set the prev Msb as the current Lsb
+                        }
+                        else
+                        {
+                            w64Bits = w64Bits.bitOr(ulong.of(m_carryBit)); // Set the carry bit as the LSB
+                            m_carryBit = msb.raw();      // Store the msb as the next carry bit
+                        }
+
+                        result = new Rational(w64Bits);
+                    }
+                    break;
+
+                case IDC_ROR:
+                case IDC_RORC:
+                    if (m_fIntegerMode)
+                    {
+                        result = RationalMath.integer(rat);
+
+                        uint64_t w64Bits = result.ToUInt64_t();
+                        uint64_t lsb = ((w64Bits & 0x01) == 1) ? 1 : 0;
+                        w64Bits >>= 1; // RShift by 1
+
+                        if (op == IDC_ROR)
+                        {
+                            w64Bits |= (lsb << (m_dwWordBitWidth - 1));
+                        }
+                        else
+                        {
+                            w64Bits |= (m_carryBit << (m_dwWordBitWidth - 1));
+                            m_carryBit = lsb;
+                        }
+
+                        result = w64Bits;
+                    }
+                    break;
+
+                case IDC_PERCENT:
+                {
+                    // If the operator is multiply/divide, we evaluate this as "X [op] (Y%)"
+                    // Otherwise, we evaluate it as "X [op] (X * Y%)"
+                    if (m_nOpCode == IDC_MUL || m_nOpCode == IDC_DIV)
+                    {
+                        result = rat / 100;
+                    }
+                    else
+                    {
+                        result = rat * (m_lastVal / 100);
+                    }
+                    break;
+                }
+
+                case IDC_SIN: /* Sine; normal and arc */
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.asin(rat, m_angletype) : RationalMath.sin(rat, m_angletype);
+                    }
+                    break;
+
+                case IDC_SINH: /* Sine- hyperbolic and archyperbolic */
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.asinh(rat) : RationalMath.sinh(rat);
+                    }
+                    break;
+
+                case IDC_COS: /* Cosine, follows convention of sine function. */
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.acos(rat, m_angletype) : RationalMath.cos(rat, m_angletype);
+                    }
+                    break;
+
+                case IDC_COSH: /* Cosine hyperbolic, follows convention of sine h function. */
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.acosh(rat) : RationalMath.cosh(rat);
+                    }
+                    break;
+
+                case IDC_TAN: /* Same as sine and cosine. */
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.atan(rat, m_angletype) : RationalMath.tan(rat, m_angletype);
+                    }
+                    break;
+
+                case IDC_TANH: /* Same as sine h and cosine h. */
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.atanh(rat) : RationalMath.tanh(rat);
+                    }
+                    break;
+
+                case IDC_SEC:
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.acos(RationalMath.invert(rat), m_angletype) : RationalMath.invert(RationalMath.cos(rat, m_angletype));
+                    }
+                    break;
+
+                case IDC_CSC:
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.asin(RationalMath.invert(rat), m_angletype) : RationalMath.invert(RationalMath.sin(rat, m_angletype));
+                    }
+                    break;
+
+                case IDC_COT:
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.atan(RationalMath.invert(rat), m_angletype) : RationalMath.invert(RationalMath.tan(rat, m_angletype));
+                    }
+                    break;
+
+                case IDC_SECH:
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.acosh(RationalMath.invert(rat)) : RationalMath.invert(RationalMath.cosh(rat));
+                    }
+                    break;
+
+                case IDC_CSCH:
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.asinh(RationalMath.invert(rat)) : RationalMath.invert(RationalMath.sinh(rat));
+                    }
+                    break;
+
+                case IDC_COTH:
+                    if (!m_fIntegerMode)
+                    {
+                        result = m_bInv ? RationalMath.atanh(RationalMath.invert(rat)) : RationalMath.invert(RationalMath.tanh(rat));
+                    }
+                    break;
+
+                case IDC_REC: /* Reciprocal. */
+                    result = RationalMath.tnvert(rat);
+                    break;
+
+                case IDC_SQR: /* Square */
+                    result = RationalMath.pow(rat, Rational.of(2));
+                    break;
+
+                case IDC_SQRT: /* Square Root */
+                    result = RationalMath.root(rat, Rational.of(2));
+                    break;
+
+                case IDC_CUBEROOT:
+                case IDC_CUB: /* Cubing and cube root functions. */
+                    result = IDC_CUBEROOT == op ? RationalMath.root(rat, Rational.of(3)) : RationalMath.pow(rat, Rational.of(3));
+                    break;
+
+                case IDC_LOG: /* Functions for common log. */
+                    result = RationalMath.log10(rat);
+                    break;
+
+                case IDC_POW10:
+                    result = RationalMath.pow(Rational.of(10), rat);
+                    break;
+
+                case IDC_POW2:
+                    result = RationalMath.pow(Rational.of(2), rat);
+                    break;
+
+                case IDC_LN: /* Functions for natural log. */
+                    result = m_bInv ? RationalMath.exp(rat) : RationalMath.ln(rat);
+                    break;
+
+                case IDC_FAC: /* Calculate factorial.  Inverse is ineffective. */
+                    result = RationalMath.factorial(rat);
+                    break;
+
+                case IDC_DEGREES:
+                    ProcessCommand(IDC_INV);
+                    // This case falls through to IDC_DMS case because in the old Win32 Calc,
+                    // the degrees functionality was achieved as 'Inv' of 'dms' operation,
+                    // so setting the IDC_INV command first and then performing 'dms' operation as global variables m_bInv, m_bRecord
+                    // are set properly through ProcessCommand(IDC_INV)
+                    // [[fallthrough]];
+                case IDC_DMS:
+                {
+                    if (!m_fIntegerMode)
+                    {
+                        var shftRat = Rational.of( m_bInv ? 100 : 60 );
+
+                        Rational degreeRat = RationalMath.integer(rat);
+
+                        Rational minuteRat = (rat.minus(degreeRat)).times( shftRat );
+
+                        Rational secondRat = minuteRat;
+
+                        minuteRat = RationalMath.integer(minuteRat);
+
+                        secondRat = (secondRat.minus(minuteRat)).times( shftRat );
+
+                        //
+                        // degreeRat == degrees, minuteRat == minutes, secondRat == seconds
+                        //
+
+                        shftRat = Rational.of(m_bInv ? 60 : 100);
+                        secondRat = secondRat.dividedBy(shftRat);
+
+                        minuteRat = (minuteRat.plus(secondRat)).dividedBy(shftRat);
+
+                        result = degreeRat.plus(minuteRat);
+                    }
+                    break;
+                }
+                case IDC_CEIL:
+                    result = (RationalMath.frac(rat).isGreaterThan(Rational.of(0)))
+                            ? RationalMath.integer(rat.plus(Rational.of(1)))
+                            : RationalMath.integer(rat);
+                    break;
+
+                case IDC_FLOOR:
+                    result = (RationalMath.frac(rat).isLessThan(Rational.of(0)))
+                            ? RationalMath.integer(rat.minus(Rational.of(1)))
+                            : RationalMath.integer(rat);
+                    break;
+
+                case IDC_ABS:
+                    result = RationalMath.abs(rat);
+                    break;
+
+            } // end switch( op )
+        }
+        catch (ErrorCodeException nErrCode)
+        {
+            DisplayError(nErrCode.errorCode());
+            result = rat;
+        }
+
+        return result;
+    }
+
+    /* Routine to display error messages and set m_bError flag.  Errors are */
+    /* called with DisplayError (n), where n is a uint32_t   between 0 and 5. */
+
+    void DisplayError(int nError)
+    {
+        String errorString = GetString(IDS_ERRORS_FIRST + SCODE_CODE(nError));
+
+        SetPrimaryDisplay(errorString, true /*isError*/);
+
+        m_bError = true; /* Set error flag.  Only cleared with CLEAR or CENTR. */
+
+        m_HistoryCollector.clearHistoryLine(errorString);
+    }
+
+
+    // Routines to perform standard operations &|^~<<>>+-/*% and pwr.
+    Rational DoOperation(int operation, Rational lhs, Rational rhs)
+    {
+        // Remove any variance in how 0 could be represented in rat e.g. -0, 0/n, etc.
+        var result = (lhs.isNotEqual(Rational.of(0)) ? lhs : Rational.of(0));
+
+        try
+        {
+            switch (operation)
+            {
+                case IDC_AND:
+                    result = result.bitAnd(rhs);
+                    break;
+
+                case IDC_OR:
+                    result = result.bitOr(rhs);
+                    break;
+
+                case IDC_XOR:
+                    result = result.bitXor(rhs);
+                    break;
+
+                case IDC_NAND:
+                    result = (result.bitAnd(rhs)).bitXor(GetChopNumber());
+                    break;
+
+                case IDC_NOR:
+                    result = (result.bitOr(rhs)).bitXor(GetChopNumber());
+                    break;
+
+                case IDC_RSHF:
+                {
+                    if (m_fIntegerMode && result.isGreaterOrEqual(Rational.of(m_dwWordBitWidth))) // Lsh/Rsh >= than current word size is always 0
+                    {
+                        throw new ErrorCodeException(CALC_E_NORESULT);
+                    }
+
+                    ulong w64Bits = rhs.toULong();
+                    boolean fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool();
+
+                    Rational holdVal = result;
+                    result = rhs.shiftedRight(holdVal);
+
+                    if (fMsb)
+                    {
+                        result = RationalMath.integer(result);
+
+                        var tempRat = GetChopNumber().shiftedRight(holdVal);
+                        tempRat = RationalMath.integer(tempRat);
+
+                        result = result.bitOr( tempRat.bitXor(GetChopNumber()) );
+                    }
+                    break;
+                }
+                case IDC_RSHFL:
+                {
+                    if (m_fIntegerMode && result.isGreaterOrEqual(Rational.of(m_dwWordBitWidth))) // Lsh/Rsh >= than current word size is always 0
+                    {
+                        throw new ErrorCodeException(CALC_E_NORESULT);
+                    }
+
+                    result = rhs.shiftedRight(result);
+                    break;
+                }
+                case IDC_LSHF:
+                    if (m_fIntegerMode && result.isGreaterOrEqual(Rational.of(m_dwWordBitWidth))) // Lsh/Rsh >= than current word size is always 0
+                    {
+                        throw new ErrorCodeException(CALC_E_NORESULT);
+                    }
+
+                    result = rhs.shiftedLeft(result);
+                    break;
+
+                case IDC_ADD:
+                    result = result.plus(rhs);
+                    break;
+
+                case IDC_SUB:
+                    result = rhs.minus(result);
+                    break;
+
+                case IDC_MUL:
+                    result = result.times(rhs);
+                    break;
+
+                case IDC_DIV:
+                case IDC_MOD:
+                {
+                    int iNumeratorSign = 1, iDenominatorSign = 1;
+                    var temp = result;
+                    result = rhs;
+
+                    if (m_fIntegerMode)
+                    {
+                        ulong w64Bits = rhs.toULong();
+                        boolean fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool();
+
+                        if (fMsb)
+                        {
+                            result = (rhs.bitXor(GetChopNumber())).plus(Rational.of(1));
+
+                            iNumeratorSign = -1;
+                        }
+
+                        w64Bits = temp.toULong();
+                        fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool();
+
+                        if (fMsb)
+                        {
+                            temp = (temp.bitXor(GetChopNumber())).plus(Rational.of(1));
+
+                            iDenominatorSign = -1;
+                        }
+                    }
+
+                    if (operation == IDC_DIV)
+                    {
+                        result = result.dividedBy( temp );
+                        if (m_fIntegerMode && (iNumeratorSign * iDenominatorSign) == -1)
+                        {
+                            result = (RationalMath.integer(result)).negated();
+                        }
+                    }
+                    else
+                    {
+                        if (m_fIntegerMode)
+                        {
+                            // Programmer mode, use remrat (remainder after division)
+                            result = result.modulo(temp);
+
+                            if (iNumeratorSign == -1)
+                            {
+                                result = (RationalMath.integer(result)).negated();
+                            }
+                        }
+                        else
+                        {
+                            // other modes, use modrat (modulus after division)
+                            result = RationalMath.mod(result, temp);
+                        }
+                    }
+                    break;
+                }
+
+                case IDC_PWR: // Calculates rhs to the result(th) power.
+                    result = RationalMath.pow(rhs, result);
+                    break;
+
+                case IDC_ROOT: // Calculates rhs to the result(th) root.
+                    result = RationalMath.root(rhs, result);
+                    break;
+
+                case IDC_LOGBASEY:
+                    result = (RationalMath.ln(rhs).dividedBy( RationalMath.ln(result)) );
+                    break;
+            }
+        }
+        catch (ErrorCodeException dwErrCode)
+        {
+            DisplayError(dwErrCode.errorCode());
+
+            // On error, return the original value
+            result = lhs;
+        }
+
+        return result;
+    }
+
+
+
+    // To be called when either the radix or num width changes. You can use -1 in either of these values to mean
+    // dont change that.
+    void SetRadixTypeAndNumWidth(RadixType radixtype, NUM_WIDTH numwidth)
+    {
+        // When in integer mode, the number is represented in 2's complement form. When a bit width is changing, we can
+        // change the number representation back to sign, abs num form in ratpak. Soon when display sees this, it will
+        // convert to 2's complement form, but this time all high bits will be propagated. Eg. -127, in byte mode is
+        // represented as 1000,0001. This puts it back as sign=-1, 01111111 . But DisplayNum will see this and convert it
+        // back to 1111,1111,1000,0001 when in Word mode.
+        if (m_fIntegerMode)
+        {
+            ulong w64Bits = m_currentVal.toULong();
+            boolean fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool(); // make sure you use the old width
+
+            if (fMsb)
+            {
+                // If high bit is set, then get the decimal number in -ve 2'scompl form.
+                var tempResult = m_currentVal.bitXor( GetChopNumber() );
+
+                m_currentVal = (tempResult.plus(Rational.of(1))).negated();
+            }
+        }
+
+        if (radixtype.cppValue() >= RadixType.Hex.cppValue() && radixtype.cppValue() <= RadixType.Binary.cppValue())
+        {
+            m_radix = uint.of(NRadixFromRadixType(radixtype));
+            // radixtype is not even saved
+        }
+
+        // TODO: Better validation
+        if (numwidth.toInt() >= NUM_WIDTH.QWORD_WIDTH.toInt() && numwidth.toInt() <= NUM_WIDTH.BYTE_WIDTH.toInt())
+        {
+            m_numwidth = numwidth;
+            m_dwWordBitWidth = DwWordBitWidthFromNumWidth(numwidth);
+        }
+
+        // inform ratpak that a change in base or precision has occurred
+        BaseOrPrecisionChanged();
+
+        // display the correct number for the new state (ie convert displayed
+        //  number to correct base)
+        DisplayNum();
+    }
+
+    int DwWordBitWidthFromNumWidth(NUM_WIDTH numwidth)
+    {
+        switch (numwidth)
+        {
+            case NUM_WIDTH.DWORD_WIDTH:
+                return 32;
+            case NUM_WIDTH.WORD_WIDTH:
+                return 16;
+            case NUM_WIDTH.BYTE_WIDTH:
+                return 8;
+            case NUM_WIDTH.QWORD_WIDTH:
+            default:
+                return 64;
+        }
+    }
+
+    int NRadixFromRadixType(RadixType radixtype)
+    {
+        switch (radixtype)
+        {
+            case RadixType.Hex:
+                return 16;
+            case RadixType.Octal:
+                return 8;
+            case RadixType.Binary:
+                return 2;
+            case RadixType.Decimal:
+            default:
+                return 10;
+        }
+    }
+
+    //  Toggles a given bit into the number representation. returns true if it changed it actually.
+    boolean TryToggleBit(Rational rat, int wbitno)
+    {
+        int wmax = DwWordBitWidthFromNumWidth(m_numwidth);
+        if (wbitno >= wmax)
+        {
+            return false; // ignore error cant happen
+        }
+
+        Rational result = RationalMath.integer(rat);
+
+        // Remove any variance in how 0 could be represented in rat e.g. -0, 0/n, etc.
+        result = (result.isNotEqual(Rational.of(0)) ? result : Rational.of(0));
+
+        // XOR the result with 2^wbitno power
+        rat = result.bitXor( RationalMath.pow(Rational.of(2), Rational.of(wbitno)) );
+
+        return true;
+    }
+
+    // Returns the nearest power of two
+    int QuickLog2(int iNum)
+    {
+        // TODO: Check if this will work with unsigned
+        int iRes = 0;
+
+        // while first digit is a zero
+        while ((iNum & 1) == 0)
+        {
+            iRes++;
+            iNum >>= 1;
+        }
+
+        // if our number isn't a perfect square
+        iNum = iNum >> 1;
+        if (iNum != 0)
+        {
+            // find the largest digit
+            for (iNum = iNum >> 1; iNum != 0; iNum = iNum >> 1)
+                ++iRes;
+
+            // and then add two
+            iRes += 2;
+        }
+
+        return iRes;
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+//
+//  UpdateMaxIntDigits
+//
+// determine the maximum number of digits needed for the current precision,
+// word size, and base.  This number is conservative towards the small side
+// such that there may be some extra bits left over. For example, base 8 requires 3 bits per digit.
+// A word size of 32 bits allows for 10 digits with a remainder of two bits.  Bases
+// that require variable number of bits (non-power-of-two bases) are approximated
+// by the next highest power-of-two base (again, to be conservative and guarantee
+// there will be no over flow verse the current word size for numbers entered).
+// Base 10 is a special case and always uses the base 10 precision (m_nPrecisionSav).
+    void UpdateMaxIntDigits()
+    {
+        if (m_radix.toInt() == 10)
+        {
+            // if in integer mode you still have to honor the max digits you can enter based on bit width
+            if (m_fIntegerMode)
+            {
+                m_cIntDigitsSav = (GetMaxDecimalValueString().length()) - 1;
+                // This is the max digits you can enter a decimal in fixed width mode aka integer mode -1. The last digit
+                // has to be checked separately
+            }
+            else
+            {
+                m_cIntDigitsSav = m_precision;
+            }
+        }
+        else
+        {
+            m_cIntDigitsSav = m_dwWordBitWidth / QuickLog2(m_radix);
+        }
+    }
+
+    void ChangeBaseConstants(uint radix, int maxIntDigits, int precision)
+    {
+        if (10 == radix.toInt())
+        {
+            ChangeConstants(radix, precision); // Base 10 precision for internal computing still needs to be 32, to
+            // take care of decimals precisely. For eg. to get the HI word of a qword, we do a rsh, which depends on getting
+            // 18446744073709551615 / 4294967296 = 4294967295.9999917... This is important it works this and doesn't reduce
+            // the precision to number of digits allowed to enter. In other words, precision and # of allowed digits to be
+            // entered are different.
+        }
+        else
+        {
+            ChangeConstants(radix, maxIntDigits + 1);
+        }
+    }
+
+    void BaseOrPrecisionChanged()
+    {
+        UpdateMaxIntDigits();
+        ChangeBaseConstants(m_radix, m_cIntDigitsSav, m_precision);
+    }
+
 }
