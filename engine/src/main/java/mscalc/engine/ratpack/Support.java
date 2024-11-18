@@ -590,12 +590,12 @@ public interface Support {
         static RAT rat_half = null;
         static RAT rat_ten = null;
         static RAT pt_eight_five = null;
-        static RAT pi = null;
+        public static RAT pi = null;
         static RAT pi_over_two = null;
-        static RAT two_pi = null;
+        public static RAT two_pi = null;
         static RAT one_pt_five_pi = null;
         static RAT e_to_one_half = null;
-        static RAT rat_exp = null;
+        public static RAT rat_exp = null;
         static RAT rad_to_deg = null;
         static RAT rad_to_grad = null;
         public static RAT rat_qword = null;

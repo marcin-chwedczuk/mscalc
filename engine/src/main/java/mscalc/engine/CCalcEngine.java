@@ -9,8 +9,12 @@ import mscalc.engine.ratpack.RatPack.AngleType;
 import mscalc.engine.resource.JavaBundleResourceProvider;
 import mscalc.engine.resource.ResourceProvider;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 
 import static java.util.Map.entry;
 import static mscalc.engine.CalcUtils.*;
@@ -303,16 +307,15 @@ public class CCalcEngine {
 
         m_maxTrigonometricNum = RationalMath.pow(Rational.of(10), Rational.of(100));
 
-        SetRadixTypeAndNumWidth(RadixType::Decimal, m_numwidth);
+        SetRadixTypeAndNumWidth(RadixType.Decimal, m_numwidth);
         SettingsChanged();
         DisplayNum();
     }
 
-    void InitChopNumbers()
-    {
+    void InitChopNumbers() {
         // these rat numbers are set only once and then never change regardless of
         // base or precision changes
-        assert(m_chopNumbers.length >= 4);
+        assert (m_chopNumbers.length >= 4);
         m_chopNumbers[0] = Rational.fromCRational(rat_qword);
         m_chopNumbers[1] = Rational.fromCRational(rat_dword);
         m_chopNumbers[2] = Rational.fromCRational(rat_word);
@@ -320,9 +323,8 @@ public class CCalcEngine {
 
         // initialize the max dec number you can support for each of the supported bit lengths
         // this is basically max num in that width / 2 in integer
-        assert(m_chopNumbers.length == m_maxDecimalValueStrings.length);
-        for (int i = 0; i < m_chopNumbers.length; i++)
-        {
+        assert (m_chopNumbers.length == m_maxDecimalValueStrings.length);
+        for (int i = 0; i < m_chopNumbers.length; i++) {
             var maxVal = m_chopNumbers[i].dividedBy(Rational.of(2));
             maxVal = RationalMath.integer(maxVal);
 
@@ -330,25 +332,21 @@ public class CCalcEngine {
         }
     }
 
-    Rational GetChopNumber()
-    {
+    Rational GetChopNumber() {
         return m_chopNumbers[m_numwidth.toInt()];
     }
 
-    String GetMaxDecimalValueString()
-    {
+    String GetMaxDecimalValueString() {
         return m_maxDecimalValueStrings[m_numwidth.toInt()];
     }
 
     // Gets the number in memory for UI to keep it persisted and set it again to a different instance
 // of CCalcEngine. Otherwise it will get destructed with the CalcEngine
-    Rational PersistedMemObject()
-    {
+    Rational PersistedMemObject() {
         return m_memoryValue;
     }
 
-    void PersistedMemObject(Rational memObject)
-    {
+    void PersistedMemObject(Rational memObject) {
         m_memoryValue = memObject;
     }
 
@@ -369,8 +367,7 @@ public class CCalcEngine {
         ChangeConstants(m_radix, precision);
     }
 
-    void SettingsChanged()
-    {
+    void SettingsChanged() {
         char lastDec = m_decimalSeparator;
         String decStr = m_resourceProvider.getCEngineString("sDecimal");
         m_decimalSeparator = decStr.isEmpty() ? DEFAULT_DEC_SEPARATOR : decStr.charAt(0);
@@ -388,14 +385,12 @@ public class CCalcEngine {
         boolean numChanged = false;
 
         // if the grouping pattern or thousands symbol changed we need to refresh the display
-        if (m_decGrouping != lastDecGrouping || m_groupSeparator != lastSep)
-        {
+        if (m_decGrouping != lastDecGrouping || m_groupSeparator != lastSep) {
             numChanged = true;
         }
 
         // if the decimal symbol has changed we always do the following things
-        if (m_decimalSeparator != lastDec)
-        {
+        if (m_decimalSeparator != lastDec) {
             // Re-initialize member variables' decimal point.
             m_input.setDecimalSymbol(m_decimalSeparator);
             m_HistoryCollector.setDecimalSymbol(m_decimalSeparator);
@@ -407,22 +402,18 @@ public class CCalcEngine {
             numChanged = true;
         }
 
-        if (numChanged)
-        {
+        if (numChanged) {
             DisplayNum();
         }
     }
 
-    char DecimalSeparator()
-    {
+    char DecimalSeparator() {
         return m_decimalSeparator;
     }
 
-    List<IExpressionCommand> GetHistoryCollectorCommandsSnapshot()
-    {
+    List<IExpressionCommand> GetHistoryCollectorCommandsSnapshot() {
         var commands = m_HistoryCollector.getCommands();
-        if (!m_HistoryCollector.fOpndAddedToHistory() && m_bRecord)
-        {
+        if (!m_HistoryCollector.fOpndAddedToHistory() && m_bRecord) {
             commands.add(m_HistoryCollector.getOperandCommandsFromString(m_numberString, m_currentVal));
         }
         return commands;
@@ -433,17 +424,15 @@ public class CCalcEngine {
 
         // we must now set up all the ratpak constants and our arrayed pointers
         // to these constants.
-        ChangeBaseConstants(DEFAULT_RADIX, DEFAULT_MAX_DIGITS, DEFAULT_PRECISION);
+        ChangeBaseConstants(uint.of(DEFAULT_RADIX), DEFAULT_MAX_DIGITS, DEFAULT_PRECISION);
     }
 
     // NPrecedenceOfOp
     //
     // returns a virtual number for precedence for the operator. We expect binary operator only, otherwise the lowest number
     // 0 is returned. Higher the number, higher the precedence of the operator.
-    public static int NPrecedenceOfOp(int nopCode)
-    {
-        switch (nopCode)
-        {
+    public static int NPrecedenceOfOp(int nopCode) {
+        switch (nopCode) {
             default:
             case IDC_OR:
             case IDC_XOR:
@@ -473,25 +462,20 @@ public class CCalcEngine {
 //
 // When it is discovered by the state machine that at this point the input is not valid (eg. "1+)"), we want to proceed as though this input never
 // occurred and may be some feedback to user like Beep. The rest of input can then continue by just ignoring this command.
-    void HandleErrorCommand(int idc)
-    {
-        if (!IsGuiSettingOpCode(idc))
-        {
+    void HandleErrorCommand(int idc) {
+        if (!IsGuiSettingOpCode(idc)) {
             // We would have saved the prev command. Need to forget this state
             m_nTempCom = m_nLastCom;
         }
     }
 
-    void HandleMaxDigitsReached()
-    {
-        if (null != m_pCalcDisplay)
-        {
+    void HandleMaxDigitsReached() {
+        if (null != m_pCalcDisplay) {
             m_pCalcDisplay.maxDigitsReached();
         }
     }
 
-    void ClearTemporaryValues()
-    {
+    void ClearTemporaryValues() {
         m_bInv = false;
         m_input.clear();
         m_bRecord = true;
@@ -500,18 +484,14 @@ public class CCalcEngine {
         m_bError = false;
     }
 
-    void ClearDisplay()
-    {
-        if (null != m_pCalcDisplay)
-        {
+    void ClearDisplay() {
+        if (null != m_pCalcDisplay) {
             m_pCalcDisplay.setExpressionDisplay(new ArrayList<>(), new ArrayList<>());
         }
     }
 
-    void ProcessCommand(int wParam)
-    {
-        if (wParam == IDC_SET_RESULT)
-        {
+    void ProcessCommand(int wParam) {
+        if (wParam == IDC_SET_RESULT) {
             wParam = IDC_RECALL;
             m_bSetCalcState = true;
         }
@@ -519,78 +499,62 @@ public class CCalcEngine {
         ProcessCommandWorker(wParam);
     }
 
-    void ProcessCommandWorker(int wParam)
-    {
+    void ProcessCommandWorker(int wParam) {
         // Save the last command.  Some commands are not saved in this manor, these
         // commands are:
         // Inv, Deg, Rad, Grad, Stat, FE, MClear, Back, and Exp.  The excluded
         // commands are not
         // really mathematical operations, rather they are GUI mode settings.
 
-        if (!IsGuiSettingOpCode(wParam))
-        {
+        if (!IsGuiSettingOpCode(wParam)) {
             m_nLastCom = m_nTempCom;
-            m_nTempCom = (int)wParam;
+            m_nTempCom = (int) wParam;
         }
 
         // Clear expression shown after = sign, when user do any action.
-        if (!m_bNoPrevEqu)
-        {
+        if (!m_bNoPrevEqu) {
             ClearDisplay();
         }
 
-        if (m_bError)
-        {
-            if (wParam == IDC_CLEAR)
-            {
+        if (m_bError) {
+            if (wParam == IDC_CLEAR) {
                 // handle "C" normally
-            }
-            else if (wParam == IDC_CENTR)
-            {
+            } else if (wParam == IDC_CENTR) {
                 // treat "CE" as "C"
                 wParam = IDC_CLEAR;
-            }
-            else
-            {
+            } else {
                 HandleErrorCommand(wParam);
                 return;
             }
         }
 
         // Toggle Record/Display mode if appropriate.
-        if (m_bRecord)
-        {
+        if (m_bRecord) {
             if (IsBinOpCode(wParam) || IsUnaryOpCode(wParam) || IsOpInRange(wParam, IDC_FE, IDC_MMINUS) || IsOpInRange(wParam, IDC_OPENP, IDC_CLOSEP)
                     || IsOpInRange(wParam, IDM_HEX, IDM_BIN) || IsOpInRange(wParam, IDM_QWORD, IDM_BYTE) || IsOpInRange(wParam, IDM_DEG, IDM_GRAD)
-                    || IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITEND) || (IDC_INV == wParam) || (IDC_SIGN == wParam && 10 != m_radix) || (IDC_RAND == wParam)
-                    || (IDC_EULER == wParam))
-            {
+                    || IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITEND) || (IDC_INV == wParam) || (IDC_SIGN == wParam && 10 != m_radix.toInt()) || (IDC_RAND == wParam)
+                    || (IDC_EULER == wParam)) {
                 m_bRecord = false;
                 m_currentVal = m_input.toRational(m_radix, m_precision);
                 DisplayNum(); // Causes 3.000 to shrink to 3. on first op.
             }
-        }
-        else if (IsDigitOpCode(wParam) || wParam == IDC_PNT)
-        {
+        } else if (IsDigitOpCode(wParam) || wParam == IDC_PNT) {
             m_bRecord = true;
             m_input.clear();
             CheckAndAddLastBinOpToHistory();
         }
 
         // Interpret digit keys.
-        if (IsDigitOpCode(wParam))
-        {
-            int iValue = (int)(wParam - IDC_0);
+        if (IsDigitOpCode(wParam)) {
+            int iValue = (int) (wParam - IDC_0);
 
             // this is redundant, illegal keys are disabled
-            if (iValue >= m_radix.toInt())
-            {
+            if (iValue >= m_radix.toInt()) {
                 HandleErrorCommand(wParam);
                 return;
             }
 
-            if (!m_input.tryAddDigit(iValue, m_radix, m_fIntegerMode, GetMaxDecimalValueString(), m_dwWordBitWidth, m_cIntDigitsSav))
-            {
+            if (!m_input.tryAddDigit(iValue, m_radix, m_fIntegerMode, GetMaxDecimalValueString(), m_dwWordBitWidth, m_cIntDigitsSav)) {
                 HandleErrorCommand(wParam);
                 HandleMaxDigitsReached();
                 return;
@@ -602,21 +566,18 @@ public class CCalcEngine {
         }
 
         // BINARY OPERATORS:
-        if (IsBinOpCode(wParam))
-        {
+        if (IsBinOpCode(wParam)) {
             // Change the operation if last input was operation.
-            if (IsBinOpCode(m_nLastCom))
-            {
+            if (IsBinOpCode(m_nLastCom)) {
                 boolean fPrecInvToHigher = false; // Is Precedence Inversion from lower to higher precedence happening ??
 
-                m_nOpCode = (int)wParam;
+                m_nOpCode = (int) wParam;
 
                 // Check to see if by changing this binop, a Precedence inversion is happening.
                 // Eg. 1 * 2  + and + is getting changed to ^. The previous precedence rules would have already computed
                 // 1*2, so we will put additional brackets to cover for precedence inversion and it will become (1 * 2) ^
                 // Here * is m_nPrevOpCode, m_currentVal is 2  (by 1*2), m_nLastCom is +, m_nOpCode is ^
-                if (m_fPrecedence && 0 != m_nPrevOpCode)
-                {
+                if (m_fPrecedence && 0 != m_nPrevOpCode) {
                     int nPrev = NPrecedenceOfOp(m_nPrevOpCode);
                     int nx = NPrecedenceOfOp(m_nLastCom);
                     int ni = NPrecedenceOfOp(m_nOpCode);
@@ -631,8 +592,7 @@ public class CCalcEngine {
                 return;
             }
 
-            if (!m_HistoryCollector.fOpndAddedToHistory())
-            {
+            if (!m_HistoryCollector.fOpndAddedToHistory()) {
                 // if the prev command was ) or unop then it is already in history as a opnd form (...)
                 m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal);
             }
@@ -642,117 +602,104 @@ public class CCalcEngine {
             /* entering 3+4+5= gives 7 after the first + and 12 after the */
             /* the =.  The rest of this stuff attempts to do precedence in*/
             /* Scientific mode.                                           */
-            if (m_bChangeOp)
-            {
-                DoPrecedenceCheckAgain: while(false) { } // Fake statement for the label
+            if (m_bChangeOp) {
+                boolean DoPrecedenceCheckAgain = true;
+                while (DoPrecedenceCheckAgain) {
+                    DoPrecedenceCheckAgain = false;
 
-                int nx = NPrecedenceOfOp((int)wParam);
-                int ni = NPrecedenceOfOp(m_nOpCode);
+                    int nx = NPrecedenceOfOp((int) wParam);
+                    int ni = NPrecedenceOfOp(m_nOpCode);
 
-                if ((nx > ni) && m_fPrecedence)
-                {
-                    if (m_precedenceOpCount < MAXPRECDEPTH)
-                    {
-                        m_precedenceVals[m_precedenceOpCount] = m_lastVal;
+                    if ((nx > ni) && m_fPrecedence) {
+                        if (m_precedenceOpCount < MAXPRECDEPTH) {
+                            m_precedenceVals[m_precedenceOpCount] = m_lastVal;
 
-                        m_nPrecOp[m_precedenceOpCount] = m_nOpCode;
-                        m_HistoryCollector.pushLastOpndStart(); // Eg. 1 + 2  *, Need to remember the start of 2 to do Precedence inversion if need to
-                    }
-                    else
-                    {
-                        m_precedenceOpCount = MAXPRECDEPTH - 1;
-                        HandleErrorCommand(wParam);
-                    }
-                    m_precedenceOpCount++;
-                }
-                else
-                {
-                    /* do the last operation and then if the precedence array is not
-                     * empty or the top is not the '(' demarcator then pop the top
-                     * of the array and recheck precedence against the new operator
-                     */
-                    m_currentVal = DoOperation(m_nOpCode, m_currentVal, m_lastVal);
-                    m_nPrevOpCode = m_nOpCode;
-
-                    if (!m_bError)
-                    {
-                        DisplayNum();
-                        if (!m_fPrecedence)
-                        {
-                            String groupedString = GroupDigitsPerRadix(m_numberString, m_radix);
-                            m_HistoryCollector.CompleteEquation(groupedString);
-                            m_HistoryCollector.AddOpndToHistory(m_numberString, m_currentVal);
+                            m_nPrecOp[m_precedenceOpCount] = m_nOpCode;
+                            m_HistoryCollector.pushLastOpndStart(); // Eg. 1 + 2  *, Need to remember the start of 2 to do Precedence inversion if need to
+                        } else {
+                            m_precedenceOpCount = MAXPRECDEPTH - 1;
+                            HandleErrorCommand(wParam);
                         }
-                    }
+                        m_precedenceOpCount++;
+                    } else {
+                        /* do the last operation and then if the precedence array is not
+                         * empty or the top is not the '(' demarcator then pop the top
+                         * of the array and recheck precedence against the new operator
+                         */
+                        m_currentVal = DoOperation(m_nOpCode, m_currentVal, m_lastVal);
+                        m_nPrevOpCode = m_nOpCode;
 
-                    if ((m_precedenceOpCount != 0) && (m_nPrecOp[m_precedenceOpCount - 1] != 0))
-                    {
-                        m_precedenceOpCount--;
-                        m_nOpCode = m_nPrecOp[m_precedenceOpCount];
-
-                        m_lastVal = m_precedenceVals[m_precedenceOpCount];
-
-                        nx = NPrecedenceOfOp(m_nOpCode);
-                        // Precedence Inversion Higher to lower can happen which needs explicit enclosure of brackets
-                        // Eg.  1 + 2 * Or 3 Or.  We would have pushed 1+ before, and now last + forces 2 Or 3 to be evaluated
-                        // because last Or is less or equal to first + (after 1). But we see that 1+ is in stack and we evaluated to 2 Or 3
-                        // This is precedence inversion happened because of operator changed in between. We put extra brackets like
-                        // 1 + (2 Or 3)
-                        if (ni <= nx)
-                        {
-                            m_HistoryCollector.enclosePrecInversionBrackets();
+                        if (!m_bError) {
+                            DisplayNum();
+                            if (!m_fPrecedence) {
+                                String groupedString = GroupDigitsPerRadix(m_numberString, m_radix);
+                                m_HistoryCollector.completeEquation(groupedString);
+                                m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal);
+                            }
                         }
-                        m_HistoryCollector.popLastOpndStart();
-                        goto DoPrecedenceCheckAgain; // GOTO Won't work in Java
+
+                        if ((m_precedenceOpCount != 0) && (m_nPrecOp[m_precedenceOpCount - 1] != 0)) {
+                            m_precedenceOpCount--;
+                            m_nOpCode = m_nPrecOp[m_precedenceOpCount];
+
+                            m_lastVal = m_precedenceVals[m_precedenceOpCount];
+
+                            nx = NPrecedenceOfOp(m_nOpCode);
+                            // Precedence Inversion Higher to lower can happen which needs explicit enclosure of brackets
+                            // Eg.  1 + 2 * Or 3 Or.  We would have pushed 1+ before, and now last + forces 2 Or 3 to be evaluated
+                            // because last Or is less or equal to first + (after 1). But we see that 1+ is in stack and we evaluated to 2 Or 3
+                            // This is precedence inversion happened because of operator changed in between. We put extra brackets like
+                            // 1 + (2 Or 3)
+                            if (ni <= nx) {
+                                m_HistoryCollector.enclosePrecInversionBrackets();
+                            }
+                            m_HistoryCollector.popLastOpndStart();
+                            DoPrecedenceCheckAgain = true; // GOTO Won't work in Java
+                        }
+
                     }
                 }
             }
 
             DisplayAnnounceBinaryOperator();
             m_lastVal = m_currentVal;
-            m_nOpCode = (int)wParam;
+            m_nOpCode = (int) wParam;
             m_HistoryCollector.addBinOpToHistory(m_nOpCode, m_fIntegerMode);
             m_bNoPrevEqu = m_bChangeOp = true;
             return;
         }
 
         // UNARY OPERATORS:
-        if (IsUnaryOpCode(wParam) || (wParam == IDC_DEGREES))
-        {
+        if (IsUnaryOpCode(wParam) || (wParam == IDC_DEGREES)) {
             /* Functions are unary operations.                            */
             /* If the last thing done was an operator, m_currentVal was cleared. */
             /* In that case we better use the number before the operator  */
             /* was entered, otherwise, things like 5+ 1/x give Divide By  */
             /* zero.  This way 5+=gives 10 like most calculators do.      */
-            if (IsBinOpCode(m_nLastCom))
-            {
+            if (IsBinOpCode(m_nLastCom)) {
                 m_currentVal = m_lastVal;
             }
 
             // we do not add percent sign to history or to two line display.
             // instead, we add the result of applying %.
-            if (wParam != IDC_PERCENT)
-            {
-                if (!m_HistoryCollector.fOpndAddedToHistory())
-                {
+            if (wParam != IDC_PERCENT) {
+                if (!m_HistoryCollector.fOpndAddedToHistory()) {
                     m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal);
                 }
 
-                m_HistoryCollector.addUnaryOpToHistory((int)wParam, m_bInv, m_angletype);
+                m_HistoryCollector.addUnaryOpToHistory((int) wParam, m_bInv, m_angletype);
             }
 
             if ((wParam == IDC_SIN) || (wParam == IDC_COS) || (wParam == IDC_TAN) || (wParam == IDC_SINH) || (wParam == IDC_COSH) || (wParam == IDC_TANH)
-                    || (wParam == IDC_SEC) || (wParam == IDC_CSC) || (wParam == IDC_COT) || (wParam == IDC_SECH) || (wParam == IDC_CSCH) || (wParam == IDC_COTH))
-            {
-                if (IsCurrentTooBigForTrig())
-                {
+                    || (wParam == IDC_SEC) || (wParam == IDC_CSC) || (wParam == IDC_COT) || (wParam == IDC_SECH) || (wParam == IDC_CSCH) || (wParam == IDC_COTH)) {
+                if (IsCurrentTooBigForTrig()) {
                     m_currentVal = Rational.of(0);
                     DisplayError(CALC_E_DOMAIN);
                     return;
                 }
             }
 
-            m_currentVal = SciCalcFunctions(m_currentVal, (int)wParam);
+            m_currentVal = SciCalcFunctions(m_currentVal, (int) wParam);
 
             if (m_bError)
                 return;
@@ -760,8 +707,7 @@ public class CCalcEngine {
             /* Display the result, reset flags, and reset indicators.     */
             DisplayNum();
 
-            if (wParam == IDC_PERCENT)
-            {
+            if (wParam == IDC_PERCENT) {
                 CheckAndAddLastBinOpToHistory();
                 m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal, true /* Add to primary and secondary display */);
             }
@@ -772,8 +718,7 @@ public class CCalcEngine {
             if (m_bInv
                     && ((wParam == IDC_CHOP) || (wParam == IDC_SIN) || (wParam == IDC_COS) || (wParam == IDC_TAN) || (wParam == IDC_LN) || (wParam == IDC_DMS)
                     || (wParam == IDC_DEGREES) || (wParam == IDC_SINH) || (wParam == IDC_COSH) || (wParam == IDC_TANH) || (wParam == IDC_SEC) || (wParam == IDC_CSC)
-                    || (wParam == IDC_COT) || (wParam == IDC_SECH) || (wParam == IDC_CSCH) || (wParam == IDC_COTH)))
-            {
+                    || (wParam == IDC_COT) || (wParam == IDC_SECH) || (wParam == IDC_CSCH) || (wParam == IDC_COTH))) {
                 m_bInv = false;
             }
 
@@ -781,18 +726,15 @@ public class CCalcEngine {
         }
 
         // Tiny binary edit windows clicked. Toggle that bit and update display
-        if (IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITEND))
-        {
+        if (IsOpInRange(wParam, IDC_BINEDITSTART, IDC_BINEDITEND)) {
             // Same reasoning as for unary operators. We need to seed it previous number
-            if (IsBinOpCode(m_nLastCom))
-            {
+            if (IsBinOpCode(m_nLastCom)) {
                 m_currentVal = m_lastVal;
             }
 
             CheckAndAddLastBinOpToHistory();
 
-            if (TryToggleBit(m_currentVal, (int)wParam - IDC_BINEDITSTART))
-            {
+            if (TryToggleBit(m_currentVal, (int) wParam - IDC_BINEDITSTART)) {
                 DisplayNum();
             }
 
@@ -800,12 +742,9 @@ public class CCalcEngine {
         }
 
         /* Now branch off to do other commands and functions.                 */
-        switch (wParam)
-        {
-            case IDC_CLEAR: /* Total clear.                                       */
-            {
-                if (!m_bChangeOp)
-                {
+        switch (wParam) {
+            case IDC_CLEAR: /* Total clear.                                       */ {
+                if (!m_bChangeOp) {
                     // Preserve history, if everything done before was a series of unary operations.
                     CheckAndAddLastBinOpToHistory(false);
                 }
@@ -821,8 +760,7 @@ public class CCalcEngine {
 
         /* clear the parenthesis status box indicator, this will not be
         cleared for CENTR */
-                if (null != m_pCalcDisplay)
-                {
+                if (null != m_pCalcDisplay) {
                     m_pCalcDisplay.setParenthesisNumber(0);
                     ClearDisplay();
                 }
@@ -832,8 +770,7 @@ public class CCalcEngine {
             }
             break;
 
-            case IDC_CENTR: /* Clear only temporary values.                       */
-            {
+            case IDC_CENTR: /* Clear only temporary values.                       */ {
                 // Clear the INV & leave (=xx indicator active
                 ClearTemporaryValues();
             }
@@ -843,13 +780,10 @@ public class CCalcEngine {
             case IDC_BACK:
                 // Divide number by the current radix and truncate.
                 // Only allow backspace if we're recording.
-                if (m_bRecord)
-                {
+                if (m_bRecord) {
                     m_input.backspace();
                     DisplayNum();
-                }
-                else
-                {
+                } else {
                     HandleErrorCommand(wParam);
                 }
                 break;
@@ -857,42 +791,36 @@ public class CCalcEngine {
             /* EQU enables the user to press it multiple times after and      */
             /* operation to enable repeats of the last operation.             */
             case IDC_EQU:
-                while (m_openParenCount > 0)
-                {
+                while (m_openParenCount > 0) {
                     // when m_bError is set and m_ParNum is non-zero it goes into infinite loop
-                    if (m_bError)
-                    {
+                    if (m_bError) {
                         break;
                     }
                     // automatic closing of all the parenthesis to get a meaningful result as well as ensure data integrity
                     m_nTempCom = m_nLastCom; // Put back this last saved command to the prev state so ) can be handled properly
                     ProcessCommand(IDC_CLOSEP);
                     m_nLastCom = m_nTempCom;  // Actually this is IDC_CLOSEP
-                    m_nTempCom = (int)wParam; // put back in the state where last op seen was IDC_CLOSEP, and current op is IDC_EQU
+                    m_nTempCom = (int) wParam; // put back in the state where last op seen was IDC_CLOSEP, and current op is IDC_EQU
                 }
 
-                if (!m_bNoPrevEqu)
-                {
+                if (!m_bNoPrevEqu) {
                     // It is possible now unary op changed the num in screen, but still m_lastVal hasn't changed.
                     m_lastVal = m_currentVal;
                 }
 
                 /* Last thing keyed in was an operator.  Lets do the op on*/
                 /* a duplicate of the last entry.                     */
-                if (IsBinOpCode(m_nLastCom))
-                {
+                if (IsBinOpCode(m_nLastCom)) {
                     m_currentVal = m_lastVal;
                 }
 
-                if (!m_HistoryCollector.fOpndAddedToHistory())
-                {
+                if (!m_HistoryCollector.fOpndAddedToHistory()) {
                     m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal);
                 }
 
                 // Evaluate the precedence stack.
                 ResolveHighestPrecedenceOperation();
-                while (m_fPrecedence && m_precedenceOpCount > 0)
-                {
+                while (m_fPrecedence && m_precedenceOpCount > 0) {
                     m_precedenceOpCount--;
                     m_nOpCode = m_nPrecOp[m_precedenceOpCount];
                     m_lastVal = m_precedenceVals[m_precedenceOpCount];
@@ -900,8 +828,7 @@ public class CCalcEngine {
                     // Precedence Inversion check
                     int ni = NPrecedenceOfOp(m_nPrevOpCode);
                     int nx = NPrecedenceOfOp(m_nOpCode);
-                    if (ni <= nx)
-                    {
+                    if (ni <= nx) {
                         m_HistoryCollector.enclosePrecInversionBrackets();
                     }
                     m_HistoryCollector.popLastOpndStart();
@@ -911,8 +838,7 @@ public class CCalcEngine {
                     ResolveHighestPrecedenceOperation();
                 }
 
-                if (!m_bError)
-                {
+                if (!m_bError) {
                     String groupedString = GroupDigitsPerRadix(m_numberString, m_radix);
                     m_HistoryCollector.completeEquation(groupedString);
                 }
@@ -929,11 +855,9 @@ public class CCalcEngine {
                 // -OR- the paren holding array is empty and we try to remove a
                 //      paren
                 // -OR- the precedence holding array is full
-                if ((m_openParenCount >= MAXPRECDEPTH && (wParam == IDC_OPENP)) || (!m_openParenCount && (wParam != IDC_OPENP))
-                        || ((m_precedenceOpCount >= MAXPRECDEPTH && m_nPrecOp[m_precedenceOpCount - 1] != 0)))
-                {
-                    if (m_openParenCount == 0 && (wParam != IDC_OPENP))
-                    {
+                if ((m_openParenCount >= MAXPRECDEPTH && (wParam == IDC_OPENP)) || (m_openParenCount != 0 && (wParam != IDC_OPENP))
+                        || ((m_precedenceOpCount >= MAXPRECDEPTH && m_nPrecOp[m_precedenceOpCount - 1] != 0))) {
+                    if (m_openParenCount == 0 && (wParam != IDC_OPENP)) {
                         m_pCalcDisplay.onNoRightParenAdded();
                     }
 
@@ -941,11 +865,9 @@ public class CCalcEngine {
                     break;
                 }
 
-                if (wParam == IDC_OPENP)
-                {
+                if (wParam == IDC_OPENP) {
                     // if there's an omitted multiplication sign
-                    if (IsDigitOpCode(m_nLastCom) || IsUnaryOpCode(m_nLastCom) || m_nLastCom == IDC_PNT || m_nLastCom == IDC_CLOSEP)
-                    {
+                    if (IsDigitOpCode(m_nLastCom) || IsUnaryOpCode(m_nLastCom) || m_nLastCom == IDC_PNT || m_nLastCom == IDC_CLOSEP) {
                         ProcessCommand(IDC_MUL);
                     }
 
@@ -958,14 +880,12 @@ public class CCalcEngine {
                     m_nOp[m_openParenCount++] = (m_bChangeOp ? m_nOpCode : 0);
 
                     /* save a special marker on the precedence array */
-                    if (m_precedenceOpCount < m_nPrecOp.length)
-                    {
+                    if (m_precedenceOpCount < m_nPrecOp.length) {
                         m_nPrecOp[m_precedenceOpCount++] = 0;
                     }
 
                     m_lastVal = Rational.of(0);
-                    if (IsBinOpCode(m_nLastCom))
-                    {
+                    if (IsBinOpCode(m_nLastCom)) {
                         // We want 1 + ( to start as 1 + (0. Any number you type replaces 0. But if it is 1 + 3 (, it is
                         // treated as 1 + (3
                         m_currentVal = Rational.of(0);
@@ -973,17 +893,13 @@ public class CCalcEngine {
                     m_nTempCom = 0;
                     m_nOpCode = 0;
                     m_bChangeOp = false; // a ( is like starting a fresh sub equation
-                }
-                else
-                {
+                } else {
                     // Last thing keyed in was an operator. Lets do the op on a duplicate of the last entry.
-                    if (IsBinOpCode(m_nLastCom))
-                    {
+                    if (IsBinOpCode(m_nLastCom)) {
                         m_currentVal = m_lastVal;
                     }
 
-                    if (!m_HistoryCollector.fOpndAddedToHistory())
-                    {
+                    if (!m_HistoryCollector.fOpndAddedToHistory()) {
                         m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal);
                     }
 
@@ -992,13 +908,11 @@ public class CCalcEngine {
                     m_nPrevOpCode = m_nOpCode;
 
                     // Now process the precedence stack till we get to an opcode which is zero.
-                    for (m_nOpCode = m_nPrecOp[--m_precedenceOpCount]; m_nOpCode != 0; m_nOpCode = m_nPrecOp[--m_precedenceOpCount])
-                    {
+                    for (m_nOpCode = m_nPrecOp[--m_precedenceOpCount]; m_nOpCode != 0; m_nOpCode = m_nPrecOp[--m_precedenceOpCount]) {
                         // Precedence Inversion check
                         int ni = NPrecedenceOfOp(m_nPrevOpCode);
                         int nx = NPrecedenceOfOp(m_nOpCode);
-                        if (ni <= nx)
-                        {
+                        if (ni <= nx) {
                             m_HistoryCollector.enclosePrecInversionBrackets();
                         }
                         m_HistoryCollector.popLastOpndStart();
@@ -1022,13 +936,11 @@ public class CCalcEngine {
                 }
 
                 // Set the "(=xx" indicator.
-                if (null != m_pCalcDisplay)
-                {
+                if (null != m_pCalcDisplay) {
                     m_pCalcDisplay.setParenthesisNumber(m_openParenCount);
                 }
 
-                if (!m_bError)
-                {
+                if (!m_bError) {
                     DisplayNum();
                 }
 
@@ -1038,9 +950,8 @@ public class CCalcEngine {
             case IDM_HEX:
             case IDM_DEC:
             case IDM_OCT:
-            case IDM_BIN:
-            {
-                SetRadixTypeAndNumWidth((RadixType)(wParam - IDM_HEX), (NUM_WIDTH)(-1)); // TODO: cast -1 to enum; Add undef value to enum
+            case IDM_BIN: {
+                SetRadixTypeAndNumWidth(RadixType.fromCppValue(wParam - IDM_HEX), NUM_WIDTH.UNDEFINED); // TODO: cast -1 to enum; Add undef value to enum
                 m_HistoryCollector.updateHistoryExpression(m_radix, m_precision);
                 break;
             }
@@ -1049,45 +960,37 @@ public class CCalcEngine {
             case IDM_DWORD:
             case IDM_WORD:
             case IDM_BYTE:
-                if (m_bRecord)
-                {
+                if (m_bRecord) {
                     m_currentVal = m_input.toRational(m_radix, m_precision);
                     m_bRecord = false;
                 }
 
                 // Compat. mode BaseX: Qword, Dword, Word, Byte
-                SetRadixTypeAndNumWidth((RadixType)-1, (NUM_WIDTH)(wParam - IDM_QWORD));
+                SetRadixTypeAndNumWidth(RadixType.Unknown, NUM_WIDTH.fromInt(wParam - IDM_QWORD));
                 break;
 
             case IDM_DEG:
             case IDM_RAD:
             case IDM_GRAD:
-                m_angletype = (AngleType)(wParam - IDM_DEG);
+                m_angletype = AngleType.fromInt(wParam - IDM_DEG);
                 break;
 
-            case IDC_SIGN:
-            {
-                if (m_bRecord)
-                {
-                    if (m_input.tryToggleSign(m_fIntegerMode, GetMaxDecimalValueString()))
-                    {
+            case IDC_SIGN: {
+                if (m_bRecord) {
+                    if (m_input.tryToggleSign(m_fIntegerMode, GetMaxDecimalValueString())) {
                         DisplayNum();
-                    }
-                    else
-                    {
+                    } else {
                         HandleErrorCommand(wParam);
                     }
                     break;
                 }
 
                 // Doing +/- while in Record mode is not a unary operation
-                if (IsBinOpCode(m_nLastCom))
-                {
+                if (IsBinOpCode(m_nLastCom)) {
                     m_currentVal = m_lastVal;
                 }
 
-                if (!m_HistoryCollector.fOpndAddedToHistory())
-                {
+                if (!m_HistoryCollector.fOpndAddedToHistory()) {
                     m_HistoryCollector.addOpndToHistory(m_numberString, m_currentVal);
                 }
 
@@ -1099,13 +1002,10 @@ public class CCalcEngine {
             break;
 
             case IDC_RECALL:
-                if (m_bSetCalcState)
-                {
+                if (m_bSetCalcState) {
                     // Not a Memory recall. set the result
                     m_bSetCalcState = false;
-                }
-                else
-                {
+                } else {
                     // Recall immediate memory value.
                     m_currentVal = m_memoryValue;
                 }
@@ -1113,8 +1013,7 @@ public class CCalcEngine {
                 DisplayNum();
                 break;
 
-            case IDC_MPLUS:
-            {
+            case IDC_MPLUS: {
                 /* MPLUS adds m_currentVal to immediate memory and kills the "mem"   */
                 /* indicator if the result is zero.                           */
                 Rational result = m_memoryValue.plus(m_currentVal);
@@ -1122,8 +1021,7 @@ public class CCalcEngine {
 
                 break;
             }
-            case IDC_MMINUS:
-            {
+            case IDC_MMINUS: {
                 /* MMINUS subtracts m_currentVal to immediate memory and kills the "mem"   */
                 /* indicator if the result is zero.                           */
                 Rational result = m_memoryValue.minus(m_currentVal);
@@ -1136,10 +1034,9 @@ public class CCalcEngine {
                 m_memoryValue = (wParam == IDC_STORE ? TruncateNumForIntMath(m_currentVal) : Rational.of(0));
                 break;
             case IDC_PI:
-                if (!m_fIntegerMode)
-                {
+                if (!m_fIntegerMode) {
                     CheckAndAddLastBinOpToHistory(); // pi is like entering the number
-                    m_currentVal = Rational.fromCRational( (m_bInv ? two_pi : pi) );
+                    m_currentVal = Rational.fromCRational((m_bInv ? two_pi : pi));
 
                     DisplayNum();
                     m_bInv = false;
@@ -1148,22 +1045,18 @@ public class CCalcEngine {
                 HandleErrorCommand(wParam);
                 break;
             case IDC_RAND:
-                if (!m_fIntegerMode)
-                {
+                if (!m_fIntegerMode) {
                     CheckAndAddLastBinOpToHistory(); // rand is like entering the number
 
-                    // TODO Use BigDecimal with precission...
-                    wstringstream str;
-                    str << fixed << setprecision(m_precision) << GenerateRandomNumber();
+                    BigDecimal bd = new BigDecimal(GenerateRandomNumber())
+                            .round(new MathContext(m_precision))
+                            .stripTrailingZeros();
 
-                    RatPack.RAT rat = StringToRat(false, str.str(), false, "", m_radix, m_precision);
-                    if (rat != nullptr)
-                    {
-                        m_currentVal = Rational.fromCRational( rat );
-                    }
-                    else
-                    {
-                        m_currentVal = Rational.of( 0 );
+                    RatPack.RAT rat = StringToRat(false, bd.toPlainString(), false, "", m_radix, m_precision);
+                    if (rat != null) {
+                        m_currentVal = Rational.fromCRational(rat);
+                    } else {
+                        m_currentVal = Rational.of(0);
                     }
 
                     DisplayNum();
@@ -1173,8 +1066,7 @@ public class CCalcEngine {
                 HandleErrorCommand(wParam);
                 break;
             case IDC_EULER:
-                if (!m_fIntegerMode)
-                {
+                if (!m_fIntegerMode) {
                     CheckAndAddLastBinOpToHistory(); // e is like entering the number
                     m_currentVal = Rational.fromCRational(rat_exp);
 
@@ -1191,8 +1083,7 @@ public class CCalcEngine {
                 break;
 
             case IDC_EXP:
-                if (m_bRecord && !m_fIntegerMode && m_input.tryBeginExponent())
-                {
+                if (m_bRecord && !m_fIntegerMode && m_input.tryBeginExponent()) {
                     DisplayNum();
                     break;
                 }
@@ -1200,8 +1091,7 @@ public class CCalcEngine {
                 break;
 
             case IDC_PNT:
-                if (m_bRecord && !m_fIntegerMode && m_input.tryAddDecimalPt())
-                {
+                if (m_bRecord && !m_fIntegerMode && m_input.tryAddDecimalPt()) {
                     DisplayNum();
                     break;
                 }
@@ -1215,20 +1105,15 @@ public class CCalcEngine {
     }
 
     // Helper function to resolve one item on the precedence stack.
-    void ResolveHighestPrecedenceOperation()
-    {
+    void ResolveHighestPrecedenceOperation() {
         // Is there a valid operation around?
-        if (m_nOpCode != 0)
-        {
+        if (m_nOpCode != 0) {
             // If this is the first EQU in a string, set m_holdVal=m_currentVal
             // Otherwise let m_currentVal=m_holdVal.  This keeps m_currentVal constant
             // through all EQUs in a row.
-            if (m_bNoPrevEqu)
-            {
+            if (m_bNoPrevEqu) {
                 m_holdVal = m_currentVal;
-            }
-            else
-            {
+            } else {
                 m_currentVal = m_holdVal;
                 DisplayNum(); // to update the m_numberString
                 m_HistoryCollector.addBinOpToHistory(m_nOpCode, m_fIntegerMode, false);
@@ -1242,16 +1127,13 @@ public class CCalcEngine {
 
             // Check for errors.  If this wasn't done, DisplayNum
             // would immediately overwrite any error message.
-            if (!m_bError)
-            {
+            if (!m_bError) {
                 DisplayNum();
             }
 
             // No longer the first EQU.
             m_bNoPrevEqu = false;
-        }
-        else if (!m_bError)
-        {
+        } else if (!m_bError) {
             DisplayNum();
         }
     }
@@ -1264,35 +1146,30 @@ public class CCalcEngine {
     // effectively removing only it from the equation but still keeping the previous portion of the equation. Eg. 1 + 4 sqrt 5. The last
     // 5 will remove sqrt(4) as it is not used anymore to participate in 1 + 5
     // If you are messing with this, test cases like this CE, statistical functions, ( & MR buttons
-    void CheckAndAddLastBinOpToHistory(boolean addToHistory)
-    {
-        if (m_bChangeOp)
-        {
-            if (m_HistoryCollector.fOpndAddedToHistory())
-            {
+    void CheckAndAddLastBinOpToHistory() {
+        CheckAndAddLastBinOpToHistory(true);
+    }
+
+    void CheckAndAddLastBinOpToHistory(boolean addToHistory) {
+        if (m_bChangeOp) {
+            if (m_HistoryCollector.fOpndAddedToHistory()) {
                 // if last time opnd was added but the last command was not a binary operator, then it must have come
                 // from commands which add the operand, like unary operator. So history at this is showing 1 + sqrt(4)
                 // but in reality the sqrt(4) is getting replaced by new number (may be unary op, or MR or SUM etc.)
                 // So erase the last operand
                 m_HistoryCollector.removeLastOpndFromHistory();
             }
-        }
-        else if (m_HistoryCollector.fOpndAddedToHistory() && !m_bError)
-        {
+        } else if (m_HistoryCollector.fOpndAddedToHistory() && !m_bError) {
             // Corner case, where opnd is already in history but still a new opnd starting (1 + 4 sqrt 5). This is yet another
             // special casing of previous case under if (m_bChangeOp), but this time we can do better than just removing it
             // Let us make a current value =. So in case of 4 SQRT (or a equation under braces) and then a new equation is started, we can just form
             // a useful equation of sqrt(4) = 2 and continue a new equation from now on. But no point in doing this for things like
             // MR, SUM etc. All you will get is 5 = 5 kind of no useful equation.
-            if ((IsUnaryOpCode(m_nLastCom) || IDC_SIGN == m_nLastCom || IDC_CLOSEP == m_nLastCom) && 0 == m_openParenCount)
-            {
-                if (addToHistory)
-                {
+            if ((IsUnaryOpCode(m_nLastCom) || IDC_SIGN == m_nLastCom || IDC_CLOSEP == m_nLastCom) && 0 == m_openParenCount) {
+                if (addToHistory) {
                     m_HistoryCollector.completeHistoryLine(GroupDigitsPerRadix(m_numberString, m_radix));
                 }
-            }
-            else
-            {
+            } else {
                 m_HistoryCollector.removeLastOpndFromHistory();
             }
         }
@@ -1300,86 +1177,71 @@ public class CCalcEngine {
 
     // change the display area from a static text to an editbox, which has the focus can make
     // Magnifier (Accessibility tool) work
-    void SetPrimaryDisplay(String szText, boolean isError)
-    {
-        if (m_pCalcDisplay != null)
-        {
+    void SetPrimaryDisplay(String szText) {
+        SetPrimaryDisplay(szText, false);
+    }
+
+    void SetPrimaryDisplay(String szText, boolean isError) {
+        if (m_pCalcDisplay != null) {
             m_pCalcDisplay.setPrimaryDisplay(szText, isError);
             m_pCalcDisplay.setIsInError(isError);
         }
     }
 
-    void DisplayAnnounceBinaryOperator()
-    {
+    void DisplayAnnounceBinaryOperator() {
         // If m_pCalcDisplay is null, this is not a high priority function
         // and should not be the reason we crash.
-        if (m_pCalcDisplay != null)
-        {
+        if (m_pCalcDisplay != null) {
             m_pCalcDisplay.binaryOperatorReceived();
         }
     }
 
-    boolean IsCurrentTooBigForTrig()
-    {
-        return m_currentVal.isGreaterOrEqual( m_maxTrigonometricNum );
+    boolean IsCurrentTooBigForTrig() {
+        return m_currentVal.isGreaterOrEqual(m_maxTrigonometricNum);
     }
 
-    uint GetCurrentRadix()
-    {
+    uint GetCurrentRadix() {
         return m_radix;
     }
 
-    String GetCurrentResultForRadix(uint radix, int precision, boolean groupDigitsPerRadix)
-    {
+    String GetCurrentResultForRadix(uint radix, int precision, boolean groupDigitsPerRadix) {
         Rational rat = (m_bRecord ? m_input.toRational(m_radix, m_precision) : m_currentVal);
 
         ChangeConstants(m_radix, precision);
 
         String numberString = GetStringForDisplay(rat, radix);
-        if (!numberString.isEmpty())
-        {
+        if (!numberString.isEmpty()) {
             // Revert the precision to previously stored precision
             ChangeConstants(m_radix, m_precision);
         }
 
-        if (groupDigitsPerRadix)
-        {
+        if (groupDigitsPerRadix) {
             return GroupDigitsPerRadix(numberString, radix);
-        }
-        else
-        {
+        } else {
             return numberString;
         }
     }
 
-    String GetStringForDisplay(Rational rat, uint radix)
-    {
+    String GetStringForDisplay(Rational rat, uint radix) {
         String result = "";
         // Check for standard\scientific mode
-        if (!m_fIntegerMode)
-        {
+        if (!m_fIntegerMode) {
             result = rat.toString(radix, m_nFE, m_precision);
-        }
-        else
-        {
+        } else {
             // Programmer mode
             // Find most significant bit to determine if number is negative
             var tempRat = TruncateNumForIntMath(rat);
 
-            try
-            {
-                uint64_t w64Bits = tempRat.ToUInt64_t();
-                boolean fMsb = ((w64Bits >> (m_dwWordBitWidth - 1)) & 1);
-                if ((radix.toInt() == 10) && fMsb)
-                {
+            try {
+                ulong w64Bits = tempRat.toULong();
+                boolean fMsb = ((w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE)).toBool();
+                if ((radix.toInt() == 10) && fMsb) {
                     // If high bit is set, then get the decimal number in negative 2's complement form.
-                    tempRat = -((tempRat ^ GetChopNumber()) + 1);
+                    tempRat = ((tempRat.bitXor(GetChopNumber())).plus(Rational.of(1))).negated();
                 }
 
-                result = tempRat.ToString(radix, m_nFE, m_precision);
-            }
-            catch (ErrorCodeException e)
-            {
+                result = tempRat.toString(radix, m_nFE, m_precision);
+            } catch (ErrorCodeException e) {
                 e.printStackTrace();
             }
         }
@@ -1387,8 +1249,7 @@ public class CCalcEngine {
         return result;
     }
 
-    double GenerateRandomNumber()
-    {
+    double GenerateRandomNumber() {
         return m_randomGeneratorEngine.nextDouble();
     }
 
@@ -1408,7 +1269,7 @@ public class CCalcEngine {
     //
     // State of calc last time DisplayNum was called
     //
-    class LASTDISP {
+    static class LASTDISP {
         Rational value;
         int precision;
         uint radix;
@@ -1419,14 +1280,14 @@ public class CCalcEngine {
         boolean bUseSep;
 
         public LASTDISP(
-            Rational value,
-            int precision,
-            uint radix,
-            int nFE,
-            NUM_WIDTH numwidth,
-            boolean fIntMath,
-            boolean bRecord,
-            boolean bUseSep
+                Rational value,
+                int precision,
+                uint radix,
+                int nFE,
+                NUM_WIDTH numwidth,
+                boolean fIntMath,
+                boolean bRecord,
+                boolean bUseSep
         ) {
 
             this.value = value;
@@ -1440,13 +1301,11 @@ public class CCalcEngine {
         }
     }
 
-    static LASTDISP gldPrevious = new LASTDISP( 0, -1, 0, -1, (NUM_WIDTH)(-1), false, false, false );
+    static LASTDISP gldPrevious = new LASTDISP(Rational.of(0), -1, uint.ZERO, -1, NUM_WIDTH.UNDEFINED, false, false, false);
 
     // Truncates if too big, makes it a non negative - the number in rat. Doesn't do anything if not in INT mode
-    Rational TruncateNumForIntMath(Rational rat)
-    {
-        if (!m_fIntegerMode)
-        {
+    Rational TruncateNumForIntMath(Rational rat) {
+        if (!m_fIntegerMode) {
             return rat;
         }
 
@@ -1455,20 +1314,18 @@ public class CCalcEngine {
 
         // Can be converting a dec negative number to Hex/Oct/Bin rep. Use 2's complement form
         // Check the range.
-        if (result.isLessThan(Rational.of(0)))
-        {
+        if (result.isLessThan(Rational.of(0))) {
             // if negative make positive by doing a twos complement
             result = result.negated().minus(Rational.of(1));
             result = result.bitXor(GetChopNumber());
         }
 
-        result = result.bitAnd( GetChopNumber() );
+        result = result.bitAnd(GetChopNumber());
 
         return result;
     }
 
-    void DisplayNum()
-    {
+    void DisplayNum() {
         //
         // Only change the display if
         //  we are in record mode                               -OR-
@@ -1477,27 +1334,22 @@ public class CCalcEngine {
         //  called.
         //
         if (m_bRecord || gldPrevious.value != m_currentVal || gldPrevious.precision != m_precision || gldPrevious.radix != m_radix || gldPrevious.nFE != m_nFE.ordinal()
-                || !gldPrevious.bUseSep || gldPrevious.numwidth != m_numwidth || gldPrevious.fIntMath != m_fIntegerMode || gldPrevious.bRecord != m_bRecord)
-        {
+                || !gldPrevious.bUseSep || gldPrevious.numwidth != m_numwidth || gldPrevious.fIntMath != m_fIntegerMode || gldPrevious.bRecord != m_bRecord) {
             gldPrevious.precision = m_precision;
             gldPrevious.radix = m_radix;
-            gldPrevious.nFE = (int)m_nFE.ordinal(); // TODO: Ordinal vs C++
+            gldPrevious.nFE = (int) m_nFE.ordinal(); // TODO: Ordinal vs C++
             gldPrevious.numwidth = m_numwidth;
 
             gldPrevious.fIntMath = m_fIntegerMode;
             gldPrevious.bRecord = m_bRecord;
             gldPrevious.bUseSep = true;
 
-            if (m_bRecord)
-            {
+            if (m_bRecord) {
                 // Display the string and return.
                 m_numberString = m_input.toString(m_radix);
-            }
-            else
-            {
+            } else {
                 // If we're in Programmer mode, perform integer truncation so e.g. 5 / 2 * 2 results in 4, not 5.
-                if (m_fIntegerMode)
-                {
+                if (m_fIntegerMode) {
                     m_currentVal = TruncateNumForIntMath(m_currentVal);
                 }
                 m_numberString = GetStringForDisplay(m_currentVal, m_radix);
@@ -1506,24 +1358,19 @@ public class CCalcEngine {
             // Displayed number can go through transformation. So copy it after transformation
             gldPrevious.value = m_currentVal;
 
-            if ((m_radix.toInt() == 10) && IsNumberInvalid(m_numberString, MAX_EXPONENT, m_precision, m_radix) != 0)
-            {
+            if ((m_radix.toInt() == 10) && IsNumberInvalid(m_numberString, MAX_EXPONENT, m_precision, m_radix) != 0) {
                 DisplayError(CALC_E_OVERFLOW);
-            }
-            else
-            {
+            } else {
                 // Display the string and return.
                 SetPrimaryDisplay(GroupDigitsPerRadix(m_numberString, m_radix));
             }
         }
     }
 
-    int IsNumberInvalid(String numberString, int iMaxExp, int iMaxMantissa, uint radix)
-    {
+    int IsNumberInvalid(String numberString, int iMaxExp, int iMaxMantissa, uint radix) {
         int iError = 0;
 
-        if (radix.toInt() == 10)
-        {
+        if (radix.toInt() == 10) {
             // start with an optional + or -
             // followed by zero or more digits
             // followed by an optional decimal point
@@ -1532,50 +1379,37 @@ public class CCalcEngine {
             // in case there's an exponent:
             //      its optionally followed by a + or -
             //      which is followed by zero or more digits
-            wregex rx(wstring{ c_decPreSepStr } + m_decimalSeparator + wstring{ c_decPostSepStr });
-            wsmatch matches;
-            if (regex_match(numberString, matches, rx))
-            {
+            // TODO: Make static
+            Pattern rx = Pattern.compile(c_decPreSepStr + m_decimalSeparator + c_decPostSepStr);
+            var matches = rx.matcher(numberString);
+            if (matches.find()) {
                 // Check that exponent isn't too long
-                if (matches.length(3) > iMaxExp)
-                {
+                if (matches.group(3).length() > iMaxExp) {
                     iError = IDS_ERR_INPUT_OVERFLOW;
-                }
-                else
-                {
-                    wstring exp = matches.str(1);
-                    auto intItr = exp.begin();
-                    auto intEnd = exp.end();
-                    while (intItr != intEnd && *intItr == L'0')
-                    {
-                        intItr++;
+                } else {
+                    String intMantissa = matches.group(1);
+                    int zeros = 0;
+                    while (zeros < intMantissa.length()) {
+                        if (intMantissa.charAt(zeros) != '0')
+                            break;
+                        zeros++;
                     }
 
-                    auto iMantissa = distance(intItr, intEnd) + matches.length(2);
-                    if (iMantissa > iMaxMantissa)
-                    {
+                    var iMantissa = (intMantissa.length() - zeros) + matches.group(2).length();
+                    if (iMantissa > iMaxMantissa) {
                         iError = IDS_ERR_INPUT_OVERFLOW;
                     }
                 }
-            }
-            else
-            {
+            } else {
                 iError = IDS_ERR_UNK_CH;
             }
-        }
-        else
-        {
-            for (char c : numberString.toCharArray())
-            {
-                if (radix.toInt() == 16)
-                {
-                    if (!(Character.isDigit(c) || (c >= 'A' && c <= 'F')))
-                    {
+        } else {
+            for (char c : numberString.toCharArray()) {
+                if (radix.toInt() == 16) {
+                    if (!(Character.isDigit(c) || (c >= 'A' && c <= 'F'))) {
                         iError = IDS_ERR_UNK_CH;
                     }
-                }
-                else if (c < '0' || c >= '0' + radix.toInt())
-                {
+                } else if (c < '0' || c >= '0' + radix.toInt()) {
                     iError = IDS_ERR_UNK_CH;
                 }
             }
@@ -1605,23 +1439,20 @@ public class CCalcEngine {
      * Returns: the groupings as a vector
      *
      \****************************************************************************/
-    List<Integer> DigitGroupingStringToGroupingVector(String groupingString)
-    {
+    List<Integer> DigitGroupingStringToGroupingVector(String groupingString) {
         List<Integer> grouping = new ArrayList<>();
 
         int currentGroup = 0;
-        for (int itr = 0; itr < groupingString.length(); ++itr)
-        {
+        for (int itr = 0; itr < groupingString.length(); ++itr) {
             // Try to parse a grouping number from the string
             currentGroup = 0;
             while (itr < groupingString.length() && Character.isDigit(groupingString.charAt(itr))) {
-                currentGroup = currentGroup*10 + (groupingString.charAt(itr) - '0');
+                currentGroup = currentGroup * 10 + (groupingString.charAt(itr) - '0');
                 itr++;
             }
 
             // If we successfully parsed a group, add it to the grouping.
-            if (currentGroup < MAX_GROUPING_SIZE)
-            {
+            if (currentGroup < MAX_GROUPING_SIZE) {
                 grouping.add(currentGroup);
             }
 
@@ -1633,22 +1464,19 @@ public class CCalcEngine {
         return grouping;
     }
 
-    String GroupDigitsPerRadix(String numberString, uint radix)
-    {
-        if (numberString.isEmpty())
-        {
+    String GroupDigitsPerRadix(String numberString, uint radix) {
+        if (numberString.isEmpty()) {
             return "";
         }
 
-        switch (radix.toInt())
-        {
+        switch (radix.toInt()) {
             case 10:
                 return GroupDigits(Character.toString(m_groupSeparator), m_decGrouping, numberString, ('-' == numberString.charAt(0)));
             case 8:
-                return GroupDigits(" ", new int[] { 3, 0 }, numberString);
+                return GroupDigits(" ", List.of(3, 0), numberString);
             case 2:
             case 16:
-                return GroupDigits(" ", new int[] { 4, 0 }, numberString);
+                return GroupDigits(" ", List.of(4, 0), numberString);
             default:
                 return numberString;
         }
@@ -1673,11 +1501,13 @@ public class CCalcEngine {
      *   5,3,2    - group 5, then 3, then 2, then no grouping after
      *
      \***************************************************************************/
-    String GroupDigits(String delimiter, List<Integer> grouping, String displayString, boolean isNumNegative)
-    {
+    String GroupDigits(String delimiter, List<Integer> grouping, String displayString) {
+        return GroupDigits(delimiter, grouping, displayString, false);
+    }
+
+    String GroupDigits(String delimiter, List<Integer> grouping, String displayString, boolean isNumNegative) {
         // if there's nothing to do, bail
-        if (delimiter.isEmpty() || grouping.isEmpty())
-        {
+        if (delimiter.isEmpty() || grouping.isEmpty()) {
             return displayString;
         }
 
@@ -1691,16 +1521,11 @@ public class CCalcEngine {
 
         // Create an iterator that points to the end of the portion of the number subject to grouping (i.e. left of the decimal)
         var ritr = displayString.length();
-        if (hasDecimal)
-        {
+        if (hasDecimal) {
             ritr -= dec;
-        }
-        else if (hasExponent)
-        {
+        } else if (hasExponent) {
             ritr -= exp;
-        }
-        else
-        {
+        } else {
             ritr = 0;
         }
 
@@ -1713,23 +1538,20 @@ public class CCalcEngine {
         // We exclude the sign here because we don't want to end up with e.g. "-,123,456"
         // Then, iterate from back to front, adding group delimiters as needed.
         var reverse_end = displayString.length() - (isNumNegative ? 1 : 0); // displayString
-        while (ritr != reverse_end)
-        {
-            result.append( displayString.charAt(ritr++) );
+        while (ritr != reverse_end) {
+            result.append(displayString.charAt(ritr++));
             groupingSize++;
 
             // If a group is complete, add a separator
             // Do not add a separator if:
             // - grouping size is 0
             // - we are at the end of the digit string
-            if (currGrouping != 0 && (groupingSize % currGrouping) == 0 && ritr != reverse_end)
-            {
-                result.append( delimiter );
+            if (currGrouping != 0 && (groupingSize % currGrouping) == 0 && ritr != reverse_end) {
+                result.append(delimiter);
                 groupingSize = 0; // reset for a new group
 
                 // Shift the grouping to next values if they exist
-                if (groupItr != grouping.size())
-                {
+                if (groupItr != grouping.size()) {
                     ++groupItr;
 
                     // Loop through grouping vector until we find a non-zero value.
@@ -1737,11 +1559,9 @@ public class CCalcEngine {
                     // A 0 in the last position means repeat the previous grouping.
                     // A 0 in another position is a group. So, "3;0;0" means "group 3, then group 0 repeatedly"
                     // This could be expressed as just "3" but GetLocaleInfo is returning 3;0;0 in some cases instead.
-                    for (currGrouping = 0; groupItr != grouping.size(); ++groupItr)
-                    {
+                    for (currGrouping = 0; groupItr != grouping.size(); ++groupItr) {
                         // If it's a non-zero value, that's our new group
-                        if (grouping.get(groupItr) != 0)
-                        {
+                        if (grouping.get(groupItr) != 0) {
                             currGrouping = grouping.get(groupItr);
                             break;
                         }
@@ -1754,20 +1574,16 @@ public class CCalcEngine {
         }
 
         // now copy the negative sign if it is there
-        if (isNumNegative)
-        {
-            result.append( displayString.charAt(0) );
+        if (isNumNegative) {
+            result.append(displayString.charAt(0));
         }
 
         result.reverse();
         // Add the right (fractional or exponential) part of the number to the final string.
-        if (hasDecimal)
-        {
-            result.append( displayString.substring(dec) ); // substr
-        }
-        else if (hasExponent)
-        {
-            result.append( displayString.substring(exp) ); // substr
+        if (hasDecimal) {
+            result.append(displayString.substring(dec)); // substr
+        } else if (hasExponent) {
+            result.append(displayString.substring(exp)); // substr
         }
 
         return result.toString();
@@ -1775,45 +1591,35 @@ public class CCalcEngine {
 
 
     /* Routines for more complex mathematical functions/error checking. */
-    Rational SciCalcFunctions(Rational rat, int op)
-    {
+    Rational SciCalcFunctions(Rational rat, int op) {
         Rational result = Rational.of(0);
-        try
-        {
-            switch (op)
-            {
+        try {
+            switch (op) {
                 case IDC_CHOP:
                     result = m_bInv ? RationalMath.frac(rat) : RationalMath.integer(rat);
                     break;
 
                 /* Return complement. */
                 case IDC_COM:
-                    if (m_radix.toInt() == 10 && !m_fIntegerMode)
-                    {
+                    if (m_radix.toInt() == 10 && !m_fIntegerMode) {
                         result = (RationalMath.integer(rat).plus(Rational.of(1))).negated();
-                    }
-                    else
-                    {
+                    } else {
                         result = rat.bitXor(GetChopNumber());
                     }
                     break;
 
                 case IDC_ROL:
                 case IDC_ROLC:
-                    if (m_fIntegerMode)
-                    {
+                    if (m_fIntegerMode) {
                         result = RationalMath.integer(rat);
 
                         ulong w64Bits = result.toULong();
                         ulong msb = (w64Bits.shiftRight((m_dwWordBitWidth - 1))).bitAnd(ulong.ONE);
                         w64Bits = w64Bits.shiftLeft(1); // LShift by 1
 
-                        if (op == IDC_ROL)
-                        {
-                            w64Bits = w64Bits.bitOr( msb ); // Set the prev Msb as the current Lsb
-                        }
-                        else
-                        {
+                        if (op == IDC_ROL) {
+                            w64Bits = w64Bits.bitOr(msb); // Set the prev Msb as the current Lsb
+                        } else {
                             w64Bits = w64Bits.bitOr(ulong.of(m_carryBit)); // Set the carry bit as the LSB
                             m_carryBit = msb.raw();      // Store the msb as the next carry bit
                         }
@@ -1824,129 +1630,109 @@ public class CCalcEngine {
 
                 case IDC_ROR:
                 case IDC_RORC:
-                    if (m_fIntegerMode)
-                    {
+                    if (m_fIntegerMode) {
                         result = RationalMath.integer(rat);
 
-                        uint64_t w64Bits = result.ToUInt64_t();
-                        uint64_t lsb = ((w64Bits & 0x01) == 1) ? 1 : 0;
-                        w64Bits >>= 1; // RShift by 1
+                        ulong w64Bits = result.toULong();
+                        ulong lsb = ulong.of(((w64Bits.bitAnd(ulong.ONE)).toBool()) ? 1 : 0);
+                        w64Bits = w64Bits.shiftRight(1); // RShift by 1
 
-                        if (op == IDC_ROR)
-                        {
-                            w64Bits |= (lsb << (m_dwWordBitWidth - 1));
-                        }
-                        else
-                        {
-                            w64Bits |= (m_carryBit << (m_dwWordBitWidth - 1));
-                            m_carryBit = lsb;
+                        if (op == IDC_ROR) {
+                            w64Bits = w64Bits.bitOr(lsb.shiftLeft(m_dwWordBitWidth - 1));
+                        } else {
+                            w64Bits = w64Bits.bitOr(ulong.of(m_carryBit).shiftLeft(m_dwWordBitWidth - 1));
+                            m_carryBit = lsb.raw();
                         }
 
-                        result = w64Bits;
+                        result = new Rational(w64Bits);
                     }
                     break;
 
-                case IDC_PERCENT:
-                {
+                case IDC_PERCENT: {
                     // If the operator is multiply/divide, we evaluate this as "X [op] (Y%)"
                     // Otherwise, we evaluate it as "X [op] (X * Y%)"
-                    if (m_nOpCode == IDC_MUL || m_nOpCode == IDC_DIV)
-                    {
-                        result = rat / 100;
-                    }
-                    else
-                    {
-                        result = rat * (m_lastVal / 100);
+                    if (m_nOpCode == IDC_MUL || m_nOpCode == IDC_DIV) {
+                        result = rat.dividedBy(Rational.of(100));
+                    } else {
+                        result = rat.times(m_lastVal.dividedBy(Rational.of(100)));
                     }
                     break;
                 }
 
                 case IDC_SIN: /* Sine; normal and arc */
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.asin(rat, m_angletype) : RationalMath.sin(rat, m_angletype);
                     }
                     break;
 
                 case IDC_SINH: /* Sine- hyperbolic and archyperbolic */
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.asinh(rat) : RationalMath.sinh(rat);
                     }
                     break;
 
                 case IDC_COS: /* Cosine, follows convention of sine function. */
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.acos(rat, m_angletype) : RationalMath.cos(rat, m_angletype);
                     }
                     break;
 
                 case IDC_COSH: /* Cosine hyperbolic, follows convention of sine h function. */
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.acosh(rat) : RationalMath.cosh(rat);
                     }
                     break;
 
                 case IDC_TAN: /* Same as sine and cosine. */
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.atan(rat, m_angletype) : RationalMath.tan(rat, m_angletype);
                     }
                     break;
 
                 case IDC_TANH: /* Same as sine h and cosine h. */
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.atanh(rat) : RationalMath.tanh(rat);
                     }
                     break;
 
                 case IDC_SEC:
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.acos(RationalMath.invert(rat), m_angletype) : RationalMath.invert(RationalMath.cos(rat, m_angletype));
                     }
                     break;
 
                 case IDC_CSC:
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.asin(RationalMath.invert(rat), m_angletype) : RationalMath.invert(RationalMath.sin(rat, m_angletype));
                     }
                     break;
 
                 case IDC_COT:
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.atan(RationalMath.invert(rat), m_angletype) : RationalMath.invert(RationalMath.tan(rat, m_angletype));
                     }
                     break;
 
                 case IDC_SECH:
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.acosh(RationalMath.invert(rat)) : RationalMath.invert(RationalMath.cosh(rat));
                     }
                     break;
 
                 case IDC_CSCH:
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.asinh(RationalMath.invert(rat)) : RationalMath.invert(RationalMath.sinh(rat));
                     }
                     break;
 
                 case IDC_COTH:
-                    if (!m_fIntegerMode)
-                    {
+                    if (!m_fIntegerMode) {
                         result = m_bInv ? RationalMath.atanh(RationalMath.invert(rat)) : RationalMath.invert(RationalMath.tanh(rat));
                     }
                     break;
 
                 case IDC_REC: /* Reciprocal. */
-                    result = RationalMath.tnvert(rat);
+                    result = RationalMath.invert(rat);
                     break;
 
                 case IDC_SQR: /* Square */
@@ -1989,21 +1775,19 @@ public class CCalcEngine {
                     // so setting the IDC_INV command first and then performing 'dms' operation as global variables m_bInv, m_bRecord
                     // are set properly through ProcessCommand(IDC_INV)
                     // [[fallthrough]];
-                case IDC_DMS:
-                {
-                    if (!m_fIntegerMode)
-                    {
-                        var shftRat = Rational.of( m_bInv ? 100 : 60 );
+                case IDC_DMS: {
+                    if (!m_fIntegerMode) {
+                        var shftRat = Rational.of(m_bInv ? 100 : 60);
 
                         Rational degreeRat = RationalMath.integer(rat);
 
-                        Rational minuteRat = (rat.minus(degreeRat)).times( shftRat );
+                        Rational minuteRat = (rat.minus(degreeRat)).times(shftRat);
 
                         Rational secondRat = minuteRat;
 
                         minuteRat = RationalMath.integer(minuteRat);
 
-                        secondRat = (secondRat.minus(minuteRat)).times( shftRat );
+                        secondRat = (secondRat.minus(minuteRat)).times(shftRat);
 
                         //
                         // degreeRat == degrees, minuteRat == minutes, secondRat == seconds
@@ -2035,9 +1819,7 @@ public class CCalcEngine {
                     break;
 
             } // end switch( op )
-        }
-        catch (ErrorCodeException nErrCode)
-        {
+        } catch (ErrorCodeException nErrCode) {
             DisplayError(nErrCode.errorCode());
             result = rat;
         }
@@ -2048,8 +1830,7 @@ public class CCalcEngine {
     /* Routine to display error messages and set m_bError flag.  Errors are */
     /* called with DisplayError (n), where n is a uint32_t   between 0 and 5. */
 
-    void DisplayError(int nError)
-    {
+    void DisplayError(int nError) {
         String errorString = GetString(IDS_ERRORS_FIRST + SCODE_CODE(nError));
 
         SetPrimaryDisplay(errorString, true /*isError*/);
@@ -2061,15 +1842,12 @@ public class CCalcEngine {
 
 
     // Routines to perform standard operations &|^~<<>>+-/*% and pwr.
-    Rational DoOperation(int operation, Rational lhs, Rational rhs)
-    {
+    Rational DoOperation(int operation, Rational lhs, Rational rhs) {
         // Remove any variance in how 0 could be represented in rat e.g. -0, 0/n, etc.
         var result = (lhs.isNotEqual(Rational.of(0)) ? lhs : Rational.of(0));
 
-        try
-        {
-            switch (operation)
-            {
+        try {
+            switch (operation) {
                 case IDC_AND:
                     result = result.bitAnd(rhs);
                     break;
@@ -2090,8 +1868,7 @@ public class CCalcEngine {
                     result = (result.bitOr(rhs)).bitXor(GetChopNumber());
                     break;
 
-                case IDC_RSHF:
-                {
+                case IDC_RSHF: {
                     if (m_fIntegerMode && result.isGreaterOrEqual(Rational.of(m_dwWordBitWidth))) // Lsh/Rsh >= than current word size is always 0
                     {
                         throw new ErrorCodeException(CALC_E_NORESULT);
@@ -2103,19 +1880,17 @@ public class CCalcEngine {
                     Rational holdVal = result;
                     result = rhs.shiftedRight(holdVal);
 
-                    if (fMsb)
-                    {
+                    if (fMsb) {
                         result = RationalMath.integer(result);
 
                         var tempRat = GetChopNumber().shiftedRight(holdVal);
                         tempRat = RationalMath.integer(tempRat);
 
-                        result = result.bitOr( tempRat.bitXor(GetChopNumber()) );
+                        result = result.bitOr(tempRat.bitXor(GetChopNumber()));
                     }
                     break;
                 }
-                case IDC_RSHFL:
-                {
+                case IDC_RSHFL: {
                     if (m_fIntegerMode && result.isGreaterOrEqual(Rational.of(m_dwWordBitWidth))) // Lsh/Rsh >= than current word size is always 0
                     {
                         throw new ErrorCodeException(CALC_E_NORESULT);
@@ -2146,19 +1921,16 @@ public class CCalcEngine {
                     break;
 
                 case IDC_DIV:
-                case IDC_MOD:
-                {
+                case IDC_MOD: {
                     int iNumeratorSign = 1, iDenominatorSign = 1;
                     var temp = result;
                     result = rhs;
 
-                    if (m_fIntegerMode)
-                    {
+                    if (m_fIntegerMode) {
                         ulong w64Bits = rhs.toULong();
                         boolean fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool();
 
-                        if (fMsb)
-                        {
+                        if (fMsb) {
                             result = (rhs.bitXor(GetChopNumber())).plus(Rational.of(1));
 
                             iNumeratorSign = -1;
@@ -2167,36 +1939,27 @@ public class CCalcEngine {
                         w64Bits = temp.toULong();
                         fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool();
 
-                        if (fMsb)
-                        {
+                        if (fMsb) {
                             temp = (temp.bitXor(GetChopNumber())).plus(Rational.of(1));
 
                             iDenominatorSign = -1;
                         }
                     }
 
-                    if (operation == IDC_DIV)
-                    {
-                        result = result.dividedBy( temp );
-                        if (m_fIntegerMode && (iNumeratorSign * iDenominatorSign) == -1)
-                        {
+                    if (operation == IDC_DIV) {
+                        result = result.dividedBy(temp);
+                        if (m_fIntegerMode && (iNumeratorSign * iDenominatorSign) == -1) {
                             result = (RationalMath.integer(result)).negated();
                         }
-                    }
-                    else
-                    {
-                        if (m_fIntegerMode)
-                        {
+                    } else {
+                        if (m_fIntegerMode) {
                             // Programmer mode, use remrat (remainder after division)
                             result = result.modulo(temp);
 
-                            if (iNumeratorSign == -1)
-                            {
+                            if (iNumeratorSign == -1) {
                                 result = (RationalMath.integer(result)).negated();
                             }
-                        }
-                        else
-                        {
+                        } else {
                             // other modes, use modrat (modulus after division)
                             result = RationalMath.mod(result, temp);
                         }
@@ -2213,12 +1976,10 @@ public class CCalcEngine {
                     break;
 
                 case IDC_LOGBASEY:
-                    result = (RationalMath.ln(rhs).dividedBy( RationalMath.ln(result)) );
+                    result = (RationalMath.ln(rhs).dividedBy(RationalMath.ln(result)));
                     break;
             }
-        }
-        catch (ErrorCodeException dwErrCode)
-        {
+        } catch (ErrorCodeException dwErrCode) {
             DisplayError(dwErrCode.errorCode());
 
             // On error, return the original value
@@ -2229,39 +1990,33 @@ public class CCalcEngine {
     }
 
 
-
     // To be called when either the radix or num width changes. You can use -1 in either of these values to mean
     // dont change that.
-    void SetRadixTypeAndNumWidth(RadixType radixtype, NUM_WIDTH numwidth)
-    {
+    void SetRadixTypeAndNumWidth(RadixType radixtype, NUM_WIDTH numwidth) {
         // When in integer mode, the number is represented in 2's complement form. When a bit width is changing, we can
         // change the number representation back to sign, abs num form in ratpak. Soon when display sees this, it will
         // convert to 2's complement form, but this time all high bits will be propagated. Eg. -127, in byte mode is
         // represented as 1000,0001. This puts it back as sign=-1, 01111111 . But DisplayNum will see this and convert it
         // back to 1111,1111,1000,0001 when in Word mode.
-        if (m_fIntegerMode)
-        {
+        if (m_fIntegerMode) {
             ulong w64Bits = m_currentVal.toULong();
             boolean fMsb = (w64Bits.shiftRight(m_dwWordBitWidth - 1)).bitAnd(ulong.ONE).toBool(); // make sure you use the old width
 
-            if (fMsb)
-            {
+            if (fMsb) {
                 // If high bit is set, then get the decimal number in -ve 2'scompl form.
-                var tempResult = m_currentVal.bitXor( GetChopNumber() );
+                var tempResult = m_currentVal.bitXor(GetChopNumber());
 
                 m_currentVal = (tempResult.plus(Rational.of(1))).negated();
             }
         }
 
-        if (radixtype.cppValue() >= RadixType.Hex.cppValue() && radixtype.cppValue() <= RadixType.Binary.cppValue())
-        {
+        if (radixtype.cppValue() >= RadixType.Hex.cppValue() && radixtype.cppValue() <= RadixType.Binary.cppValue()) {
             m_radix = uint.of(NRadixFromRadixType(radixtype));
             // radixtype is not even saved
         }
 
         // TODO: Better validation
-        if (numwidth.toInt() >= NUM_WIDTH.QWORD_WIDTH.toInt() && numwidth.toInt() <= NUM_WIDTH.BYTE_WIDTH.toInt())
-        {
+        if (numwidth.toInt() >= NUM_WIDTH.QWORD_WIDTH.toInt() && numwidth.toInt() <= NUM_WIDTH.BYTE_WIDTH.toInt()) {
             m_numwidth = numwidth;
             m_dwWordBitWidth = DwWordBitWidthFromNumWidth(numwidth);
         }
@@ -2274,10 +2029,8 @@ public class CCalcEngine {
         DisplayNum();
     }
 
-    int DwWordBitWidthFromNumWidth(NUM_WIDTH numwidth)
-    {
-        switch (numwidth)
-        {
+    int DwWordBitWidthFromNumWidth(NUM_WIDTH numwidth) {
+        switch (numwidth) {
             case NUM_WIDTH.DWORD_WIDTH:
                 return 32;
             case NUM_WIDTH.WORD_WIDTH:
@@ -2290,10 +2043,8 @@ public class CCalcEngine {
         }
     }
 
-    int NRadixFromRadixType(RadixType radixtype)
-    {
-        switch (radixtype)
-        {
+    int NRadixFromRadixType(RadixType radixtype) {
+        switch (radixtype) {
             case RadixType.Hex:
                 return 16;
             case RadixType.Octal:
@@ -2307,11 +2058,9 @@ public class CCalcEngine {
     }
 
     //  Toggles a given bit into the number representation. returns true if it changed it actually.
-    boolean TryToggleBit(Rational rat, int wbitno)
-    {
+    boolean TryToggleBit(Rational rat, int wbitno) {
         int wmax = DwWordBitWidthFromNumWidth(m_numwidth);
-        if (wbitno >= wmax)
-        {
+        if (wbitno >= wmax) {
             return false; // ignore error cant happen
         }
 
@@ -2321,28 +2070,25 @@ public class CCalcEngine {
         result = (result.isNotEqual(Rational.of(0)) ? result : Rational.of(0));
 
         // XOR the result with 2^wbitno power
-        rat = result.bitXor( RationalMath.pow(Rational.of(2), Rational.of(wbitno)) );
+        rat = result.bitXor(RationalMath.pow(Rational.of(2), Rational.of(wbitno)));
 
         return true;
     }
 
     // Returns the nearest power of two
-    int QuickLog2(int iNum)
-    {
+    int QuickLog2(int iNum) {
         // TODO: Check if this will work with unsigned
         int iRes = 0;
 
         // while first digit is a zero
-        while ((iNum & 1) == 0)
-        {
+        while ((iNum & 1) == 0) {
             iRes++;
             iNum >>= 1;
         }
 
         // if our number isn't a perfect square
         iNum = iNum >> 1;
-        if (iNum != 0)
-        {
+        if (iNum != 0) {
             // find the largest digit
             for (iNum = iNum >> 1; iNum != 0; iNum = iNum >> 1)
                 ++iRes;
@@ -2366,46 +2112,34 @@ public class CCalcEngine {
 // by the next highest power-of-two base (again, to be conservative and guarantee
 // there will be no over flow verse the current word size for numbers entered).
 // Base 10 is a special case and always uses the base 10 precision (m_nPrecisionSav).
-    void UpdateMaxIntDigits()
-    {
-        if (m_radix.toInt() == 10)
-        {
+    void UpdateMaxIntDigits() {
+        if (m_radix.toInt() == 10) {
             // if in integer mode you still have to honor the max digits you can enter based on bit width
-            if (m_fIntegerMode)
-            {
+            if (m_fIntegerMode) {
                 m_cIntDigitsSav = (GetMaxDecimalValueString().length()) - 1;
                 // This is the max digits you can enter a decimal in fixed width mode aka integer mode -1. The last digit
                 // has to be checked separately
-            }
-            else
-            {
+            } else {
                 m_cIntDigitsSav = m_precision;
             }
-        }
-        else
-        {
-            m_cIntDigitsSav = m_dwWordBitWidth / QuickLog2(m_radix);
+        } else {
+            m_cIntDigitsSav = m_dwWordBitWidth / QuickLog2(m_radix.toInt());
         }
     }
 
-    void ChangeBaseConstants(uint radix, int maxIntDigits, int precision)
-    {
-        if (10 == radix.toInt())
-        {
+    static void ChangeBaseConstants(uint radix, int maxIntDigits, int precision) {
+        if (10 == radix.toInt()) {
             ChangeConstants(radix, precision); // Base 10 precision for internal computing still needs to be 32, to
             // take care of decimals precisely. For eg. to get the HI word of a qword, we do a rsh, which depends on getting
             // 18446744073709551615 / 4294967296 = 4294967295.9999917... This is important it works this and doesn't reduce
             // the precision to number of digits allowed to enter. In other words, precision and # of allowed digits to be
             // entered are different.
-        }
-        else
-        {
+        } else {
             ChangeConstants(radix, maxIntDigits + 1);
         }
     }
 
-    void BaseOrPrecisionChanged()
-    {
+    void BaseOrPrecisionChanged() {
         UpdateMaxIntDigits();
         ChangeBaseConstants(m_radix, m_cIntDigitsSav, m_precision);
     }

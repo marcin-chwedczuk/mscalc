@@ -1,5 +1,6 @@
 package mscalc.engine.ratpack;
 
+import mscalc.engine.Rational;
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.cpp.UIntArray;
@@ -52,7 +53,16 @@ enum AngleType
     {
         Degrees, // Calculate trig using 360 degrees per revolution
         Radians, // Calculate trig using 2 pi radians per revolution
-        Gradians // Calculate trig using 400 gradians per revolution
+        Gradians; // Calculate trig using 400 gradians per revolution
+
+        public static AngleType fromInt(int n) {
+            return switch (n) {
+                case 0 -> Degrees;
+                case 1 -> Radians;
+                case 2 -> Gradians;
+                default -> throw new IllegalArgumentException("invalid value: " + n);
+            };
+        }
     }
 
     // TODO:  NUMBER, *PNUMBER, **PPNUMBER;
