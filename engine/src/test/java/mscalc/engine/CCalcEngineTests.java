@@ -165,7 +165,7 @@ public class CCalcEngineTests {
         }
         for (String str : invalidDecStrs)
         {
-            assertEquals(IDS_ERR_UNK_CH, m_calcEngine.IsNumberInvalid(str, 100, 100, uint.of(10) /* Dec */));
+            assertEquals(IDS_ERR_UNK_CH, m_calcEngine.IsNumberInvalid(str, 100, 100, uint.of(10) /* Dec */), "failed for: " + str);
         }
     }
 

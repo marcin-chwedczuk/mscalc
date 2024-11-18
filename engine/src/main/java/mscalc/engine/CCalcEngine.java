@@ -1367,6 +1367,10 @@ public class CCalcEngine {
         }
     }
 
+    private static int safeLength(String s) {
+        return (s == null) ? 0 : s.length();
+    }
+
     int IsNumberInvalid(String numberString, int iMaxExp, int iMaxMantissa, uint radix) {
         int iError = 0;
 
@@ -1382,20 +1386,22 @@ public class CCalcEngine {
             // TODO: Make static
             Pattern rx = Pattern.compile(c_decPreSepStr + m_decimalSeparator + c_decPostSepStr);
             var matches = rx.matcher(numberString);
-            if (matches.find()) {
+            if (matches.matches()) {
                 // Check that exponent isn't too long
-                if (matches.group(3) != null && matches.group(3).length() > iMaxExp) {
+                if (safeLength(matches.group(3)) > iMaxExp) {
                     iError = IDS_ERR_INPUT_OVERFLOW;
                 } else {
                     String intMantissa = matches.group(1);
                     int zeros = 0;
-                    while (zeros < intMantissa.length()) {
-                        if (intMantissa.charAt(zeros) != '0')
-                            break;
-                        zeros++;
+                    if (intMantissa != null) {
+                        while (zeros < intMantissa.length()) {
+                            if (intMantissa.charAt(zeros) != '0')
+                                break;
+                            zeros++;
+                        }
                     }
 
-                    var iMantissa = (intMantissa.length() - zeros) + matches.group(2).length();
+                    var iMantissa = (safeLength(intMantissa) - zeros) + safeLength(matches.group(2));
                     if (iMantissa > iMaxMantissa) {
                         iError = IDS_ERR_INPUT_OVERFLOW;
                     }
@@ -1538,8 +1544,12 @@ public class CCalcEngine {
         // We exclude the sign here because we don't want to end up with e.g. "-,123,456"
         // Then, iterate from back to front, adding group delimiters as needed.
         var reverse_end = displayString.length() - (isNumNegative ? 1 : 0); // displayString
+
+        // TODO: Fix it later
+        String reversedDisplayString = new StringBuilder(displayString).reverse().toString();
+
         while (ritr != reverse_end) {
-            result.append(displayString.charAt(ritr++));
+            result.append(reversedDisplayString.charAt(ritr++));
             groupingSize++;
 
             // If a group is complete, add a separator
