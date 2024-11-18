@@ -1384,7 +1384,7 @@ public class CCalcEngine {
             var matches = rx.matcher(numberString);
             if (matches.find()) {
                 // Check that exponent isn't too long
-                if (matches.group(3).length() > iMaxExp) {
+                if (matches.group(3) != null && matches.group(3).length() > iMaxExp) {
                     iError = IDS_ERR_INPUT_OVERFLOW;
                 } else {
                     String intMantissa = matches.group(1);
@@ -1439,7 +1439,7 @@ public class CCalcEngine {
      * Returns: the groupings as a vector
      *
      \****************************************************************************/
-    List<Integer> DigitGroupingStringToGroupingVector(String groupingString) {
+    static List<Integer> DigitGroupingStringToGroupingVector(String groupingString) {
         List<Integer> grouping = new ArrayList<>();
 
         int currentGroup = 0;
