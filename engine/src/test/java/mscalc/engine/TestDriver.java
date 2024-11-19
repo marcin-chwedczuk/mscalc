@@ -2,6 +2,7 @@ package mscalc.engine;
 
 import mscalc.engine.commands.Command;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,8 +16,16 @@ public class TestDriver {
         m_calculatorManager = calculatorManager;
     }
 
+    static void Test(String expectedPrimary, String expectedExpression, Command[] testCommands) {
+        Test(expectedPrimary, expectedExpression, Arrays.asList(testCommands));
+    }
+
     static void Test(String expectedPrimary, String expectedExpression, List<Command> testCommands) {
         Test(expectedPrimary, expectedExpression, testCommands, true, false);
+    }
+
+    static void Test(String expectedPrimary, String expectedExpression, Command[] testCommands, boolean cleanup, boolean isScientific) {
+        Test(expectedPrimary, expectedExpression, Arrays.asList(testCommands), cleanup, isScientific);
     }
 
     static void Test(String expectedPrimary, String expectedExpression, List<Command> testCommands, boolean cleanup, boolean isScientific) {

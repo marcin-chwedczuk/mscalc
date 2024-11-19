@@ -217,4 +217,12 @@ public enum Command {
     public int toInt() {
         return value;
     }
+
+    public static Command fromInt(int n) {
+        for (Command cmd : Command.values()) {
+            if (cmd.toInt() == n) return cmd;
+        }
+
+        throw new IllegalArgumentException("Invalid value: " + n);
+    }
 }
