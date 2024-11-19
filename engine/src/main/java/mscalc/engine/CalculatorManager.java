@@ -150,6 +150,7 @@ public class CalculatorManager implements CalcDisplay {
     /// Clear all the entries and memories
     /// Clear Memory if clearMemory parameter is true.(Default value is true)
     /// </summary>
+    void Reset() { Reset(true); }
     void Reset(boolean clearMemory /* = true*/)
     {
         SetStandardMode();
@@ -236,7 +237,7 @@ public class CalculatorManager implements CalcDisplay {
     /// Handle special commands such as mode change and combination of two commands.
     /// </summary>
     /// <param name="command">Enum Command</command>
-    void endCommand(Command command)
+    void SendCommand(Command command)
     {
         // When the expression line is cleared, we save the current state, which includes,
         // primary display, memory, and degree mode
