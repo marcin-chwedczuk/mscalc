@@ -2,18 +2,18 @@ package mscalc.gui.views.scientific;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel;
 import mscalc.gui.views.CalculatorView;
 
 import java.io.IOException;
-import java.net.URL;
-import java.util.ResourceBundle;
 
-public class ScientificView extends VBox implements CalculatorView, Initializable {
+public class ScientificView extends VBox implements CalculatorView {
     private final ScientificCalculatorViewModel viewModel = new ScientificCalculatorViewModel();
 
     public ScientificView() {
@@ -41,12 +41,23 @@ public class ScientificView extends VBox implements CalculatorView, Initializabl
     @FXML
     private Button bSine;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
+    public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
 
         bindButton(bDigit1, viewModel.digitOneButton);
         bindButton(bSine, viewModel.sineButton);
+
+        try {
+            scene.setOnKeyPressed(this::onKeyPressed);
+            scene.setOnKeyReleased(this::onKeyReleased);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void uninstall() {
+        throw new RuntimeException("TODO");
     }
 
     private void bindButton(Button button, ScientificCalculatorViewModel.InputViewModel operation) {
@@ -54,4 +65,34 @@ public class ScientificView extends VBox implements CalculatorView, Initializabl
         button.disableProperty().bind(operation.enabledProperty().not());
         button.setOnAction(e -> operation.execute());
     }
+
+    private void onKeyPressed(KeyEvent e) {
+        switch (e.getCode()) {
+            case KeyCode.S -> {
+                bSine.arm();
+            }
+
+            default -> {
+                return;
+            }
+        }
+
+        e.consume();
+    }
+
+    private void onKeyReleased(KeyEvent e) {
+        switch (e.getCode()) {
+            case KeyCode.S -> {
+                bSine.disarm();
+                bSine.fire();
+            }
+
+            default -> {
+                return;
+            }
+        }
+
+        e.consume();
+    }
+
 }

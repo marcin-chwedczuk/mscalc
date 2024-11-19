@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class MainWindow implements Initializable {
+public class MainWindow {
     public static MainWindow showOn(Stage window) {
         try {
             FXMLLoader loader = new FXMLLoader(MainWindow.class.getResource("MainWindow.fxml"));
@@ -32,6 +32,8 @@ public class MainWindow implements Initializable {
             window.setScene(scene);
             window.setResizable(false);
 
+            controller.init();
+
             window.show();
 
             return controller;
@@ -43,9 +45,10 @@ public class MainWindow implements Initializable {
     @FXML
     private BorderPane container;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        container.setCenter(new ScientificView());
+    public void init() {
+        var view = new ScientificView();
+        container.setCenter(view);
+        view.install(container.getScene());
     }
 
     public void showCssTool(ActionEvent event) {
