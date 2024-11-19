@@ -855,7 +855,7 @@ public class CCalcEngine {
                 // -OR- the paren holding array is empty and we try to remove a
                 //      paren
                 // -OR- the precedence holding array is full
-                if ((m_openParenCount >= MAXPRECDEPTH && (wParam == IDC_OPENP)) || (m_openParenCount != 0 && (wParam != IDC_OPENP))
+                if ((m_openParenCount >= MAXPRECDEPTH && (wParam == IDC_OPENP)) || (m_openParenCount == 0 && (wParam != IDC_OPENP))
                         || ((m_precedenceOpCount >= MAXPRECDEPTH && m_nPrecOp[m_precedenceOpCount - 1] != 0))) {
                     if (m_openParenCount == 0 && (wParam != IDC_OPENP)) {
                         m_pCalcDisplay.onNoRightParenAdded();
