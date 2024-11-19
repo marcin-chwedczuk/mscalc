@@ -2,6 +2,7 @@ package mscalc.engine;
 
 import mscalc.engine.commands.IExpressionCommand;
 import mscalc.engine.cpp.ErrorCodeException;
+import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.cpp.ulong;
 import mscalc.engine.ratpack.RatPack;
@@ -734,7 +735,9 @@ public class CCalcEngine {
 
             CheckAndAddLastBinOpToHistory();
 
-            if (TryToggleBit(m_currentVal, (int) wParam - IDC_BINEDITSTART)) {
+            var tmp = new Ptr<>(m_currentVal);
+            if (TryToggleBit(tmp, (int) wParam - IDC_BINEDITSTART)) {
+                m_currentVal = tmp.deref();
                 DisplayNum();
             }
 
@@ -2068,19 +2071,19 @@ public class CCalcEngine {
     }
 
     //  Toggles a given bit into the number representation. returns true if it changed it actually.
-    boolean TryToggleBit(Rational rat, int wbitno) {
+    boolean TryToggleBit(Ptr<Rational> rat, int wbitno) {
         int wmax = DwWordBitWidthFromNumWidth(m_numwidth);
         if (wbitno >= wmax) {
             return false; // ignore error cant happen
         }
 
-        Rational result = RationalMath.integer(rat);
+        Rational result = RationalMath.integer(rat.deref());
 
         // Remove any variance in how 0 could be represented in rat e.g. -0, 0/n, etc.
         result = (result.isNotEqual(Rational.of(0)) ? result : Rational.of(0));
 
         // XOR the result with 2^wbitno power
-        rat = result.bitXor(RationalMath.pow(Rational.of(2), Rational.of(wbitno)));
+        rat.set( result.bitXor(RationalMath.pow(Rational.of(2), Rational.of(wbitno))) );
 
         return true;
     }
