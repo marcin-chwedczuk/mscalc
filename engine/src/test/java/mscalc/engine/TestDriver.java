@@ -34,12 +34,12 @@ public class TestDriver {
         }
 
         if (isScientific) {
-            m_calculatorManager.SendCommand(Command.ModeScientific);
+            m_calculatorManager.sendCommand(Command.ModeScientific);
         }
 
         for (Command currentCommand : testCommands) {
             if (currentCommand == Command.CommandNULL) break;
-            m_calculatorManager.SendCommand(currentCommand);
+            m_calculatorManager.sendCommand(currentCommand);
         }
 
         assertEquals(expectedPrimary, m_displayTester.GetPrimaryDisplay());

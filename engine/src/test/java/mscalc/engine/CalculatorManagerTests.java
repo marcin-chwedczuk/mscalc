@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -60,7 +59,7 @@ public class CalculatorManagerTests {
         String display = pCalculatorDisplay.GetPrimaryDisplay();
         assertEquals(expectedDisplay, display);
 
-        m_calculatorManager.SendCommand(finalInput);
+        m_calculatorManager.sendCommand(finalInput);
 
         // Verify MaxDigitsReached
         display = pCalculatorDisplay.GetPrimaryDisplay();
@@ -82,7 +81,7 @@ public class CalculatorManagerTests {
     void ExecuteCommands(Command[] commands) {
         for (Command cmd : commands) {
             if (cmd == Command.CommandNULL) break;
-            m_calculatorManager.SendCommand(cmd);
+            m_calculatorManager.sendCommand(cmd);
         }
     }
 
@@ -92,7 +91,7 @@ public class CalculatorManagerTests {
                 break;
             }
 
-            m_calculatorManager.SendCommand(command);
+            m_calculatorManager.sendCommand(command);
         }
     }
 
@@ -561,19 +560,19 @@ public class CalculatorManagerTests {
         Cleanup();
         ExecuteCommands(scientificCalculatorTest53);
         m_calculatorManager.MemorizeNumber();
-        m_calculatorManager.SendCommand(Command.CommandCLEAR);
+        m_calculatorManager.sendCommand(Command.CommandCLEAR);
         m_calculatorManager.MemorizedNumberLoad(0);
         resultPrimary = pCalculatorDisplay.GetPrimaryDisplay();
         resultExpression = pCalculatorDisplay.GetExpression();
         assertEquals(expectedPrimaryDisplayTestScientific52, resultPrimary);
 
         Cleanup();
-        m_calculatorManager.SendCommand(Command.Command1);
+        m_calculatorManager.sendCommand(Command.Command1);
         m_calculatorManager.MemorizeNumber();
-        m_calculatorManager.SendCommand(Command.CommandCLEAR);
-        m_calculatorManager.SendCommand(Command.Command2);
+        m_calculatorManager.sendCommand(Command.CommandCLEAR);
+        m_calculatorManager.sendCommand(Command.Command2);
         m_calculatorManager.MemorizeNumber();
-        m_calculatorManager.SendCommand(Command.CommandCLEAR);
+        m_calculatorManager.sendCommand(Command.CommandCLEAR);
         m_calculatorManager.MemorizedNumberLoad(1);
         resultPrimary = pCalculatorDisplay.GetPrimaryDisplay();
         assertEquals("1", resultPrimary);
@@ -583,15 +582,15 @@ public class CalculatorManagerTests {
         assertEquals("2", resultPrimary);
 
         Cleanup();
-        m_calculatorManager.SendCommand(Command.Command1);
-        m_calculatorManager.SendCommand(Command.CommandSIGN);
+        m_calculatorManager.sendCommand(Command.Command1);
+        m_calculatorManager.sendCommand(Command.CommandSIGN);
         m_calculatorManager.MemorizeNumber();
-        m_calculatorManager.SendCommand(Command.CommandADD);
-        m_calculatorManager.SendCommand(Command.Command2);
-        m_calculatorManager.SendCommand(Command.CommandEQU);
+        m_calculatorManager.sendCommand(Command.CommandADD);
+        m_calculatorManager.sendCommand(Command.Command2);
+        m_calculatorManager.sendCommand(Command.CommandEQU);
         m_calculatorManager.MemorizeNumber();
-        m_calculatorManager.SendCommand(Command.CommandMUL);
-        m_calculatorManager.SendCommand(Command.Command2);
+        m_calculatorManager.sendCommand(Command.CommandMUL);
+        m_calculatorManager.sendCommand(Command.Command2);
         m_calculatorManager.MemorizeNumber();
 
         List<String> memorizedNumbers = pCalculatorDisplay.GetMemorizedNumbers();
@@ -609,8 +608,8 @@ public class CalculatorManagerTests {
         }
         assertTrue(isEqual);
 
-        m_calculatorManager.SendCommand(Command.CommandCLEAR);
-        m_calculatorManager.SendCommand(Command.Command2);
+        m_calculatorManager.sendCommand(Command.CommandCLEAR);
+        m_calculatorManager.sendCommand(Command.Command2);
         m_calculatorManager.MemorizedNumberAdd(0);
         m_calculatorManager.MemorizedNumberAdd(1);
         m_calculatorManager.MemorizedNumberAdd(2);
@@ -629,10 +628,10 @@ public class CalculatorManagerTests {
         }
         assertTrue(isEqual);
 
-        m_calculatorManager.SendCommand(Command.CommandCLEAR);
-        m_calculatorManager.SendCommand(Command.Command1);
-        m_calculatorManager.SendCommand(Command.CommandPNT);
-        m_calculatorManager.SendCommand(Command.Command5);
+        m_calculatorManager.sendCommand(Command.CommandCLEAR);
+        m_calculatorManager.sendCommand(Command.Command1);
+        m_calculatorManager.sendCommand(Command.CommandPNT);
+        m_calculatorManager.sendCommand(Command.Command5);
 
         m_calculatorManager.MemorizedNumberSubtract(0);
         m_calculatorManager.MemorizedNumberSubtract(1);
@@ -655,7 +654,7 @@ public class CalculatorManagerTests {
         // Memorizing 101 numbers, which exceeds the limit.
         Cleanup();
         for (int i = 0; i < 101; i++) {
-            m_calculatorManager.SendCommand(Command.Command1);
+            m_calculatorManager.sendCommand(Command.Command1);
             m_calculatorManager.MemorizeNumber();
         }
 
@@ -663,15 +662,15 @@ public class CalculatorManagerTests {
         assertEquals(100, memorizedNumbers.size());
 
         // Memorizing new number, which should show up at the top of the memory
-        m_calculatorManager.SendCommand(Command.Command2);
+        m_calculatorManager.sendCommand(Command.Command2);
         m_calculatorManager.MemorizeNumber();
         memorizedNumbers = pCalculatorDisplay.GetMemorizedNumbers();
         assertEquals("2", memorizedNumbers.get(0));
 
         // Test for trying to memorize invalid value
-        m_calculatorManager.SendCommand(Command.Command2);
-        m_calculatorManager.SendCommand(Command.CommandSIGN);
-        m_calculatorManager.SendCommand(Command.CommandSQRT);
+        m_calculatorManager.sendCommand(Command.Command2);
+        m_calculatorManager.sendCommand(Command.CommandSIGN);
+        m_calculatorManager.sendCommand(Command.CommandSQRT);
         m_calculatorManager.MemorizeNumber();
     }
 

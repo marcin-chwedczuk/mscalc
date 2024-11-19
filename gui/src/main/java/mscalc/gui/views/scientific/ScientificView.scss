@@ -26,11 +26,18 @@
     -fx-padding: 0.75em;
 
     .display {
+        -fx-focus-traversable: false;
+        -fx-alignment: center-right;
+
+        -fx-opacity: 1;
+
         @include roundedBorder();
     }
 
     .button {
         -fx-pref-width: 3.3em;
+        // disable focus on buttons
+        -fx-focus-traversable: false;
 
         &.basicOperation {
             -fx-text-fill: red;
@@ -43,6 +50,14 @@
         &.advancedOperation {
             -fx-text-fill: magenta;
         }
+    }
+
+    .radio-button {
+        -fx-focus-traversable: false;
+    }
+
+    .check-box {
+         -fx-focus-traversable: false;
     }
 
     .buttonGrid {

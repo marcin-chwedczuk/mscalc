@@ -8,7 +8,7 @@
       type="javafx.scene.layout.VBox"
       stylesheets="@ScientificView.css" styleClass="scientificView">
     <children>
-        <TextField disable="true" styleClass="display" />
+        <TextField fx:id="display" disable="true" styleClass="display" />
         <HBox VBox.vgrow="NEVER" styleClass="selectorsContainer">
             <children>
                 <HBox styleClass="selectBaseArea" HBox.hgrow="ALWAYS">

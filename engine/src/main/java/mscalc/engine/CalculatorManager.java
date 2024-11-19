@@ -237,7 +237,7 @@ public class CalculatorManager implements CalcDisplay {
     /// Handle special commands such as mode change and combination of two commands.
     /// </summary>
     /// <param name="command">Enum Command</command>
-    void SendCommand(Command command)
+    public void sendCommand(Command command)
     {
         // When the expression line is cleared, we save the current state, which includes,
         // primary display, memory, and degree mode
