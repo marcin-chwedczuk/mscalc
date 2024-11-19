@@ -1,10 +1,11 @@
 package mscalc.engine;
 
+import mscalc.engine.CalculatorHistory.HISTORYITEM;
 import mscalc.engine.commands.Command;
 import mscalc.engine.commands.IExpressionCommand;
+import mscalc.engine.cpp.uint;
 import mscalc.engine.resource.ResourceProvider;
 
-import java.lang.classfile.Opcode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +53,8 @@ public class CalculatorManager implements CalcDisplay {
     /// Used to set the primary display value on ViewModel
     /// </summary>
     /// <param name="text">wstring representing text to be displayed</param>
-    void SetPrimaryDisplay(String displayString, boolean isError)
+    @Override
+    public void setPrimaryDisplay(String displayString, boolean isError)
     {
         if (!m_inHistoryItemLoadMode)
         {
@@ -60,7 +62,8 @@ public class CalculatorManager implements CalcDisplay {
         }
     }
 
-    void SetIsInError(boolean isError)
+    @Override
+    public void setIsInError(boolean isError)
     {
         m_displayCallback.setIsInError(isError);
     }
@@ -70,22 +73,26 @@ public class CalculatorManager implements CalcDisplay {
         m_currentCalculatorEngine.DisplayError(CALC_E_DOMAIN /*code for "Invalid input" error*/);
     }
 
-    void MaxDigitsReached()
+    @Override
+    public void maxDigitsReached()
     {
         m_displayCallback.maxDigitsReached();
     }
 
-    void BinaryOperatorReceived()
+    @Override
+    public void binaryOperatorReceived()
     {
         m_displayCallback.binaryOperatorReceived();
     }
 
-    void MemoryItemChanged(int indexOfMemory)
+    @Override
+    public void memoryItemChanged(int indexOfMemory)
     {
         m_displayCallback.memoryItemChanged(indexOfMemory);
     }
 
-    void InputChanged()
+    @Override
+    public void inputChanged()
     {
         m_displayCallback.inputChanged();
     }
@@ -95,7 +102,8 @@ public class CalculatorManager implements CalcDisplay {
     /// Used to set the expression display value on ViewModel
     /// </summary>
     /// <param name="expressionString">wstring representing expression to be displayed</param>
-    void SetExpressionDisplay(
+    @Override
+    public void setExpressionDisplay(
             List<Pair<String, Integer>>  tokens,
             List<IExpressionCommand> commands)
     {
@@ -109,8 +117,9 @@ public class CalculatorManager implements CalcDisplay {
     /// Callback from the CalculatorControl
     /// Passed in string representations of memorized numbers get passed to the client
     /// </summary>
-    /// <param name="memorizedNumber">vector containing wstring values of memorized numbers</param>
-    void SetMemorizedNumbers(List<String> memorizedNumbers)
+    /// <param name="memorizedNumber">List containing wstring values of memorized numbers</param>
+    @Override
+    public void setMemorizedNumbers(List<String> memorizedNumbers)
     {
         m_displayCallback.setMemorizedNumbers(memorizedNumbers);
     }
@@ -119,7 +128,8 @@ public class CalculatorManager implements CalcDisplay {
     /// Callback from the engine
     /// </summary>
     /// <param name="parenthesisCount">string containing the parenthesis count</param>
-    void SetParenthesisNumber(int parenthesisCount)
+    @Override
+    public void setParenthesisNumber(int parenthesisCount)
     {
         m_displayCallback.setParenthesisNumber(parenthesisCount);
     }
@@ -127,7 +137,8 @@ public class CalculatorManager implements CalcDisplay {
     /// <summary>
     /// Callback from the engine
     /// </summary>
-    void OnNoRightParenAdded()
+    @Override
+    public void onNoRightParenAdded()
     {
         m_displayCallback.onNoRightParenAdded();
     }
@@ -247,7 +258,7 @@ public class CalculatorManager implements CalcDisplay {
                     m_currentCalculatorEngine.ProcessCommand(command.toInt());
             }
 
-            InputChanged();
+            inputChanged();
             return;
         }
 
@@ -318,7 +329,7 @@ public class CalculatorManager implements CalcDisplay {
                 break;
         }
 
-        InputChanged();
+        inputChanged();
     }
 
     /// <summary>
@@ -328,12 +339,12 @@ public class CalculatorManager implements CalcDisplay {
     {
         m_currentCalculatorEngine.PersistedMemObject(m_persistedPrimaryValue);
         m_currentCalculatorEngine.ProcessCommand(IDC_RECALL);
-        InputChanged();
+        inputChanged();
     }
 
     /// <summary>
     /// Memorize the current displayed value
-    /// Notify the client with new the new memorize value vector
+    /// Notify the client with new the new memorize value List
     /// </summary>
     void MemorizeNumber()
     {
@@ -371,13 +382,13 @@ public class CalculatorManager implements CalcDisplay {
 
         this.MemorizedNumberSelect(indexOfMemory);
         m_currentCalculatorEngine.ProcessCommand(IDC_RECALL);
-        InputChanged();
+        inputChanged();
     }
 
     /// <summary>
     /// Do the addition to the selected memory
     /// It adds primary display value to the selected memory
-    /// Notify the client with new the new memorize value vector
+    /// Notify the client with new the new memorize value List
     /// </summary>
     /// <param name="indexOfMemory">Index of the target memory</param>
     void MemorizedNumberAdd(int indexOfMemory)
@@ -401,7 +412,7 @@ public class CalculatorManager implements CalcDisplay {
             this.SetMemorizedNumbersString();
         }
 
-        m_displayCallback.MemoryItemChanged(indexOfMemory);
+        m_displayCallback.memoryItemChanged(indexOfMemory);
     }
 
     void MemorizedNumberClear(int indexOfMemory)
@@ -415,7 +426,7 @@ public class CalculatorManager implements CalcDisplay {
     /// <summary>
     /// Do the subtraction to the selected memory
     /// It adds primary display value to the selected memory
-    /// Notify the client with new the new memorize value vector
+    /// Notify the client with new the new memorize value List
     /// </summary>
     /// <param name="indexOfMemory">Index of the target memory</param>
     void MemorizedNumberSubtract(int indexOfMemory)
@@ -442,12 +453,12 @@ public class CalculatorManager implements CalcDisplay {
             this.SetMemorizedNumbersString();
         }
 
-        m_displayCallback.MemoryItemChanged(indexOfMemory);
+        m_displayCallback.memoryItemChanged(indexOfMemory);
     }
 
     /// <summary>
     /// Clear all the memorized values
-    /// Notify the client with new the new memorize value vector
+    /// Notify the client with new the new memorize value List
     /// </summary>
     void MemorizedNumberClearAll()
     {
@@ -458,7 +469,7 @@ public class CalculatorManager implements CalcDisplay {
     }
 
     /// <summary>
-    /// Helper function that selects a memory from the vector and set it to CCalcEngine
+    /// Helper function that selects a memory from the List and set it to CCalcEngine
     /// Saved RAT number needs to be copied and passed in, as CCalcEngine destroyed the passed in RAT
     /// </summary>
     /// <param name="indexOfMemory">Index of the target memory</param>
@@ -475,7 +486,7 @@ public class CalculatorManager implements CalcDisplay {
 
     /// <summary>
     /// Helper function that needs to be executed when memory is modified
-    /// When memory is modified, destroy the old RAT and put the new RAT in vector
+    /// When memory is modified, destroy the old RAT and put the new RAT in List
     /// </summary>
     /// <param name="indexOfMemory">Index of the target memory</param>
     void MemorizedNumberChanged(int indexOfMemory)
@@ -492,5 +503,131 @@ public class CalculatorManager implements CalcDisplay {
         }
     }
 
+    List<HISTORYITEM> GetHistoryItems()
+    {
+        return m_pHistory.GetHistory();
+    }
 
+    List<HISTORYITEM> GetHistoryItems(CalculatorMode mode)
+    {
+        return (mode == CalculatorMode.Standard) ? m_pStdHistory.GetHistory() : m_pSciHistory.GetHistory();
+    }
+
+    void SetHistoryItems(List<HISTORYITEM> historyItems)
+    {
+        for (var historyItem : historyItems)
+        {
+            var index = m_pHistory.AddItem(historyItem);
+            onHistoryItemAdded(index);
+        }
+    }
+
+    HISTORYITEM GetHistoryItem(int uIdx)
+    {
+        return m_pHistory.GetHistoryItem(uIdx);
+    }
+
+    @Override
+    public void onHistoryItemAdded(int addedItemIndex)
+    {
+        m_displayCallback.onHistoryItemAdded(addedItemIndex);
+    }
+
+    boolean RemoveHistoryItem(int uIdx)
+    {
+        return m_pHistory.RemoveItem(uIdx);
+    }
+
+    void ClearHistory()
+    {
+        m_pHistory.ClearHistory();
+    }
+
+
+    void SetRadix(RadixType iRadixType)
+    {
+        switch (iRadixType)
+        {
+            case RadixType.Hex:
+                m_currentCalculatorEngine.ProcessCommand(IDC_HEX);
+                break;
+            case RadixType.Decimal:
+                m_currentCalculatorEngine.ProcessCommand(IDC_DEC);
+                break;
+            case RadixType.Octal:
+                m_currentCalculatorEngine.ProcessCommand(IDC_OCT);
+                break;
+            case RadixType.Binary:
+                m_currentCalculatorEngine.ProcessCommand(IDC_BIN);
+                break;
+            default:
+                break;
+        }
+        SetMemorizedNumbersString();
+    }
+
+    void SetMemorizedNumbersString()
+    {
+        List<String> resultVector = new ArrayList<>();
+        for (var memoryItem : m_memorizedNumbers)
+        {
+            var radix = m_currentCalculatorEngine.GetCurrentRadix();
+            String stringValue = m_currentCalculatorEngine.GetStringForDisplay(memoryItem, radix);
+
+            if (!stringValue.isEmpty())
+            {
+                resultVector.add(m_currentCalculatorEngine.GroupDigitsPerRadix(stringValue, radix));
+            }
+        }
+        m_displayCallback.setMemorizedNumbers(resultVector);
+    }
+
+    Command GetCurrentDegreeMode()
+    {
+        if (m_currentDegreeMode == Command.CommandNULL)
+        {
+            m_currentDegreeMode = Command.CommandDEG;
+        }
+        return m_currentDegreeMode;
+    }
+
+    String GetResultForRadix(uint radix, int precision, boolean groupDigitsPerRadix)
+    {
+        return m_currentCalculatorEngine != null ? m_currentCalculatorEngine.GetCurrentResultForRadix(radix, precision, groupDigitsPerRadix) : "";
+    }
+
+    void SetPrecision(int precision)
+    {
+        m_currentCalculatorEngine.ChangePrecision(precision);
+    }
+
+    void UpdateMaxIntDigits()
+    {
+        m_currentCalculatorEngine.UpdateMaxIntDigits();
+    }
+
+    char DecimalSeparator()
+    {
+        return m_currentCalculatorEngine != null ? m_currentCalculatorEngine.DecimalSeparator() : m_resourceProvider.getCEngineString("sDecimal").charAt(0);
+    }
+
+    boolean IsEngineRecording()
+    {
+        return m_currentCalculatorEngine.FInRecordingState();
+    }
+
+    boolean IsInputEmpty()
+    {
+        return m_currentCalculatorEngine.IsInputEmpty();
+    }
+
+    void SetInHistoryItemLoadMode(boolean isHistoryItemLoadMode)
+    {
+        m_inHistoryItemLoadMode = isHistoryItemLoadMode;
+    }
+
+    List<IExpressionCommand> GetDisplayCommandsSnapshot()
+    {
+        return m_currentCalculatorEngine.GetHistoryCollectorCommandsSnapshot();
+    }
 }
