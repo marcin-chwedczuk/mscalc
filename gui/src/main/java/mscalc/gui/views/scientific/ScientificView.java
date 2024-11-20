@@ -55,6 +55,13 @@ public class ScientificView extends VBox implements CalculatorView {
     private RadioButton radioRadixBin;
 
     @FXML
+    private Button bBackspace;
+    @FXML
+    private Button bClearEntry;
+    @FXML
+    private Button bClear;
+
+    @FXML
     private Button bDigit0;
 
     @FXML
@@ -106,6 +113,52 @@ public class ScientificView extends VBox implements CalculatorView {
     private Button bPiNumber;
 
     @FXML
+    private Button bDecimalPoint;
+
+    @FXML
+    private Button bChangeSign;
+
+    // Arithmetic block
+
+    @FXML
+    private Button bDivide;
+
+    @FXML
+    private Button bMultiply;
+
+    @FXML
+    private Button bSubtract;
+
+    @FXML
+    private Button bAdd;
+
+    @FXML
+    private Button bModulo;
+
+    @FXML
+    private Button bBitOr;
+
+    @FXML
+    private Button bLeftShift;
+
+    @FXML
+    private Button bEquals;
+
+    @FXML
+    private Button bBitAnd;
+
+    @FXML
+    private Button bBitXor;
+
+    @FXML
+    private Button bBitNot;
+
+    @FXML
+    private Button bIntegralPart;
+
+    // Scientific block
+
+    @FXML
     private Button bSine;
 
     public void install(Scene scene) {
@@ -133,6 +186,10 @@ public class ScientificView extends VBox implements CalculatorView {
             viewModel.radixProperty.set(radix);
         });
 
+        bindButton(bClear, viewModel.clearButton);
+        bindButton(bClearEntry, viewModel.clearEntryButton);
+        bindButton(bBackspace, viewModel.backspaceButton);
+
         bindButton(bDigit0, viewModel.digit0Button);
         bindButton(bDigit1, viewModel.digit1Button);
         bindButton(bDigit2, viewModel.digit2Button);
@@ -151,6 +208,23 @@ public class ScientificView extends VBox implements CalculatorView {
         bindButton(bDigitF, viewModel.digitFButton);
         bindButton(bPiNumber, viewModel.piButton);
 
+        bindButton(bChangeSign, viewModel.signButton);
+        bindButton(bDecimalPoint, viewModel.decimalPointButton);
+
+        bindButton(bDivide, viewModel.divideButton);
+        bindButton(bMultiply, viewModel.multiplyButton);
+        bindButton(bSubtract, viewModel.subtractButton);
+        bindButton(bAdd, viewModel.addButton);
+
+        bindButton(bModulo, viewModel.modButton);
+        bindButton(bBitOr, viewModel.bitOrButton);
+        bindButton(bLeftShift, viewModel.lshButton);
+        bindButton(bEquals, viewModel.equalsButton);
+
+        bindButton(bBitAnd, viewModel.bitAndButton);
+        bindButton(bBitXor, viewModel.bitXorButton);
+        bindButton(bBitNot, viewModel.bitNotButton);
+        bindButton(bIntegralPart, viewModel.integerButton);
 
         bindButton(bSine, viewModel.sineButton);
 

@@ -125,8 +125,8 @@
                 <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="8" GridPane.columnSpan="6" GridPane.halignment="RIGHT" styleClass="controlButtonsArea">
                     <children>
                         <Button fx:id="bBackspace" mnemonicParsing="false" text="Backspace" styleClass="basicOperation" />
-                        <Button fx:id="bClearLatestEntry" mnemonicParsing="false" text="CE" styleClass="basicOperation" />
-                        <Button fx:id="bClearAll" mnemonicParsing="false" text="C" styleClass="basicOperation" />
+                        <Button fx:id="bClearEntry" mnemonicParsing="false" text="CE" styleClass="basicOperation" />
+                        <Button fx:id="bClear" mnemonicParsing="false" text="C" styleClass="basicOperation" />
                     </children>
                 </HBox>
             </children>

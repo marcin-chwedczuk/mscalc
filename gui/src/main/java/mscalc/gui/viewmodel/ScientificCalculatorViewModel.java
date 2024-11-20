@@ -38,6 +38,22 @@ public class ScientificCalculatorViewModel {
 
     public final StringProperty displayProperty = new SimpleStringProperty("");
 
+    // --- CONTROL BUTTONS ---
+    public final InputViewModel clearButton = newInputViewModel()
+            .withText("C")
+            .withCommand(Command.CommandCLEAR)
+            .build();
+
+    public final InputViewModel clearEntryButton = newInputViewModel()
+            .withText("CE")
+            .withCommand(Command.CommandCENTR)
+            .build();
+
+    public final InputViewModel backspaceButton = newInputViewModel()
+            .withText("Backspace")
+            .withCommand(Command.CommandBACK)
+            .build();
+
     // --- INPUT DIGITS & CONSTANTS ----
     public final InputViewModel digit0Button = newInputViewModel()
             .withText("0")
@@ -138,6 +154,83 @@ public class ScientificCalculatorViewModel {
             .withCommand(Command.CommandPI)
             .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
             .build();
+
+    // --- +/- & DECIMAL POINT ----
+
+    public final InputViewModel signButton = newInputViewModel()
+            .withText("±")
+            .withCommand(Command.CommandSIGN)
+            .build();
+
+    public final InputViewModel decimalPointButton = newInputViewModel()
+            .withText(".")
+            .withCommand(Command.CommandPNT)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    // -- ARITHMETIC FUNCTIONS ---
+
+    public final InputViewModel divideButton = newInputViewModel()
+            .withText("/")
+            .withCommand(Command.CommandDIV)
+            .build();
+
+    public final InputViewModel multiplyButton = newInputViewModel()
+            .withText("×")
+            .withCommand(Command.CommandMUL)
+            .build();
+
+    public final InputViewModel subtractButton = newInputViewModel()
+            .withText("-")
+            .withCommand(Command.CommandSUB)
+            .build();
+
+    public final InputViewModel addButton = newInputViewModel()
+            .withText("+")
+            .withCommand(Command.CommandADD)
+            .build();
+
+    public final InputViewModel modButton = newInputViewModel()
+            .withText("Mod")
+            .withCommand(Command.CommandMOD)
+            .build();
+
+    public final InputViewModel bitOrButton = newInputViewModel()
+            .withText("Or")
+            .withCommand(Command.CommandOR)
+            .build();
+
+    public final InputViewModel lshButton = newInputViewModel()
+            .withText("Lsh")
+            .withCommand(Command.CommandLSHF)
+            .build();
+
+    public final InputViewModel equalsButton = newInputViewModel()
+            .withText("=")
+            .withCommand(Command.CommandEQU)
+            .build();
+
+    public final InputViewModel bitAndButton = newInputViewModel()
+            .withText("And")
+            .withCommand(Command.CommandAnd)
+            .build();
+
+    public final InputViewModel bitXorButton = newInputViewModel()
+            .withText("Xor")
+            .withCommand(Command.CommandXor)
+            .build();
+
+    public final InputViewModel bitNotButton = newInputViewModel()
+            .withText("Not")
+            .withCommand(Command.CommandNot)
+            .build();
+
+    public final InputViewModel integerButton = newInputViewModel()
+            .withText("Int")
+            .withCommand(Command.CommandFloor)
+            .build();
+
+    // --- SCIENTIFIC FUNCTIONS ---
 
     public final InputViewModel sineButton = newInputViewModel()
             .withText("sine")
