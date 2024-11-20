@@ -115,19 +115,15 @@
                 <Button fx:id="bIntegralPart" mnemonicParsing="false" text="Int" GridPane.columnIndex="13" GridPane.rowIndex="5" styleClass="basicOperation" />
                 <Button fx:id="bDigitF" mnemonicParsing="false" text="F" GridPane.columnIndex="13" GridPane.rowIndex="6" styleClass="inputButton" />
                 <HBox GridPane.columnSpan="4" styleClass="functionSelectArea">
-                    <children>
-                        <CheckBox fx:id="cvInvert" mnemonicParsing="false" text="Inv" />
-                        <CheckBox fx:id="cbHyperbolic" mnemonicParsing="false" text="Hyp" />
-                    </children>
+                    <CheckBox fx:id="cbInvert" mnemonicParsing="false" text="Inv" />
+                    <CheckBox fx:id="cbHyperbolic" mnemonicParsing="false" text="Hyp" />
                 </HBox>
                 <Label GridPane.columnIndex="4" fx:id="parenthesesCounter" styleClass="parenthesesCounter">NA</Label>
                 <Label GridPane.columnIndex="6" fx:id="memoryIndicator" styleClass="memoryIndicator">NA</Label>
                 <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="8" GridPane.columnSpan="6" GridPane.halignment="RIGHT" styleClass="controlButtonsArea">
-                    <children>
-                        <Button fx:id="bBackspace" mnemonicParsing="false" text="Backspace" styleClass="basicOperation" />
-                        <Button fx:id="bClearEntry" mnemonicParsing="false" text="CE" styleClass="basicOperation" />
-                        <Button fx:id="bClear" mnemonicParsing="false" text="C" styleClass="basicOperation" />
-                    </children>
+                    <Button fx:id="bBackspace" mnemonicParsing="false" text="Backspace" styleClass="basicOperation" />
+                    <Button fx:id="bClearEntry" mnemonicParsing="false" text="CE" styleClass="basicOperation" />
+                    <Button fx:id="bClear" mnemonicParsing="false" text="C" styleClass="basicOperation" />
                 </HBox>
             </children>
         </GridPane>

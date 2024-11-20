@@ -55,6 +55,12 @@ public class ScientificView extends VBox implements CalculatorView {
     private RadioButton radioRadixBin;
 
     @FXML
+    private CheckBox cbInvert;
+
+    @FXML
+    private CheckBox cbHyperbolic;
+
+    @FXML
     private Button bBackspace;
     @FXML
     private Button bClearEntry;
@@ -224,6 +230,9 @@ public class ScientificView extends VBox implements CalculatorView {
     public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
 
+        cbInvert.selectedProperty().bindBidirectional(viewModel.invertedModeProperty);
+        cbHyperbolic.selectedProperty().bindBidirectional(viewModel.hyperbolicModeProperty);
+
         radixToggleGroup.selectToggle(radioRadixDec);
         viewModel.radixProperty.addListener((observable, oldValue, newValue) -> {
             logger.info("Selected radix from ViewModel: {}", newValue);
@@ -324,6 +333,19 @@ public class ScientificView extends VBox implements CalculatorView {
 
     private void bindButton(Button button, ScientificCalculatorViewModel.InputViewModel operation) {
         button.textProperty().bind(operation.textProperty());
+
+        // Pre-create the tooltip object
+        Tooltip t = new Tooltip();
+        t.textProperty().bind(operation.tooltipProperty());
+
+        button.tooltipProperty().bind(operation.tooltipProperty().map(tooltipText -> {
+            if (tooltipText == null || tooltipText.isBlank()) {
+                return null;
+            }
+
+            return t;
+        }));
+
         button.disableProperty().bind(operation.enabledProperty().not());
         button.setOnAction(e -> operation.execute());
     }
