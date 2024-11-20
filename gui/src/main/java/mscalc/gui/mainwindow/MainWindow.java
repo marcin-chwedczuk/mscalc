@@ -46,6 +46,7 @@ public class MainWindow {
     private BorderPane container;
 
     public void init() {
+        // We cannot use initialize here, as Scene is not available in initialize()
         var view = new ScientificView();
         container.setCenter(view);
         view.install(container.getScene());

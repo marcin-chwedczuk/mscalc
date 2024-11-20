@@ -3,6 +3,7 @@ module mscalc.gui {
 
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.media;
 
     exports mscalc.gui;
     exports mscalc.gui.mainwindow;
@@ -27,4 +28,5 @@ module mscalc.gui {
     requires javafx.web;
     requires vaadin.sass.compiler;
     requires sac;
+
 }

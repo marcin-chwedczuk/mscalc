@@ -1,6 +1,7 @@
 package mscalc.gui.viewmodel;
 
 import javafx.beans.property.*;
+import javafx.scene.media.AudioClip;
 import mscalc.engine.CalcDisplay;
 import mscalc.engine.CalculatorManager;
 import mscalc.engine.Pair;
@@ -106,10 +107,18 @@ public class ScientificCalculatorViewModel {
         }
     }
 
+    // TODO: Add logger
+
     public class ThisViewModelCalculatorDisplay implements CalcDisplay {
         @Override
         public void setPrimaryDisplay(String text, boolean isError) {
             displayProperty.set(text);
+            if (isError) {
+                // TODO: https://freesound.org/people/anthonychartier2020/sounds/560189/
+                // TODO: Make it work, save as a field to not load constantly
+                // AudioClip plonkSound = new AudioClip("http://somehost/path/plonk.aiff");
+                // plonkSound.play();
+            }
         }
 
         @Override
