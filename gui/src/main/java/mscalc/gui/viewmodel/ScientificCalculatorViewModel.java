@@ -333,27 +333,33 @@ public class ScientificCalculatorViewModel {
 
     public final InputViewModel openBracketButton = newInputViewModel()
             .withText("(")
+            .withKeyboardShortcutShiftAnd(KeyCode.DIGIT9)
             .withCommand(Command.CommandOPENP)
             .build();
 
     public final InputViewModel enterExponentButton = newInputViewModel()
             .withText("Exp")
+            .withKeyboardShortcut(KeyCode.X)
             .withCommand(Command.CommandEXP)
             .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
             .build();
 
     public final InputViewModel powerButton = newInputViewModel()
             .withText("x^y")
+            .withKeyboardShortcut(KeyCode.Y)
+            .withCommand(Command.CommandEXP)
             .withCommand(Command.CommandPWR)
             .build();
 
     public final InputViewModel cubeButton = newInputViewModel()
             .withText("x^3")
+            .withKeyboardShortcutShiftAnd(KeyCode.DIGIT3)
             .withCommand(Command.CommandCUB)
             .build();
 
     public final InputViewModel squareButton = newInputViewModel()
             .withText("x^2")
+            .withKeyboardShortcutShiftAnd(KeyCode.DIGIT2)
             .withCommand(Command.CommandSQR)
             .build();
 
@@ -361,26 +367,31 @@ public class ScientificCalculatorViewModel {
 
     public final InputViewModel closeBracketButton = newInputViewModel()
             .withText(")")
+            .withKeyboardShortcutShiftAnd(KeyCode.DIGIT0)
             .withCommand(Command.CommandCLOSEP)
             .build();
 
     public final InputViewModel lnButton = newInputViewModel()
-            .withText("ln")
-            .withCommand(Command.CommandLN)
+            .withModeText("ln", "e\u02E3")
+            .withKeyboardShortcut(KeyCode.N)
+            .withModeCommand(Command.CommandLN, Command.CommandPOWE)
             .build();
 
     public final InputViewModel logButton = newInputViewModel()
-            .withText("log")
-            .withCommand(Command.CommandLOG)
+            .withModeText("log", "10\u02E3")
+            .withKeyboardShortcut(KeyCode.L)
+            .withModeCommand(Command.CommandLOG, Command.CommandPOW10)
             .build();
 
     public final InputViewModel factorialButton = newInputViewModel()
             .withText("n!")
+            .withKeyboardShortcutShiftAnd(KeyCode.DIGIT1)
             .withCommand(Command.CommandFAC)
             .build();
 
     public final InputViewModel reciprocalButton = newInputViewModel()
             .withText("1/x")
+            .withKeyboardShortcut(KeyCode.R)
             .withCommand(Command.CommandREC)
             .build();
 
@@ -533,8 +544,12 @@ public class ScientificCalculatorViewModel {
     // TODO: Add logger
 
     public class ThisViewModelCalculatorDisplay implements CalcDisplay {
+        private static final Logger logger = LogManager.getLogger(ThisViewModelCalculatorDisplay.class);
+
         @Override
         public void setPrimaryDisplay(String text, boolean isError) {
+            logger.info("primary display text={}, isErr={}", text, isError);
+
             displayProperty.set(text);
             if (isError) {
                 // TODO: https://freesound.org/people/anthonychartier2020/sounds/560189/
@@ -546,37 +561,36 @@ public class ScientificCalculatorViewModel {
 
         @Override
         public void setIsInError(boolean isInError) {
-
+            logger.info("set isErr={}", isInError);
         }
 
         @Override
         public void setExpressionDisplay(List<Pair<String, Integer>> tokens, List<IExpressionCommand> commands) {
-
+            logger.info("expr display: tokens={} commands={}", tokens, commands);
         }
 
         @Override
         public void setParenthesisNumber(int count) {
-
+            logger.info("set parens={}", count);
         }
 
         @Override
         public void onNoRightParenAdded() {
-
+            logger.info("no right paren!");
         }
 
         @Override
         public void maxDigitsReached() {
-
+            logger.info("max digits reached");
         }
 
         @Override
         public void binaryOperatorReceived() {
-
+            logger.info("binary operatior received");
         }
 
         @Override
         public void onHistoryItemAdded(int addedItemIndex) {
-
         }
 
         @Override
@@ -591,7 +605,7 @@ public class ScientificCalculatorViewModel {
 
         @Override
         public void inputChanged() {
-
+            logger.info("input changed");
         }
     }
 }
