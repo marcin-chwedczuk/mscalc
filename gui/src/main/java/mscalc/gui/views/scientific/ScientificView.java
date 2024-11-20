@@ -118,6 +118,20 @@ public class ScientificView extends VBox implements CalculatorView {
     @FXML
     private Button bChangeSign;
 
+    // Memory block
+
+    @FXML
+    private Button bMemoryClear;
+
+    @FXML
+    private Button bMemoryRecall;
+
+    @FXML
+    private Button bMemorySet;
+
+    @FXML
+    private Button bMemoryAdd;
+
     // Arithmetic block
 
     @FXML
@@ -225,6 +239,11 @@ public class ScientificView extends VBox implements CalculatorView {
         bindButton(bBitXor, viewModel.bitXorButton);
         bindButton(bBitNot, viewModel.bitNotButton);
         bindButton(bIntegralPart, viewModel.integerButton);
+
+        bindButton(bMemoryClear, viewModel.memoryClearButton);
+        bindButton(bMemoryRecall, viewModel.memoryRecallButton);
+        bindButton(bMemorySet, viewModel.memoryStoreButton);
+        bindButton(bMemoryAdd, viewModel.memoryAddButton);
 
         bindButton(bSine, viewModel.sineButton);
 

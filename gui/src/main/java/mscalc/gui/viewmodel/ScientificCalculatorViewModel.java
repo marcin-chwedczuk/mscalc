@@ -230,6 +230,28 @@ public class ScientificCalculatorViewModel {
             .withCommand(Command.CommandFloor)
             .build();
 
+    // -- MEMORY FUNCTIONS ---
+
+    public final InputViewModel memoryClearButton = newInputViewModel()
+            .withText("MC")
+            .withCommand(Command.CommandMCLEAR)
+            .build();
+
+    public final InputViewModel memoryRecallButton = newInputViewModel()
+            .withText("MR")
+            .withCommand(Command.CommandRECALL)
+            .build();
+
+    public final InputViewModel memoryStoreButton = newInputViewModel()
+            .withText("MS")
+            .withCommand(Command.CommandSTORE)
+            .build();
+
+    public final InputViewModel memoryAddButton = newInputViewModel()
+            .withText("M+")
+            .withCommand(Command.CommandMPLUS)
+            .build();
+
     // --- SCIENTIFIC FUNCTIONS ---
 
     public final InputViewModel sineButton = newInputViewModel()
