@@ -52,7 +52,6 @@ public class ExpTests {
 
             String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
 
-            // System.out.printf("exp(%s) = %s%n", x, actual);
             assertEquals(expected, actual);
         }
     }
@@ -109,7 +108,6 @@ public class ExpTests {
 
             String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
 
-            // System.out.printf("ln(%s) = %s%n", x, actual);
             assertEquals(expected, actual);
         }
     }
@@ -155,7 +153,6 @@ public class ExpTests {
 
             String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
 
-            // System.out.printf("ln(%s) = %s%n", x, actual);
             assertEquals(expected, actual);
         }
     }
@@ -214,7 +211,6 @@ public class ExpTests {
 
             String actual = Conv.RatToString(xRat, RatPack.NumberFormat.Float, RADIX_10, PRECISION);
 
-            // System.out.printf("(%s)^(%s) = %s%n", x, y, actual);
             assertEquals(expected, actual);
         }
     }

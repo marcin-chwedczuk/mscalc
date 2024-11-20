@@ -24,6 +24,7 @@
 
         <!-- Versions of dependencies -->
         <javafx.version>21.0.5</javafx.version>
+        <log4j2.version>2.24.1</log4j2.version>
 
         <!-- Versions of test dependencies -->
         <junit.version>5.8.2</junit.version>
@@ -95,6 +96,17 @@
                 <version>${javafx.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+
             <!-- Css Tool -->
             <dependency>
                 <groupId>org.reflections</groupId>
@@ -143,12 +155,6 @@
                 <groupId>org.testfx</groupId>
                 <artifactId>openjfx-monocle</artifactId>
                 <version>${openjfx-monocle.version}</version>
-            </dependency>
-            <dependency>
-                <!-- Needed for screenshot in TestFX -->
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-swing</artifactId>
-                <version>${javafx.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -40,7 +40,6 @@ public class CalcInputTests {
 
         calcInput.clear();
 
-        System.out.println(calcInput.toString(BASE_10));
         assertEquals("0", calcInput.toString(BASE_10), "Verify input is 0 after clear.");
     }
 

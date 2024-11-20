@@ -5,6 +5,8 @@ import mscalc.engine.commands.Command;
 import mscalc.engine.commands.IExpressionCommand;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.resource.ResourceProvider;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,8 @@ import static mscalc.engine.Commands.*;
 import static mscalc.engine.ratpack.CalcErr.*;
 
 public class CalculatorManager implements CalcDisplay {
+    private static final Logger logger = LogManager.getLogger(CalculatorManager.class);
+
     private static final int m_maximumMemorySize = 100;
     private static final int MAX_HISTORY_ITEMS = 20;
 

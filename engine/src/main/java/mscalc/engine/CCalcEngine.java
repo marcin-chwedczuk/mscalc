@@ -129,7 +129,7 @@ public class CCalcEngine {
         for (var sid : g_sids) {
             var locString = resourceProvider.getCEngineString(sid);
             if (!locString.isEmpty()) {
-                System.out.printf("Loaded: %s -> %s%n", sid, locString);
+                // System.out.printf("Loaded: %s -> %s%n", sid, locString);
                 engineStrings.put(sid, locString);
             }
         }

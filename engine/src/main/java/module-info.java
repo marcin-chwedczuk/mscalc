@@ -6,4 +6,5 @@ module mscalc.engine {
     exports mscalc.engine.resource;
 
     requires java.xml;
+    requires org.apache.logging.log4j;
 }

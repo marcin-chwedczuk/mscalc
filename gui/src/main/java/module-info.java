@@ -5,6 +5,9 @@ module mscalc.gui {
     requires javafx.fxml;
     requires javafx.media;
 
+    requires org.apache.logging.log4j;
+    requires java.xml; // for log4j2
+
     exports mscalc.gui;
     exports mscalc.gui.mainwindow;
     exports mscalc.gui.views;
@@ -28,5 +31,6 @@ module mscalc.gui {
     requires javafx.web;
     requires vaadin.sass.compiler;
     requires sac;
+
 
 }

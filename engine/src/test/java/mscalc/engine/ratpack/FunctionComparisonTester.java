@@ -4,6 +4,8 @@ import mscalc.engine.cpp.ErrorCodeException;
 import mscalc.engine.cpp.Ptr;
 import mscalc.engine.cpp.uint;
 import mscalc.engine.ratpack.RatPack.RAT;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -12,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class FunctionComparisonTester {
+    private static final Logger logger = LogManager.getLogger(FunctionComparisonTester.class);
+
+
     // Number of digits used in assertions
     private static final int CMP_TEST_PRECISION = 10;
 
@@ -45,14 +50,14 @@ public abstract class FunctionComparisonTester {
         int nTests = 0;
         for (double x = from; x < to; x += step) {
             try {
-                System.out.println("Testing " + sutName + " for " + x);
+                logger.debug("Testing {} for {}", sutName, x);
                 runTest(x);
             } catch (ErrorCodeException e) {
                 fail("Unexpected exception: " + e + ", for value x = " + x);
             }
             nTests++;
         }
-        System.out.println("Function: " + sutName + ": " + nTests + " comparison tests ran.");
+        logger.info("Function {}: {} comparison tests ran.", sutName, nTests);
     }
 
     private void runTest(double x) {
