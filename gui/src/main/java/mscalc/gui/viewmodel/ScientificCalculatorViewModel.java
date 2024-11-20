@@ -1,31 +1,135 @@
 package mscalc.gui.viewmodel;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanExpression;
 import javafx.beans.property.*;
-import javafx.scene.media.AudioClip;
-import mscalc.engine.CalcDisplay;
-import mscalc.engine.CalculatorManager;
-import mscalc.engine.Pair;
+import javafx.beans.value.ObservableValue;
+import mscalc.engine.*;
 import mscalc.engine.commands.Command;
 import mscalc.engine.commands.IExpressionCommand;
 import mscalc.engine.resource.JavaBundleResourceProvider;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class ScientificCalculatorViewModel {
+    private final List<InputViewModel> allInputs = new ArrayList<>();
+
     private final CalculatorManager calculatorManager = new CalculatorManager(
             new ThisViewModelCalculatorDisplay(),
             new JavaBundleResourceProvider());
 
-    private final BooleanProperty invertedMode = new SimpleBooleanProperty(false);
-    private final BooleanProperty hyperbolicMode = new SimpleBooleanProperty(false);
+    public final BooleanProperty invertedModeProperty = new SimpleBooleanProperty(false);
+    public final BooleanProperty hyperbolicModeProperty = new SimpleBooleanProperty(false);
+
+    public final BooleanProperty degreeGroupingProperty = new SimpleBooleanProperty(true);
+
+    public final ObjectProperty<RadixType> radixProperty = new SimpleObjectProperty<>(RadixType.Decimal);
+    public final ObjectProperty<NumberWidth> integerNumberWidthProperty = new SimpleObjectProperty<>(NumberWidth.QWORD_WIDTH);
+    public final ObjectProperty<DegreeType> degreeTypeProperty = new SimpleObjectProperty<>(DegreeType.Degrees);
 
     public final StringProperty displayProperty = new SimpleStringProperty("");
 
-    public final InputViewModel digitOneButton = newInputViewModel()
+    // --- INPUT DIGITS & CONSTANTS ----
+    public final InputViewModel digit0Button = newInputViewModel()
+            .withText("0")
+            .withCommand(Command.Command0)
+            .build();
+
+    public final InputViewModel digit1Button = newInputViewModel()
             .withText("1")
             .withCommand(Command.Command1)
+            .build();
+
+    public final InputViewModel digit2Button = newInputViewModel()
+            .withText("2")
+            .withCommand(Command.Command2)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(2)))
+            .build();
+
+    public final InputViewModel digit3Button = newInputViewModel()
+            .withText("3")
+            .withCommand(Command.Command3)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(3)))
+            .build();
+
+    public final InputViewModel digit4Button = newInputViewModel()
+            .withText("4")
+            .withCommand(Command.Command4)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(4)))
+            .build();
+
+    public final InputViewModel digit5Button = newInputViewModel()
+            .withText("5")
+            .withCommand(Command.Command5)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(5)))
+            .build();
+
+    public final InputViewModel digit6Button = newInputViewModel()
+            .withText("6")
+            .withCommand(Command.Command6)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(6)))
+            .build();
+
+    public final InputViewModel digit7Button = newInputViewModel()
+            .withText("7")
+            .withCommand(Command.Command7)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(7)))
+            .build();
+
+    public final InputViewModel digit8Button = newInputViewModel()
+            .withText("8")
+            .withCommand(Command.Command8)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(8)))
+            .build();
+
+    public final InputViewModel digit9Button = newInputViewModel()
+            .withText("9")
+            .withCommand(Command.Command9)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(9)))
+            .build();
+
+    public final InputViewModel digitAButton = newInputViewModel()
+            .withText("A")
+            .withCommand(Command.CommandA)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(0xA)))
+            .build();
+
+    public final InputViewModel digitBButton = newInputViewModel()
+            .withText("B")
+            .withCommand(Command.CommandB)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(0xB)))
+            .build();
+
+    public final InputViewModel digitCButton = newInputViewModel()
+            .withText("C")
+            .withCommand(Command.CommandC)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(0xC)))
+            .build();
+
+    public final InputViewModel digitDButton = newInputViewModel()
+            .withText("D")
+            .withCommand(Command.CommandD)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(0xD)))
+            .build();
+
+    public final InputViewModel digitEButton = newInputViewModel()
+            .withText("E")
+            .withCommand(Command.CommandE)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(0xE)))
+            .build();
+
+    public final InputViewModel digitFButton = newInputViewModel()
+            .withText("F")
+            .withCommand(Command.CommandF)
+            .withEnabled(MoreBindings.map(radixProperty, r -> r.hasDigit(0xF)))
+            .build();
+
+    public final InputViewModel piButton = newInputViewModel()
+            .withText("π")
+            .withCommand(Command.CommandPI)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
             .build();
 
     public final InputViewModel sineButton = newInputViewModel()
@@ -42,41 +146,10 @@ public class ScientificCalculatorViewModel {
         return new InputViewModelBuilder();
     }
 
-    public class InputViewModel {
-        private final StringProperty textProperty;
-        private final ObjectProperty<Command> commandProperty;
-        private final BooleanProperty enabledProperty;
-
-        public InputViewModel(StringProperty textProperty,
-                              ObjectProperty<Command> commandProperty,
-                              BooleanProperty enabledProperty) {
-
-            this.textProperty = Objects.requireNonNull(textProperty);
-            this.commandProperty = Objects.requireNonNull(commandProperty);
-            this.enabledProperty = Objects.requireNonNull(enabledProperty);
-        }
-
-        public void execute() {
-            calculatorManager.sendCommand(this.commandProperty.get());
-        }
-
-        public ReadOnlyStringProperty textProperty() {
-            return this.textProperty;
-        }
-
-        public ReadOnlyObjectProperty<Command> commandProperty() {
-            return this.commandProperty;
-        }
-
-        public ReadOnlyBooleanProperty enabledProperty() {
-            return this.enabledProperty;
-        }
-    }
-
     public class InputViewModelBuilder {
         private StringProperty textProperty;
         private ObjectProperty<Command> commandProperty;
-        private BooleanProperty enabledProperty = new ReadOnlyBooleanWrapper(true);
+        private BooleanExpression enabledProperty = new ReadOnlyBooleanWrapper(true);
 
         public InputViewModelBuilder withText(String staticText) {
             return withText(new ReadOnlyStringWrapper(staticText));
@@ -96,14 +169,46 @@ public class ScientificCalculatorViewModel {
             return this;
         }
 
-        public InputViewModelBuilder withEnabled(BooleanProperty enabledProperty) {
+        public InputViewModelBuilder withEnabled(BooleanExpression enabledProperty) {
             this.enabledProperty = enabledProperty;
             return this;
         }
 
         public InputViewModel build() {
-            return new InputViewModel(
-                    textProperty, commandProperty, enabledProperty);
+            var ivm = new InputViewModel(textProperty, commandProperty, enabledProperty);
+            allInputs.add(ivm);
+            return ivm;
+        }
+    }
+
+    public class InputViewModel {
+        private final StringProperty textProperty;
+        private final ObjectProperty<Command> commandProperty;
+        private final BooleanExpression enabledProperty;
+
+        public InputViewModel(StringProperty textProperty,
+                              ObjectProperty<Command> commandProperty,
+                              BooleanExpression enabledProperty) {
+
+            this.textProperty = Objects.requireNonNull(textProperty);
+            this.commandProperty = Objects.requireNonNull(commandProperty);
+            this.enabledProperty = Objects.requireNonNull(enabledProperty);
+        }
+
+        public void execute() {
+            calculatorManager.sendCommand(this.commandProperty.get());
+        }
+
+        public ReadOnlyStringProperty textProperty() {
+            return this.textProperty;
+        }
+
+        public ReadOnlyObjectProperty<Command> commandProperty() {
+            return this.commandProperty;
+        }
+
+        public BooleanExpression enabledProperty() {
+            return this.enabledProperty;
         }
     }
 

@@ -1,7 +1,7 @@
 package mscalc.engine;
 
 // This is expected to be in same order as IDM_QWORD, IDM_DWORD etc.
-enum NUM_WIDTH
+public enum NumberWidth
 {
     UNDEFINED(-1),
     QWORD_WIDTH(0), // Number width of 64 bits mode (default)
@@ -11,7 +11,7 @@ enum NUM_WIDTH
 
     private final int value;
 
-    private NUM_WIDTH(int v) {
+    private NumberWidth(int v) {
         this.value = v;
     }
 
@@ -19,7 +19,7 @@ enum NUM_WIDTH
         return value;
     }
 
-    public static NUM_WIDTH fromInt(int n) {
+    public static NumberWidth fromInt(int n) {
         return switch (n) {
             case 0 -> QWORD_WIDTH;
             case 1 -> DWORD_WIDTH;

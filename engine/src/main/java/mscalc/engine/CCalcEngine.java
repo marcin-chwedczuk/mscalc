@@ -12,9 +12,7 @@ import mscalc.engine.resource.ResourceProvider;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 
 import static java.util.Map.entry;
@@ -250,7 +248,7 @@ public class CCalcEngine {
     int m_precedenceOpCount;              /* Current number of precedence ops in holding. */
     int m_nLastCom;                          // Last command entered.
     AngleType m_angletype;                   // Current Angle type when in dec mode. one of deg, rad or grad
-    NUM_WIDTH m_numwidth;                    // one of qword, dword, word or byte mode.
+    NumberWidth m_numwidth;                    // one of qword, dword, word or byte mode.
     int m_dwWordBitWidth;                // # of bits in currently selected word size
 
     Random m_randomGeneratorEngine = new Random();
@@ -298,7 +296,7 @@ public class CCalcEngine {
         m_precedenceOpCount = (0);
         m_nLastCom = (0);
         m_angletype = (AngleType.Degrees);
-        m_numwidth = (NUM_WIDTH.QWORD_WIDTH);
+        m_numwidth = (NumberWidth.QWORD_WIDTH);
         m_HistoryCollector = new History(pCalcDisplay, pHistoryDisplay, DEFAULT_DEC_SEPARATOR);
         m_groupSeparator = (DEFAULT_GRP_SEPARATOR);
 
@@ -954,7 +952,7 @@ public class CCalcEngine {
             case IDM_DEC:
             case IDM_OCT:
             case IDM_BIN: {
-                SetRadixTypeAndNumWidth(RadixType.fromCppValue(wParam - IDM_HEX), NUM_WIDTH.UNDEFINED); // TODO: cast -1 to enum; Add undef value to enum
+                SetRadixTypeAndNumWidth(RadixType.fromInt(wParam - IDM_HEX), NumberWidth.UNDEFINED); // TODO: cast -1 to enum; Add undef value to enum
                 m_HistoryCollector.updateHistoryExpression(m_radix, m_precision);
                 break;
             }
@@ -969,7 +967,7 @@ public class CCalcEngine {
                 }
 
                 // Compat. mode BaseX: Qword, Dword, Word, Byte
-                SetRadixTypeAndNumWidth(RadixType.Unknown, NUM_WIDTH.fromInt(wParam - IDM_QWORD));
+                SetRadixTypeAndNumWidth(RadixType.Unknown, NumberWidth.fromInt(wParam - IDM_QWORD));
                 break;
 
             case IDM_DEG:
@@ -1277,7 +1275,7 @@ public class CCalcEngine {
         int precision;
         uint radix;
         int nFE;
-        NUM_WIDTH numwidth;
+        NumberWidth numwidth;
         boolean fIntMath;
         boolean bRecord;
         boolean bUseSep;
@@ -1287,7 +1285,7 @@ public class CCalcEngine {
                 int precision,
                 uint radix,
                 int nFE,
-                NUM_WIDTH numwidth,
+                NumberWidth numwidth,
                 boolean fIntMath,
                 boolean bRecord,
                 boolean bUseSep
@@ -1304,7 +1302,7 @@ public class CCalcEngine {
         }
     }
 
-    static LASTDISP gldPrevious = new LASTDISP(Rational.of(0), -1, uint.ZERO, -1, NUM_WIDTH.UNDEFINED, false, false, false);
+    static LASTDISP gldPrevious = new LASTDISP(Rational.of(0), -1, uint.ZERO, -1, NumberWidth.UNDEFINED, false, false, false);
 
     // Truncates if too big, makes it a non negative - the number in rat. Doesn't do anything if not in INT mode
     Rational TruncateNumForIntMath(Rational rat) {
@@ -2005,7 +2003,7 @@ public class CCalcEngine {
 
     // To be called when either the radix or num width changes. You can use -1 in either of these values to mean
     // dont change that.
-    void SetRadixTypeAndNumWidth(RadixType radixtype, NUM_WIDTH numwidth) {
+    void SetRadixTypeAndNumWidth(RadixType radixtype, NumberWidth numwidth) {
         // When in integer mode, the number is represented in 2's complement form. When a bit width is changing, we can
         // change the number representation back to sign, abs num form in ratpak. Soon when display sees this, it will
         // convert to 2's complement form, but this time all high bits will be propagated. Eg. -127, in byte mode is
@@ -2023,13 +2021,13 @@ public class CCalcEngine {
             }
         }
 
-        if (radixtype.cppValue() >= RadixType.Hex.cppValue() && radixtype.cppValue() <= RadixType.Binary.cppValue()) {
+        if (radixtype.toInt() >= RadixType.Hex.toInt() && radixtype.toInt() <= RadixType.Binary.toInt()) {
             m_radix = uint.of(NRadixFromRadixType(radixtype));
             // radixtype is not even saved
         }
 
         // TODO: Better validation
-        if (numwidth.toInt() >= NUM_WIDTH.QWORD_WIDTH.toInt() && numwidth.toInt() <= NUM_WIDTH.BYTE_WIDTH.toInt()) {
+        if (numwidth.toInt() >= NumberWidth.QWORD_WIDTH.toInt() && numwidth.toInt() <= NumberWidth.BYTE_WIDTH.toInt()) {
             m_numwidth = numwidth;
             m_dwWordBitWidth = DwWordBitWidthFromNumWidth(numwidth);
         }
@@ -2042,15 +2040,15 @@ public class CCalcEngine {
         DisplayNum();
     }
 
-    int DwWordBitWidthFromNumWidth(NUM_WIDTH numwidth) {
+    int DwWordBitWidthFromNumWidth(NumberWidth numwidth) {
         switch (numwidth) {
-            case NUM_WIDTH.DWORD_WIDTH:
+            case NumberWidth.DWORD_WIDTH:
                 return 32;
-            case NUM_WIDTH.WORD_WIDTH:
+            case NumberWidth.WORD_WIDTH:
                 return 16;
-            case NUM_WIDTH.BYTE_WIDTH:
+            case NumberWidth.BYTE_WIDTH:
                 return 8;
-            case NUM_WIDTH.QWORD_WIDTH:
+            case NumberWidth.QWORD_WIDTH:
             default:
                 return 64;
         }

@@ -39,12 +39,74 @@ public class ScientificView extends VBox implements CalculatorView {
     private Button bDigit1;
 
     @FXML
+    private Button bDigit2;
+
+    @FXML
+    private Button bDigit3;
+
+    @FXML
+    private Button bDigit4;
+
+    @FXML
+    private Button bDigit5;
+
+    @FXML
+    private Button bDigit6;
+
+    @FXML
+    private Button bDigit7;
+
+    @FXML
+    private Button bDigit8;
+
+    @FXML
+    private Button bDigit9;
+
+    @FXML
+    private Button bDigitA;
+
+    @FXML
+    private Button bDigitB;
+
+    @FXML
+    private Button bDigitC;
+
+    @FXML
+    private Button bDigitD;
+
+    @FXML
+    private Button bDigitE;
+
+    @FXML
+    private Button bDigitF;
+
+    @FXML
+    private Button bPiNumber;
+
+    @FXML
     private Button bSine;
 
     public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
 
-        bindButton(bDigit1, viewModel.digitOneButton);
+        bindButton(bDigit1, viewModel.digit1Button);
+        bindButton(bDigit2, viewModel.digit2Button);
+        bindButton(bDigit3, viewModel.digit3Button);
+        bindButton(bDigit4, viewModel.digit4Button);
+        bindButton(bDigit5, viewModel.digit5Button);
+        bindButton(bDigit6, viewModel.digit6Button);
+        bindButton(bDigit7, viewModel.digit7Button);
+        bindButton(bDigit8, viewModel.digit8Button);
+        bindButton(bDigit9, viewModel.digit9Button);
+        bindButton(bDigitA, viewModel.digitAButton);
+        bindButton(bDigitB, viewModel.digitBButton);
+        bindButton(bDigitC, viewModel.digitCButton);
+        bindButton(bDigitD, viewModel.digitDButton);
+        bindButton(bDigitE, viewModel.digitEButton);
+        bindButton(bDigitF, viewModel.digitFButton);
+        bindButton(bPiNumber, viewModel.piButton);
+
+
         bindButton(bSine, viewModel.sineButton);
 
         try {
