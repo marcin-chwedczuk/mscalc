@@ -1,5 +1,8 @@
 package mscalc.engine.commands;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum Command {
     CommandNULL(0),
     // Commands for programmer calculators are omitted.
@@ -218,11 +221,17 @@ public enum Command {
         return value;
     }
 
-    public static Command fromInt(int n) {
-        for (Command cmd : Command.values()) {
-            if (cmd.toInt() == n) return cmd;
-        }
+    private static Map<Integer, Command> command2Enum = new HashMap<>();
 
-        throw new IllegalArgumentException("Invalid value: " + n);
+    public static Command fromInt(int command) {
+        synchronized (command2Enum) {
+            if (command2Enum.isEmpty()) {
+                for (Command enumValue : Command.values()) {
+                    command2Enum.put(enumValue.toInt(), enumValue);
+                }
+            }
+
+            return command2Enum.get(command);
+        }
     }
 }

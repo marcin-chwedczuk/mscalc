@@ -187,68 +187,68 @@ public class History {
             if (IDC_SIGN == nOpCode) {
                 spExpressionCommand = new CUnaryCommand(nOpCode);
             } else {
-                CalculationManagerCommand angleOpCode;
+                Command angleOpCode;
                 if (angletype == AngleType.Degrees) {
-                    angleOpCode = CalculationManagerCommand.CommandDEG;
+                    angleOpCode = Command.CommandDEG;
                 } else if (angletype == AngleType.Radians) {
-                    angleOpCode = CalculationManagerCommand.CommandRAD;
+                    angleOpCode = Command.CommandRAD;
                 } else // (angletype == AngleType::Gradians)
                 {
-                    angleOpCode = CalculationManagerCommand.CommandGRAD;
+                    angleOpCode = Command.CommandGRAD;
                 }
 
                 int command = nOpCode;
                 switch (nOpCode) {
                     case IDC_SIN:
-                        command = fInv ? CalculationManagerCommand.CommandASIN.toCommandInt() : IDC_SIN;
-                        spExpressionCommand = new CUnaryCommand(angleOpCode.toCommandInt(), command);
+                        command = fInv ? Command.CommandASIN.toInt() : IDC_SIN;
+                        spExpressionCommand = new CUnaryCommand(angleOpCode.toInt(), command);
                         break;
                     case IDC_COS:
-                        command = fInv ? CalculationManagerCommand.CommandACOS.toCommandInt() : IDC_COS;
-                        spExpressionCommand = new CUnaryCommand((angleOpCode.toCommandInt()), command);
+                        command = fInv ? Command.CommandACOS.toInt() : IDC_COS;
+                        spExpressionCommand = new CUnaryCommand((angleOpCode.toInt()), command);
                         break;
                     case IDC_TAN:
-                        command = fInv ? CalculationManagerCommand.CommandATAN.toCommandInt() : IDC_TAN;
-                        spExpressionCommand = new CUnaryCommand((angleOpCode.toCommandInt()), command);
+                        command = fInv ? Command.CommandATAN.toInt() : IDC_TAN;
+                        spExpressionCommand = new CUnaryCommand((angleOpCode.toInt()), command);
                         break;
                     case IDC_SINH:
-                        command = fInv ? CalculationManagerCommand.CommandASINH.toCommandInt() : IDC_SINH;
+                        command = fInv ? Command.CommandASINH.toInt() : IDC_SINH;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     case IDC_COSH:
-                        command = fInv ? CalculationManagerCommand.CommandACOSH.toCommandInt() : IDC_COSH;
+                        command = fInv ? Command.CommandACOSH.toInt() : IDC_COSH;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     case IDC_TANH:
-                        command = fInv ? CalculationManagerCommand.CommandATANH.toCommandInt() : IDC_TANH;
+                        command = fInv ? Command.CommandATANH.toInt() : IDC_TANH;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     case IDC_SEC:
-                        command = fInv ? CalculationManagerCommand.CommandASEC.toCommandInt() : IDC_SEC;
-                        spExpressionCommand = new CUnaryCommand(angleOpCode.toCommandInt(), command);
+                        command = fInv ? Command.CommandASEC.toInt() : IDC_SEC;
+                        spExpressionCommand = new CUnaryCommand(angleOpCode.toInt(), command);
                         break;
                     case IDC_CSC:
-                        command = fInv ? CalculationManagerCommand.CommandACSC.toCommandInt() : IDC_CSC;
-                        spExpressionCommand = new CUnaryCommand(angleOpCode.toCommandInt(), command);
+                        command = fInv ? Command.CommandACSC.toInt() : IDC_CSC;
+                        spExpressionCommand = new CUnaryCommand(angleOpCode.toInt(), command);
                         break;
                     case IDC_COT:
-                        command = fInv ? CalculationManagerCommand.CommandACOT.toCommandInt() : IDC_COT;
-                        spExpressionCommand = new CUnaryCommand(angleOpCode.toCommandInt(), command);
+                        command = fInv ? Command.CommandACOT.toInt() : IDC_COT;
+                        spExpressionCommand = new CUnaryCommand(angleOpCode.toInt(), command);
                         break;
                     case IDC_SECH:
-                        command = fInv ? CalculationManagerCommand.CommandASECH.toCommandInt() : IDC_SECH;
+                        command = fInv ? Command.CommandASECH.toInt() : IDC_SECH;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     case IDC_CSCH:
-                        command = fInv ? CalculationManagerCommand.CommandACSCH.toCommandInt() : IDC_CSCH;
+                        command = fInv ? Command.CommandACSCH.toInt() : IDC_CSCH;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     case IDC_COTH:
-                        command = fInv ? CalculationManagerCommand.CommandACOTH.toCommandInt() : IDC_COTH;
+                        command = fInv ? Command.CommandACOTH.toInt() : IDC_COTH;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     case IDC_LN:
-                        command = fInv ? CalculationManagerCommand.CommandPOWE.toCommandInt() : IDC_LN;
+                        command = fInv ? Command.CommandPOWE.toInt() : IDC_LN;
                         spExpressionCommand = new CUnaryCommand(command);
                         break;
                     default:

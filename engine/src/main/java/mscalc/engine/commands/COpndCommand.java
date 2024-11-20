@@ -47,7 +47,7 @@ public class COpndCommand implements IOpndCommand {
     public void appendCommand(int command) {
         if (fSciFmt)
         {
-            ClearAllAndAppendCommand(CalculationManagerCommand.fromCommandInt(command));
+            ClearAllAndAppendCommand(Command.fromInt(command));
         }
         else
         {
@@ -60,10 +60,10 @@ public class COpndCommand implements IOpndCommand {
         }
     }
 
-    void ClearAllAndAppendCommand(CalculationManagerCommand command)
+    void ClearAllAndAppendCommand(Command command)
     {
         commands.clear();
-        commands.add(command.toCommandInt());
+        commands.add(command.toInt());
         fSciFmt = false;
         fNegative = false;
         fDecimal = false;
@@ -85,7 +85,7 @@ public class COpndCommand implements IOpndCommand {
     public void removeFromEnd() {
         if (fSciFmt)
         {
-            ClearAllAndAppendCommand(CalculationManagerCommand.Command0);
+            ClearAllAndAppendCommand(Command.Command0);
         }
         else
         {
@@ -93,7 +93,7 @@ public class COpndCommand implements IOpndCommand {
 
             if (nCommands == 1)
             {
-                ClearAllAndAppendCommand(CalculationManagerCommand.Command0);
+                ClearAllAndAppendCommand(Command.Command0);
             }
             else
             {
