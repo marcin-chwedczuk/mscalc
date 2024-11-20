@@ -2,11 +2,9 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
-
 <fx:root xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
-      type="javafx.scene.layout.VBox"
-      stylesheets="@ScientificView.css" styleClass="scientificView">
+         type="javafx.scene.layout.VBox"
+         stylesheets="@ScientificView.css" styleClass="scientificView">
     <children>
         <TextField fx:id="display" disable="true" styleClass="display" />
         <HBox VBox.vgrow="NEVER" styleClass="selectorsContainer">
@@ -14,12 +12,12 @@
                 <HBox styleClass="selectBaseArea" HBox.hgrow="ALWAYS">
                     <children>
                         <fx:define>
-                            <ToggleGroup fx:id="baseToggleGroup" />
+                            <ToggleGroup fx:id="radixToggleGroup"/>
                         </fx:define>
-                        <RadioButton mnemonicParsing="false" toggleGroup="${baseToggleGroup}" text="Hex" />
-                        <RadioButton mnemonicParsing="false" toggleGroup="${baseToggleGroup}" text="Dec" />
-                        <RadioButton mnemonicParsing="false" toggleGroup="${baseToggleGroup}" text="Oct" />
-                        <RadioButton mnemonicParsing="false" toggleGroup="${baseToggleGroup}" text="Bin" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${radixToggleGroup}" text="Hex" fx:id="radioRadixHex" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${radixToggleGroup}" text="Dec" fx:id="radioRadixDec" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${radixToggleGroup}" text="Oct" fx:id="radioRadixOct" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${radixToggleGroup}" text="Bin" fx:id="radioRadixBin" />
                     </children>
                 </HBox>
                 <HBox styleClass="selectAngleTypeArea">

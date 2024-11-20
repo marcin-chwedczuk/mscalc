@@ -1,19 +1,27 @@
 package mscalc.gui.views.scientific;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import mscalc.engine.RadixType;
+import mscalc.gui.App;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel;
 import mscalc.gui.views.CalculatorView;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
 public class ScientificView extends VBox implements CalculatorView {
+    private static final Logger logger = LogManager.getLogger(ScientificView.class);
+
     private final ScientificCalculatorViewModel viewModel = new ScientificCalculatorViewModel();
 
     public ScientificView() {
@@ -34,6 +42,20 @@ public class ScientificView extends VBox implements CalculatorView {
 
     @FXML
     private TextField display;
+
+    @FXML
+    private ToggleGroup radixToggleGroup;
+    @FXML
+    private RadioButton radioRadixHex;
+    @FXML
+    private RadioButton radioRadixDec;
+    @FXML
+    private RadioButton radioRadixOct;
+    @FXML
+    private RadioButton radioRadixBin;
+
+    @FXML
+    private Button bDigit0;
 
     @FXML
     private Button bDigit1;
@@ -89,6 +111,29 @@ public class ScientificView extends VBox implements CalculatorView {
     public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
 
+        radixToggleGroup.selectToggle(radioRadixDec);
+        viewModel.radixProperty.addListener((observable, oldValue, newValue) -> {
+            logger.info("Selected radix from ViewModel: {}", newValue);
+            radixToggleGroup.selectToggle(switch (newValue) {
+                case Hex -> radioRadixHex;
+                case Decimal -> radioRadixDec;
+                case Octal -> radioRadixOct;
+                case Binary -> radioRadixBin;
+                default -> null;
+            });
+        });
+        radixToggleGroup.selectedToggleProperty().addListener((observableValue, oldValue, newValue) -> {
+            RadixType radix =
+                            (newValue == radioRadixHex) ? RadixType.Hex :
+                            (newValue == radioRadixDec) ? RadixType.Decimal :
+                            (newValue == radioRadixOct) ? RadixType.Octal :
+                            (newValue == radioRadixBin) ? RadixType.Binary :
+                            null;
+            logger.info("Selected radix from UI: {}", radix);
+            viewModel.radixProperty.set(radix);
+        });
+
+        bindButton(bDigit0, viewModel.digit0Button);
         bindButton(bDigit1, viewModel.digit1Button);
         bindButton(bDigit2, viewModel.digit2Button);
         bindButton(bDigit3, viewModel.digit3Button);

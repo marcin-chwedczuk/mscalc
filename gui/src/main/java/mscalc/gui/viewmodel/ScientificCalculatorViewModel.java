@@ -8,12 +8,19 @@ import mscalc.engine.*;
 import mscalc.engine.commands.Command;
 import mscalc.engine.commands.IExpressionCommand;
 import mscalc.engine.resource.JavaBundleResourceProvider;
+import mscalc.gui.views.scientific.ScientificView;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class ScientificCalculatorViewModel {
+    private static final Logger logger = LogManager.getLogger(ScientificCalculatorViewModel.class);
+
+
+
     private final List<InputViewModel> allInputs = new ArrayList<>();
 
     private final CalculatorManager calculatorManager = new CalculatorManager(
