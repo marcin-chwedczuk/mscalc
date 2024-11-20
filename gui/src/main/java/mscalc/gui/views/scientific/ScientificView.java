@@ -173,7 +173,53 @@ public class ScientificView extends VBox implements CalculatorView {
     // Scientific block
 
     @FXML
+    private Button bScientificNotation;
+
+    @FXML
+    private Button bDegreesMinutesSeconds;
+
+    @FXML
     private Button bSine;
+
+    @FXML
+    private Button bCosine;
+
+    @FXML
+    private Button bTangent;
+
+    // --
+
+    @FXML
+    private Button bOpenBracket;
+
+    @FXML
+    private Button bEnterScientific;
+
+    @FXML
+    private Button bPower;
+
+    @FXML
+    private Button bCube;
+
+    @FXML
+    private Button bSquare;
+
+    // --
+
+    @FXML
+    private Button bCloseBracket;
+
+    @FXML
+    private Button bNaturalLog;
+
+    @FXML
+    private Button b10Logarithm;
+
+    @FXML
+    private Button bFactorial;
+
+    @FXML
+    private Button bOneOverX;
 
     public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
@@ -245,7 +291,23 @@ public class ScientificView extends VBox implements CalculatorView {
         bindButton(bMemorySet, viewModel.memoryStoreButton);
         bindButton(bMemoryAdd, viewModel.memoryAddButton);
 
+        bindButton(bScientificNotation, viewModel.scientificNotationOnOffButton);
+        bindButton(bDegreesMinutesSeconds, viewModel.dmsButton);
         bindButton(bSine, viewModel.sineButton);
+        bindButton(bCosine, viewModel.cosineButton);
+        bindButton(bTangent, viewModel.tangentButton);
+
+        bindButton(bOpenBracket, viewModel.openBracketButton);
+        bindButton(bEnterScientific, viewModel.enterExponentButton);
+        bindButton(bPower, viewModel.powerButton);
+        bindButton(bCube, viewModel.cubeButton);
+        bindButton(bSquare, viewModel.squareButton);
+
+        bindButton(bCloseBracket, viewModel.closeBracketButton);
+        bindButton(bNaturalLog, viewModel.lnButton);
+        bindButton(b10Logarithm, viewModel.logButton);
+        bindButton(bFactorial, viewModel.factorialButton);
+        bindButton(bOneOverX, viewModel.reciprocalButton);
 
         try {
             scene.setOnKeyPressed(this::onKeyPressed);

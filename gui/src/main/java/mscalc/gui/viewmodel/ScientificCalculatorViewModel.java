@@ -254,9 +254,89 @@ public class ScientificCalculatorViewModel {
 
     // --- SCIENTIFIC FUNCTIONS ---
 
+    public final InputViewModel scientificNotationOnOffButton = newInputViewModel()
+            .withText("F-E")
+            .withCommand(Command.CommandFE)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel dmsButton = newInputViewModel()
+            .withText("dms")
+            .withCommand(Command.CommandDMS)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
     public final InputViewModel sineButton = newInputViewModel()
             .withText("sine")
             .withCommand(Command.CommandSIN)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel cosineButton = newInputViewModel()
+            .withText("cos")
+            .withCommand(Command.CommandCOS)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel tangentButton = newInputViewModel()
+            .withText("tan")
+            .withCommand(Command.CommandTAN)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    // --
+
+    public final InputViewModel openBracketButton = newInputViewModel()
+            .withText("(")
+            .withCommand(Command.CommandOPENP)
+            .build();
+
+    public final InputViewModel enterExponentButton = newInputViewModel()
+            .withText("Exp")
+            .withCommand(Command.CommandEXP)
+            .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel powerButton = newInputViewModel()
+            .withText("x^y")
+            .withCommand(Command.CommandPWR)
+            .build();
+
+    public final InputViewModel cubeButton = newInputViewModel()
+            .withText("x^3")
+            .withCommand(Command.CommandCUB)
+            .build();
+
+    public final InputViewModel squareButton = newInputViewModel()
+            .withText("x^2")
+            .withCommand(Command.CommandSQR)
+            .build();
+
+    // --
+
+    public final InputViewModel closeBracketButton = newInputViewModel()
+            .withText(")")
+            .withCommand(Command.CommandCLOSEP)
+            .build();
+
+    public final InputViewModel lnButton = newInputViewModel()
+            .withText("ln")
+            .withCommand(Command.CommandLN)
+            .build();
+
+    public final InputViewModel logButton = newInputViewModel()
+            .withText("log")
+            .withCommand(Command.CommandLOG)
+            .build();
+
+    public final InputViewModel factorialButton = newInputViewModel()
+            .withText("n!")
+            .withCommand(Command.CommandFAC)
+            .build();
+
+    public final InputViewModel reciprocalButton = newInputViewModel()
+            .withText("1/x")
+            .withCommand(Command.CommandREC)
             .build();
 
     public ScientificCalculatorViewModel() {
