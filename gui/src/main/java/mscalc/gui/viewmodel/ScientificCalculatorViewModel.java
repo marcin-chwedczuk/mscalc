@@ -37,6 +37,19 @@ public class ScientificCalculatorViewModel {
 
     public final StringProperty displayProperty = new SimpleStringProperty("");
 
+    // -- INVERT & HYP BUTTONS ---
+    public final InputViewModel invertButton = newInputViewModel()
+            .withText("Inverse")
+            .withCommand(Command.CommandINV)
+            .withKeyboardShortcut(KeyCode.I)
+            .build();
+
+    public final InputViewModel hyperbolicButton = newInputViewModel()
+            .withText("Hyper")
+            .withCommand(Command.CommandHYP)
+            .withKeyboardShortcut(KeyCode.H)
+            .build();
+
     // --- CONTROL BUTTONS ---
     public final InputViewModel clearButton = newInputViewModel()
             .withText("C")
@@ -168,8 +181,9 @@ public class ScientificCalculatorViewModel {
             .build();
 
     public final InputViewModel piButton = newInputViewModel()
-            .withText("π")
-            .withCommand(Command.CommandPI)
+            .withModeText("π", "2π")
+            // TODO: Implement 2xPI
+            .withModeCommand(Command.CommandPI, Command.CommandPI)
             .withKeyboardShortcut(KeyCode.P)
             .withEnabled(radixProperty.isEqualTo(RadixType.Decimal))
             .build();
@@ -395,6 +409,8 @@ public class ScientificCalculatorViewModel {
     public ScientificCalculatorViewModel() {
         // Initialize Scientific mode
         calculatorManager.sendCommand(Command.ModeScientific);
+        // Select radians
+        calculatorManager.sendCommand(Command.CommandRAD);
     }
 
     public InputViewModelBuilder newInputViewModel() {
@@ -534,7 +550,19 @@ public class ScientificCalculatorViewModel {
         }
 
         public void execute() {
-            calculatorManager.sendCommand(this.commandProperty.get());
+            switch (this.commandProperty.get()) {
+                case CommandINV -> {
+                    invertedModeProperty.set(!invertedModeProperty.get());
+                }
+
+                case CommandHYP -> {
+                    hyperbolicModeProperty.set(!hyperbolicModeProperty.get());
+                }
+
+                default -> {
+                    calculatorManager.sendCommand(this.commandProperty.get());
+                }
+            }
         }
 
         public StringExpression textProperty() {

@@ -36,6 +36,8 @@
 
     .button {
         -fx-pref-width: 3.3em;
+        -fx-padding: 0.333333em 0.2em;
+
         // disable focus on buttons
         -fx-focus-traversable: false;
 

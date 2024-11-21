@@ -1,18 +1,13 @@
 package mscalc.gui.views.scientific;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import mscalc.engine.RadixType;
-import mscalc.gui.App;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel.KeyboardCode;
 import mscalc.gui.views.CalculatorView;
@@ -26,7 +21,7 @@ public class ScientificView extends VBox implements CalculatorView {
     private static final Logger logger = LogManager.getLogger(ScientificView.class);
 
     private final ScientificCalculatorViewModel viewModel = new ScientificCalculatorViewModel();
-    private final HashMap<KeyboardCode, Button> keyboardMapping = new HashMap<>();
+    private final HashMap<KeyboardCode, ButtonBase> keyboardMapping = new HashMap<>();
 
     public ScientificView() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ScientificView.fxml"));
@@ -234,8 +229,8 @@ public class ScientificView extends VBox implements CalculatorView {
     public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
 
-        cbInvert.selectedProperty().bindBidirectional(viewModel.invertedModeProperty);
-        cbHyperbolic.selectedProperty().bindBidirectional(viewModel.hyperbolicModeProperty);
+        bindButton(cbInvert, viewModel.invertButton);
+        bindButton(cbHyperbolic, viewModel.hyperbolicButton);
 
         radixToggleGroup.selectToggle(radioRadixDec);
         viewModel.radixProperty.addListener((observable, oldValue, newValue) -> {
@@ -335,22 +330,8 @@ public class ScientificView extends VBox implements CalculatorView {
         throw new RuntimeException("TODO");
     }
 
-    private void bindButton(Button button, ScientificCalculatorViewModel.InputViewModel operation) {
+    private void bindButton(ButtonBase button, ScientificCalculatorViewModel.InputViewModel operation) {
         button.textProperty().bind(operation.textProperty());
-
-        var defaultFont = button.getFont();
-        button.fontProperty().bind(button.textProperty().map(t -> {
-            if (t == null) return defaultFont;
-            if (t.length() < 2) {
-                // Increase font size
-                return new Font(defaultFont.getName(), defaultFont.getSize() + 1);
-            } else if (t.length() > 3) {
-                // Decrease font size
-                return new Font(defaultFont.getName(), defaultFont.getSize() - 1);
-            } else {
-                return defaultFont;
-            }
-        }));
 
         // Pre-create the tooltip object
         Tooltip t = new Tooltip();
