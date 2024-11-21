@@ -5,25 +5,20 @@ import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.*;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.input.KeyCode;
+import javafx.scene.text.Font;
 import mscalc.engine.*;
 import mscalc.engine.commands.Command;
 import mscalc.engine.commands.IExpressionCommand;
 import mscalc.engine.resource.JavaBundleResourceProvider;
-import mscalc.gui.views.scientific.ScientificView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import javax.annotation.Nullable;
+import java.util.*;
 
 public class ScientificCalculatorViewModel {
     private static final Logger logger = LogManager.getLogger(ScientificCalculatorViewModel.class);
-
-    private final List<InputViewModel> allInputs = new ArrayList<>();
 
     private final CalculatorManager calculatorManager = new CalculatorManager(
             new ThisViewModelCalculatorDisplay(),
@@ -37,6 +32,8 @@ public class ScientificCalculatorViewModel {
     public final ObjectProperty<RadixType> radixProperty = new SimpleObjectProperty<>(RadixType.Decimal);
     public final ObjectProperty<NumberWidth> integerNumberWidthProperty = new SimpleObjectProperty<>(NumberWidth.QWORD_WIDTH);
     public final ObjectProperty<DegreeType> degreeTypeProperty = new SimpleObjectProperty<>(DegreeType.Degrees);
+
+    // TODO: Model enum as 4 buttons with InputViewModel
 
     public final StringProperty displayProperty = new SimpleStringProperty("");
 
@@ -195,7 +192,7 @@ public class ScientificCalculatorViewModel {
     // -- ARITHMETIC FUNCTIONS ---
 
     public final InputViewModel divideButton = newInputViewModel()
-            .withText("/")
+            .withText("÷")
             .withKeyboardShortcut(KeyCode.SLASH)
             .withCommand(Command.CommandDIV)
             .build();
@@ -408,7 +405,15 @@ public class ScientificCalculatorViewModel {
             KeyCode key,
             boolean control,
             boolean shift
-    ) { }
+    ) {
+        public String toShortcutDescription() {
+            return String.format("Keyboard shortcut: %s%s%s",
+                    shift ? "Shift+" : "",
+                    control ? "Ctrl+" : "",
+                    Character.isISOControl(key.getChar().charAt(0))
+                            ? key.getName() : key.getChar());
+        }
+    }
 
     public class InputViewModelBuilder {
         private StringExpression textProperty;
@@ -497,9 +502,14 @@ public class ScientificCalculatorViewModel {
         }
 
         public InputViewModel build() {
-            var ivm = new InputViewModel(textProperty, tooltipProperty, commandProperty, enabledProperty);
-            allInputs.add(ivm);
-            return ivm;
+            if (keyboardShortcut != null) {
+                tooltipProperty = new ReadOnlyStringWrapper(
+                        ((tooltipProperty.get() != null) ? (tooltipProperty.get() + "\n\n") : "") +
+                        keyboardShortcut.toShortcutDescription());
+            }
+
+            return new InputViewModel(textProperty, tooltipProperty,
+                    commandProperty, enabledProperty, keyboardShortcut);
         }
     }
 
@@ -508,16 +518,19 @@ public class ScientificCalculatorViewModel {
         private final StringExpression tooltipProperty;
         private final ObjectExpression<Command> commandProperty;
         private final BooleanExpression enabledProperty;
+        private final KeyboardCode keyboardShortcut;
 
         public InputViewModel(StringExpression textProperty,
                               StringExpression tooltipProperty,
                               ObjectExpression<Command> commandProperty,
-                              BooleanExpression enabledProperty) {
+                              BooleanExpression enabledProperty,
+                              @Nullable KeyboardCode keyboardShortcut) {
 
             this.textProperty = Objects.requireNonNull(textProperty);
             this.tooltipProperty = Objects.requireNonNull(tooltipProperty);
             this.commandProperty = Objects.requireNonNull(commandProperty);
             this.enabledProperty = Objects.requireNonNull(enabledProperty);
+            this.keyboardShortcut = keyboardShortcut;
         }
 
         public void execute() {
@@ -539,9 +552,11 @@ public class ScientificCalculatorViewModel {
         public BooleanExpression enabledProperty() {
             return this.enabledProperty;
         }
-    }
 
-    // TODO: Add logger
+        public Optional<KeyboardCode> keyboardShortcut() {
+            return Optional.ofNullable(keyboardShortcut);
+        }
+    }
 
     public class ThisViewModelCalculatorDisplay implements CalcDisplay {
         private static final Logger logger = LogManager.getLogger(ThisViewModelCalculatorDisplay.class);

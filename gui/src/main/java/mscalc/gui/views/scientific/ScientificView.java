@@ -10,19 +10,23 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import mscalc.engine.RadixType;
 import mscalc.gui.App;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel;
+import mscalc.gui.viewmodel.ScientificCalculatorViewModel.KeyboardCode;
 import mscalc.gui.views.CalculatorView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class ScientificView extends VBox implements CalculatorView {
     private static final Logger logger = LogManager.getLogger(ScientificView.class);
 
     private final ScientificCalculatorViewModel viewModel = new ScientificCalculatorViewModel();
+    private final HashMap<KeyboardCode, Button> keyboardMapping = new HashMap<>();
 
     public ScientificView() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ScientificView.fxml"));
@@ -334,6 +338,20 @@ public class ScientificView extends VBox implements CalculatorView {
     private void bindButton(Button button, ScientificCalculatorViewModel.InputViewModel operation) {
         button.textProperty().bind(operation.textProperty());
 
+        var defaultFont = button.getFont();
+        button.fontProperty().bind(button.textProperty().map(t -> {
+            if (t == null) return defaultFont;
+            if (t.length() < 2) {
+                // Increase font size
+                return new Font(defaultFont.getName(), defaultFont.getSize() + 1);
+            } else if (t.length() > 3) {
+                // Decrease font size
+                return new Font(defaultFont.getName(), defaultFont.getSize() - 1);
+            } else {
+                return defaultFont;
+            }
+        }));
+
         // Pre-create the tooltip object
         Tooltip t = new Tooltip();
         t.textProperty().bind(operation.tooltipProperty());
@@ -348,35 +366,35 @@ public class ScientificView extends VBox implements CalculatorView {
 
         button.disableProperty().bind(operation.enabledProperty().not());
         button.setOnAction(e -> operation.execute());
+
+        button.setUserData(operation);
+
+        operation.keyboardShortcut().ifPresent(ks -> {
+            var conflict = keyboardMapping.put(ks, button);
+            if (conflict != null) {
+                logger.error("Conflicting keyboard mapping: {}", ks);
+            }
+        });
     }
 
     private void onKeyPressed(KeyEvent e) {
-        switch (e.getCode()) {
-            case KeyCode.S -> {
-                bSine.arm();
-            }
+        KeyboardCode kc = new KeyboardCode(e.getCode(), e.isControlDown(), e.isShiftDown());
 
-            default -> {
-                return;
-            }
+        if (keyboardMapping.containsKey(kc)) {
+            keyboardMapping.get(kc).arm();
+            e.consume();
         }
-
-        e.consume();
     }
 
     private void onKeyReleased(KeyEvent e) {
-        switch (e.getCode()) {
-            case KeyCode.S -> {
-                bSine.disarm();
-                bSine.fire();
-            }
+        KeyboardCode kc = new KeyboardCode(e.getCode(), e.isControlDown(), e.isShiftDown());
 
-            default -> {
-                return;
-            }
+        if (keyboardMapping.containsKey(kc)) {
+            var button = keyboardMapping.get(kc);
+            button.disarm();
+            button.fire();
+            e.consume();
         }
-
-        e.consume();
     }
 
 }

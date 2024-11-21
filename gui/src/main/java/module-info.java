@@ -31,6 +31,7 @@ module mscalc.gui {
     requires javafx.web;
     requires vaadin.sass.compiler;
     requires sac;
+    requires jsr305;
 
 
 }
