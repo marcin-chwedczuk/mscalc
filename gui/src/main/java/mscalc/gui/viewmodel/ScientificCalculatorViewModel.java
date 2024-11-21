@@ -676,6 +676,17 @@ public class ScientificCalculatorViewModel {
 
                 default -> {
                     processRadixChangeCommand(this.commandProperty.get());
+
+                    // TODO: Find better way, change enum is tricky as the numbers
+                    // are used in ranges, need to refactor enum to support things like
+                    // isXXXCommand().
+                    // Fix for two commands that are not properly served in calcManager
+                    if (this.commandProperty.get() == Command.CommandPI || this.commandProperty.get() == Command.CommandCHOP) {
+                        if (invertedModeProperty.get()) {
+                            calculatorManager.sendCommand(Command.CommandINV);
+                        }
+                    }
+
                     calculatorManager.sendCommand(this.commandProperty.get());
                 }
             }
