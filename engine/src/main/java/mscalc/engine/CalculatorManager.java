@@ -390,6 +390,10 @@ public class CalculatorManager implements CalcDisplay {
         inputChanged();
     }
 
+    public boolean hasMemoryStoredValue() {
+        return m_currentCalculatorEngine.PersistedMemObject().isNotEqual(Rational.of(0));
+    }
+
     /// <summary>
     /// Do the addition to the selected memory
     /// It adds primary display value to the selected memory

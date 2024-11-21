@@ -26,15 +26,12 @@ public class ScientificCalculatorViewModel {
     public final BooleanProperty invertedModeProperty = new SimpleBooleanProperty(false);
     public final BooleanProperty hyperbolicModeProperty = new SimpleBooleanProperty(false);
 
-    public final BooleanProperty degreeGroupingProperty = new SimpleBooleanProperty(true);
-
     public final ObjectProperty<RadixType> radixProperty = new SimpleObjectProperty<>(RadixType.Decimal);
-    public final ObjectProperty<NumberWidth> integerNumberWidthProperty = new SimpleObjectProperty<>(NumberWidth.QWORD_WIDTH);
-    public final ObjectProperty<DegreeType> degreeTypeProperty = new SimpleObjectProperty<>(DegreeType.Degrees);
-
-    // TODO: Model enum as 4 buttons with InputViewModel
 
     public final StringProperty displayProperty = new SimpleStringProperty("");
+
+    public final BooleanProperty memoryIndicator = new SimpleBooleanProperty(false);
+    public final IntegerProperty parenthesisNumberIndicator = new SimpleIntegerProperty(0);
 
     // --- RADIX SELECT ---
     public final InputViewModel radixHexButton = newInputViewModel()
@@ -734,6 +731,8 @@ public class ScientificCalculatorViewModel {
 
         @Override
         public void setParenthesisNumber(int count) {
+            parenthesisNumberIndicator.set(count);
+
             logger.info("set parens={}", count);
         }
 
@@ -758,16 +757,18 @@ public class ScientificCalculatorViewModel {
 
         @Override
         public void setMemorizedNumbers(List<String> memorizedNumbers) {
-
+            logger.info("M called with: {}", memorizedNumbers);
         }
 
         @Override
         public void memoryItemChanged(int indexOfMemory) {
-
+            logger.info("mem item has changed, index: {}", indexOfMemory);
         }
 
         @Override
         public void inputChanged() {
+            memoryIndicator.set(calculatorManager.hasMemoryStoredValue());
+
             logger.info("input changed");
         }
     }

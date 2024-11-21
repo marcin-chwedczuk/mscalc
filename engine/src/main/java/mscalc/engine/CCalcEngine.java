@@ -340,7 +340,7 @@ public class CCalcEngine {
     }
 
     // Gets the number in memory for UI to keep it persisted and set it again to a different instance
-// of CCalcEngine. Otherwise it will get destructed with the CalcEngine
+    // of CCalcEngine. Otherwise it will get destructed with the CalcEngine
     Rational PersistedMemObject() {
         return m_memoryValue;
     }

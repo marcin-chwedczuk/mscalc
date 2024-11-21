@@ -47,6 +47,12 @@ public class ScientificView extends VBox implements CalculatorView {
     @FXML
     private TextField display;
 
+    @FXML
+    private Label parenthesesNumberIndicator;
+
+    @FXML
+    private Label memoryIndicator;
+
     // Radix selection
     @FXML
     private ToggleGroup radixToggleGroup;
@@ -261,6 +267,11 @@ public class ScientificView extends VBox implements CalculatorView {
 
     public void install(Scene scene) {
         display.textProperty().bind(viewModel.displayProperty);
+
+        memoryIndicator.textProperty().bind(viewModel.memoryIndicator.map(b -> b ? "M" : ""));
+
+        parenthesesNumberIndicator.textProperty().bind(viewModel.parenthesisNumberIndicator
+                .map(n -> (n.intValue() > 0) ? "(=" + n : ""));
 
         bindButton(cbInvert, viewModel.invertButton);
         bindButton(cbHyperbolic, viewModel.hyperbolicButton);

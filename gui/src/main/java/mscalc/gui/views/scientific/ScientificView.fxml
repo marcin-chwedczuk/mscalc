@@ -129,7 +129,7 @@
                     <CheckBox fx:id="cbInvert" mnemonicParsing="false" text="Inv" />
                     <CheckBox fx:id="cbHyperbolic" mnemonicParsing="false" text="Hyp" />
                 </HBox>
-                <Label GridPane.columnIndex="4" fx:id="parenthesesCounter" styleClass="parenthesesCounter">NA</Label>
+                <Label GridPane.columnIndex="4" fx:id="parenthesesNumberIndicator" styleClass="parenthesesCounter">NA</Label>
                 <Label GridPane.columnIndex="6" fx:id="memoryIndicator" styleClass="memoryIndicator">NA</Label>
                 <HBox alignment="CENTER_RIGHT" GridPane.columnIndex="8" GridPane.columnSpan="6" GridPane.halignment="RIGHT" styleClass="controlButtonsArea">
                     <Button fx:id="bBackspace" mnemonicParsing="false" text="Backspace" styleClass="basicOperation" />
