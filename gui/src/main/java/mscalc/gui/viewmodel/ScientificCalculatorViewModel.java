@@ -6,7 +6,6 @@ import javafx.beans.binding.ObjectExpression;
 import javafx.beans.binding.StringExpression;
 import javafx.beans.property.*;
 import javafx.scene.input.KeyCode;
-import javafx.scene.text.Font;
 import mscalc.engine.*;
 import mscalc.engine.commands.Command;
 import mscalc.engine.commands.IExpressionCommand;
@@ -36,6 +35,31 @@ public class ScientificCalculatorViewModel {
     // TODO: Model enum as 4 buttons with InputViewModel
 
     public final StringProperty displayProperty = new SimpleStringProperty("");
+
+    // --- RADIX SELECT ---
+    public final InputViewModel radixHexButton = newInputViewModel()
+            .withText("Hex")
+            .withCommand(Command.CommandHex)
+            .withKeyboardShortcut(KeyCode.F5)
+            .build();
+
+    public final InputViewModel radixDecButton = newInputViewModel()
+            .withText("Dec")
+            .withCommand(Command.CommandDec)
+            .withKeyboardShortcut(KeyCode.F6)
+            .build();
+
+    public final InputViewModel radixOctButton = newInputViewModel()
+            .withText("Oct")
+            .withCommand(Command.CommandOct)
+            .withKeyboardShortcut(KeyCode.F7)
+            .build();
+
+    public final InputViewModel radixBinButton = newInputViewModel()
+            .withText("Bin")
+            .withCommand(Command.CommandBin)
+            .withKeyboardShortcut(KeyCode.F8)
+            .build();
 
     // -- INVERT & HYP BUTTONS ---
     public final InputViewModel invertButton = newInputViewModel()
@@ -417,6 +441,26 @@ public class ScientificCalculatorViewModel {
         return new InputViewModelBuilder();
     }
 
+    private void processRadixChangeCommand(Command command) {
+        switch (command) {
+            case CommandHex -> {
+                radixProperty.set(RadixType.Hex);
+            }
+
+            case CommandDec -> {
+                radixProperty.set(RadixType.Decimal);
+            }
+
+            case CommandOct -> {
+                radixProperty.set(RadixType.Octal);
+            }
+
+            case CommandBin -> {
+                radixProperty.set(RadixType.Binary);
+            }
+        }
+    }
+
     public record KeyboardCode(
             KeyCode key,
             boolean control,
@@ -560,6 +604,7 @@ public class ScientificCalculatorViewModel {
                 }
 
                 default -> {
+                    processRadixChangeCommand(this.commandProperty.get());
                     calculatorManager.sendCommand(this.commandProperty.get());
                 }
             }
@@ -585,6 +630,7 @@ public class ScientificCalculatorViewModel {
             return Optional.ofNullable(keyboardShortcut);
         }
     }
+
 
     public class ThisViewModelCalculatorDisplay implements CalcDisplay {
         private static final Logger logger = LogManager.getLogger(ThisViewModelCalculatorDisplay.class);

@@ -233,6 +233,11 @@ public class ScientificView extends VBox implements CalculatorView {
         bindButton(cbHyperbolic, viewModel.hyperbolicButton);
 
         radixToggleGroup.selectToggle(radioRadixDec);
+        bindButton(radioRadixHex, viewModel.radixHexButton);
+        bindButton(radioRadixDec, viewModel.radixDecButton);
+        bindButton(radioRadixOct, viewModel.radixOctButton);
+        bindButton(radioRadixBin, viewModel.radixBinButton);
+        /*
         viewModel.radixProperty.addListener((observable, oldValue, newValue) -> {
             logger.info("Selected radix from ViewModel: {}", newValue);
             radixToggleGroup.selectToggle(switch (newValue) {
@@ -252,7 +257,7 @@ public class ScientificView extends VBox implements CalculatorView {
                             null;
             logger.info("Selected radix from UI: {}", radix);
             viewModel.radixProperty.set(radix);
-        });
+        });*/
 
         bindButton(bClear, viewModel.clearButton);
         bindButton(bClearEntry, viewModel.clearEntryButton);
