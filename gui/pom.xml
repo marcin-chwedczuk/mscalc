@@ -195,9 +195,7 @@
                         <option>-ea</option>
 
                         <!-- uncomment to enable debugger's "Attach to Process..." -->
-                        <!--
                         <option>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=4444</option>
-                        -->
                     </options>
                     <stripDebug>false</stripDebug>
                     <noHeaderFiles>true</noHeaderFiles>

@@ -85,28 +85,28 @@ public class ScientificCalculatorViewModel {
 
     // --- WORD WIDTH SELECT ---
     public final InputViewModel radixWordWidthQWord = newInputViewModel()
-            .withText("QWORD")
+            .withText("QWord")
             .withCommand(Command.CommandQword)
             .withKeyboardShortcut(KeyCode.F12)
             .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
             .build();
 
     public final InputViewModel radixWordWidthDWord = newInputViewModel()
-            .withText("DWORD")
+            .withText("DWord")
             .withCommand(Command.CommandDword)
             .withKeyboardShortcut(KeyCode.F2)
             .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
             .build();
 
     public final InputViewModel radixWordWidthWord = newInputViewModel()
-            .withText("WORD")
+            .withText("Word")
             .withCommand(Command.CommandWord)
             .withKeyboardShortcut(KeyCode.F3)
             .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
             .build();
 
     public final InputViewModel radixWordWidthByte = newInputViewModel()
-            .withText("BYTE")
+            .withText("Byte")
             .withCommand(Command.CommandByte)
             .withKeyboardShortcut(KeyCode.F4)
             .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
@@ -498,18 +498,22 @@ public class ScientificCalculatorViewModel {
         switch (command) {
             case CommandHex -> {
                 radixProperty.set(RadixType.Hex);
+                calculatorManager.sendCommand(Command.ModeProgrammer);
             }
 
             case CommandDec -> {
                 radixProperty.set(RadixType.Decimal);
+                calculatorManager.sendCommand(Command.ModeScientific);
             }
 
             case CommandOct -> {
                 radixProperty.set(RadixType.Octal);
+                calculatorManager.sendCommand(Command.ModeProgrammer);
             }
 
             case CommandBin -> {
                 radixProperty.set(RadixType.Binary);
+                calculatorManager.sendCommand(Command.ModeProgrammer);
             }
         }
     }
