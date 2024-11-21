@@ -20,14 +20,25 @@
                         <RadioButton mnemonicParsing="false" toggleGroup="${radixToggleGroup}" text="Bin" fx:id="radioRadixBin" />
                     </children>
                 </HBox>
-                <HBox styleClass="selectAngleTypeArea">
+                <HBox fx:id="selectAngleTypeArea" styleClass="selectAngleTypeArea">
                     <children>
                         <fx:define>
                             <ToggleGroup fx:id="angleTypeToggleGroup" />
                         </fx:define>
-                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Degrees" />
-                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Radians" />
-                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Gradians" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Degrees" fx:id="radioAngleDegrees" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Radians" fx:id="radioAngleRadians" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${angleTypeToggleGroup}" text="Gradians" fx:id="radioAngleGradians" />
+                    </children>
+                </HBox>
+                <HBox fx:id="selectWordWidthArea" styleClass="selectWordWidthArea">
+                    <children>
+                        <fx:define>
+                            <ToggleGroup fx:id="wordWidthToggleGroup" />
+                        </fx:define>
+                        <RadioButton mnemonicParsing="false" toggleGroup="${wordWidthToggleGroup}" text="QWORD" fx:id="radioWidthQWord" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${wordWidthToggleGroup}" text="DWORD" fx:id="radioWidthDWord" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${wordWidthToggleGroup}" text="WORD" fx:id="radioWidthWord" />
+                        <RadioButton mnemonicParsing="false" toggleGroup="${wordWidthToggleGroup}" text="BYTE" fx:id="radioWidthByte" />
                     </children>
                 </HBox>
             </children>

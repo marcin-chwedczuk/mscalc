@@ -5,23 +5,28 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
 import mscalc.engine.RadixType;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel;
+import mscalc.gui.viewmodel.ScientificCalculatorViewModel.InputViewModel;
 import mscalc.gui.viewmodel.ScientificCalculatorViewModel.KeyboardCode;
 import mscalc.gui.views.CalculatorView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ScientificView extends VBox implements CalculatorView {
     private static final Logger logger = LogManager.getLogger(ScientificView.class);
 
     private final ScientificCalculatorViewModel viewModel = new ScientificCalculatorViewModel();
-    private final HashMap<KeyboardCode, ButtonBase> keyboardMapping = new HashMap<>();
+
+    // Some buttons share same shortcuts but are not active at the same time
+    private final HashMap<KeyboardCode, List<ButtonBase>> keyboardMapping = new HashMap<>();
 
     public ScientificView() {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("ScientificView.fxml"));
@@ -42,6 +47,7 @@ public class ScientificView extends VBox implements CalculatorView {
     @FXML
     private TextField display;
 
+    // Radix selection
     @FXML
     private ToggleGroup radixToggleGroup;
     @FXML
@@ -53,6 +59,33 @@ public class ScientificView extends VBox implements CalculatorView {
     @FXML
     private RadioButton radioRadixBin;
 
+    // Angle type selection
+    @FXML
+    private ToggleGroup angleTypeToggleGroup;
+    @FXML
+    private RadioButton radioAngleDegrees;
+    @FXML
+    private RadioButton radioAngleRadians;
+    @FXML
+    private RadioButton radioAngleGradians;
+    @FXML
+    private HBox selectAngleTypeArea;
+
+    // Word width selection
+    @FXML
+    private ToggleGroup wordWidthToggleGroup;
+    @FXML
+    private RadioButton radioWidthQWord;
+    @FXML
+    private RadioButton radioWidthDWord;
+    @FXML
+    private RadioButton radioWidthWord;
+    @FXML
+    private RadioButton radioWidthByte;
+    @FXML
+    private HBox selectWordWidthArea;
+
+    // Invert & Hyperbolic
     @FXML
     private CheckBox cbInvert;
 
@@ -237,27 +270,22 @@ public class ScientificView extends VBox implements CalculatorView {
         bindButton(radioRadixDec, viewModel.radixDecButton);
         bindButton(radioRadixOct, viewModel.radixOctButton);
         bindButton(radioRadixBin, viewModel.radixBinButton);
-        /*
-        viewModel.radixProperty.addListener((observable, oldValue, newValue) -> {
-            logger.info("Selected radix from ViewModel: {}", newValue);
-            radixToggleGroup.selectToggle(switch (newValue) {
-                case Hex -> radioRadixHex;
-                case Decimal -> radioRadixDec;
-                case Octal -> radioRadixOct;
-                case Binary -> radioRadixBin;
-                default -> null;
-            });
-        });
-        radixToggleGroup.selectedToggleProperty().addListener((observableValue, oldValue, newValue) -> {
-            RadixType radix =
-                            (newValue == radioRadixHex) ? RadixType.Hex :
-                            (newValue == radioRadixDec) ? RadixType.Decimal :
-                            (newValue == radioRadixOct) ? RadixType.Octal :
-                            (newValue == radioRadixBin) ? RadixType.Binary :
-                            null;
-            logger.info("Selected radix from UI: {}", radix);
-            viewModel.radixProperty.set(radix);
-        });*/
+
+        selectAngleTypeArea.visibleProperty().bind(viewModel.radixProperty.isEqualTo(RadixType.Decimal));
+        selectAngleTypeArea.managedProperty().bind(selectAngleTypeArea.visibleProperty());
+        selectWordWidthArea.visibleProperty().bind(viewModel.radixProperty.isNotEqualTo(RadixType.Decimal));
+        selectWordWidthArea.managedProperty().bind(selectWordWidthArea.visibleProperty());
+
+        angleTypeToggleGroup.selectToggle(radioAngleRadians);
+        bindButton(radioAngleDegrees, viewModel.angleDegreesButton);
+        bindButton(radioAngleRadians, viewModel.angleRadiansButton);
+        bindButton(radioAngleGradians, viewModel.angleGradiansButton);
+
+        wordWidthToggleGroup.selectToggle(radioWidthQWord);
+        bindButton(radioWidthQWord, viewModel.radixWordWidthQWord);
+        bindButton(radioWidthDWord, viewModel.radixWordWidthDWord);
+        bindButton(radioWidthWord, viewModel.radixWordWidthWord);
+        bindButton(radioWidthByte, viewModel.radixWordWidthByte);
 
         bindButton(bClear, viewModel.clearButton);
         bindButton(bClearEntry, viewModel.clearEntryButton);
@@ -335,7 +363,7 @@ public class ScientificView extends VBox implements CalculatorView {
         throw new RuntimeException("TODO");
     }
 
-    private void bindButton(ButtonBase button, ScientificCalculatorViewModel.InputViewModel operation) {
+    private void bindButton(ButtonBase button, InputViewModel operation) {
         button.textProperty().bind(operation.textProperty());
 
         // Pre-create the tooltip object
@@ -356,10 +384,8 @@ public class ScientificView extends VBox implements CalculatorView {
         button.setUserData(operation);
 
         operation.keyboardShortcut().ifPresent(ks -> {
-            var conflict = keyboardMapping.put(ks, button);
-            if (conflict != null) {
-                logger.error("Conflicting keyboard mapping: {}", ks);
-            }
+            keyboardMapping.putIfAbsent(ks, new ArrayList<>());
+            keyboardMapping.get(ks).add(button);
         });
     }
 
@@ -367,7 +393,9 @@ public class ScientificView extends VBox implements CalculatorView {
         KeyboardCode kc = new KeyboardCode(e.getCode(), e.isControlDown(), e.isShiftDown());
 
         if (keyboardMapping.containsKey(kc)) {
-            keyboardMapping.get(kc).arm();
+            keyboardMapping.get(kc).stream()
+                    .filter(input -> ((InputViewModel)input.getUserData()).isActive())
+                    .forEach(ButtonBase::arm);
             e.consume();
         }
     }
@@ -376,9 +404,12 @@ public class ScientificView extends VBox implements CalculatorView {
         KeyboardCode kc = new KeyboardCode(e.getCode(), e.isControlDown(), e.isShiftDown());
 
         if (keyboardMapping.containsKey(kc)) {
-            var button = keyboardMapping.get(kc);
-            button.disarm();
-            button.fire();
+            keyboardMapping.get(kc).stream()
+                    .filter(input -> ((InputViewModel)input.getUserData()).isActive())
+                    .forEach(button -> {
+                        button.disarm();
+                        button.fire();
+                    });
             e.consume();
         }
     }

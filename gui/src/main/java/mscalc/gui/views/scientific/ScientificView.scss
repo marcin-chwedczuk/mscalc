@@ -93,6 +93,10 @@
         @include selectArea();
     }
 
+    .selectWordWidthArea {
+        @include selectArea();
+    }
+
     .functionSelectArea {
         @include selectArea();
     }

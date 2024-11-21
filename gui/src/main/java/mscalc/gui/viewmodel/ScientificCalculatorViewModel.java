@@ -61,6 +61,57 @@ public class ScientificCalculatorViewModel {
             .withKeyboardShortcut(KeyCode.F8)
             .build();
 
+    // -- ANGLE TYPE SELECT --
+    public final InputViewModel angleDegreesButton = newInputViewModel()
+            .withText("Degrees")
+            .withCommand(Command.CommandDEG)
+            .withKeyboardShortcut(KeyCode.F2)
+            .onlyActiveWhen(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel angleRadiansButton = newInputViewModel()
+            .withText("Radians")
+            .withCommand(Command.CommandRAD)
+            .withKeyboardShortcut(KeyCode.F3)
+            .onlyActiveWhen(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel angleGradiansButton = newInputViewModel()
+            .withText("Gradians")
+            .withCommand(Command.CommandGRAD)
+            .withKeyboardShortcut(KeyCode.F4)
+            .onlyActiveWhen(radixProperty.isEqualTo(RadixType.Decimal))
+            .build();
+
+    // --- WORD WIDTH SELECT ---
+    public final InputViewModel radixWordWidthQWord = newInputViewModel()
+            .withText("QWORD")
+            .withCommand(Command.CommandQword)
+            .withKeyboardShortcut(KeyCode.F12)
+            .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel radixWordWidthDWord = newInputViewModel()
+            .withText("DWORD")
+            .withCommand(Command.CommandDword)
+            .withKeyboardShortcut(KeyCode.F2)
+            .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel radixWordWidthWord = newInputViewModel()
+            .withText("WORD")
+            .withCommand(Command.CommandWord)
+            .withKeyboardShortcut(KeyCode.F3)
+            .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
+            .build();
+
+    public final InputViewModel radixWordWidthByte = newInputViewModel()
+            .withText("BYTE")
+            .withCommand(Command.CommandByte)
+            .withKeyboardShortcut(KeyCode.F4)
+            .onlyActiveWhen(radixProperty.isNotEqualTo(RadixType.Decimal))
+            .build();
+
     // -- INVERT & HYP BUTTONS ---
     public final InputViewModel invertButton = newInputViewModel()
             .withText("Inverse")
@@ -433,7 +484,9 @@ public class ScientificCalculatorViewModel {
     public ScientificCalculatorViewModel() {
         // Initialize Scientific mode
         calculatorManager.sendCommand(Command.ModeScientific);
-        // Select radians
+        // Setup some initial configuration
+        calculatorManager.sendCommand(Command.CommandQword);
+        calculatorManager.sendCommand(Command.CommandDec);
         calculatorManager.sendCommand(Command.CommandRAD);
     }
 
@@ -476,11 +529,17 @@ public class ScientificCalculatorViewModel {
     }
 
     public class InputViewModelBuilder {
+        private BooleanExpression activeProperty = new ReadOnlyBooleanWrapper(true);
         private StringExpression textProperty;
         private StringExpression tooltipProperty = new ReadOnlyStringWrapper(null);
         private ObjectExpression<Command> commandProperty;
         private BooleanExpression enabledProperty = new ReadOnlyBooleanWrapper(true);
         private KeyboardCode keyboardShortcut;
+
+        public InputViewModelBuilder onlyActiveWhen(BooleanExpression condition) {
+            this.activeProperty = condition;
+            return this;
+        }
 
         /*
          * Set text for normal, inverted, hyperbolic and hyperbolic-inverted modes.
@@ -568,24 +627,27 @@ public class ScientificCalculatorViewModel {
                         keyboardShortcut.toShortcutDescription());
             }
 
-            return new InputViewModel(textProperty, tooltipProperty,
+            return new InputViewModel(activeProperty, textProperty, tooltipProperty,
                     commandProperty, enabledProperty, keyboardShortcut);
         }
     }
 
     public class InputViewModel {
+        private final BooleanExpression activeProperty;
         private final StringExpression textProperty;
         private final StringExpression tooltipProperty;
         private final ObjectExpression<Command> commandProperty;
         private final BooleanExpression enabledProperty;
         private final KeyboardCode keyboardShortcut;
 
-        public InputViewModel(StringExpression textProperty,
+        public InputViewModel(BooleanExpression activeProperty,
+                              StringExpression textProperty,
                               StringExpression tooltipProperty,
                               ObjectExpression<Command> commandProperty,
                               BooleanExpression enabledProperty,
                               @Nullable KeyboardCode keyboardShortcut) {
 
+            this.activeProperty = Objects.requireNonNull(activeProperty);
             this.textProperty = Objects.requireNonNull(textProperty);
             this.tooltipProperty = Objects.requireNonNull(tooltipProperty);
             this.commandProperty = Objects.requireNonNull(commandProperty);
@@ -593,7 +655,15 @@ public class ScientificCalculatorViewModel {
             this.keyboardShortcut = keyboardShortcut;
         }
 
+        public boolean isActive() {
+            return activeProperty.get();
+        }
+
         public void execute() {
+            if (!activeProperty.get()) {
+                return;
+            }
+
             switch (this.commandProperty.get()) {
                 case CommandINV -> {
                     invertedModeProperty.set(!invertedModeProperty.get());
