@@ -1,30 +1,24 @@
 
 # Rewrite of Microsoft Calculator in JavaFX
 
-Project under construction.
+:construction: Project under construction :construction:
 
-Engine source code was translated from C++, from the official Calculator repository: https://github.com/microsoft/calculator
+![Screenshot1](./docs/screenshot1.png)
+
+Engine source code was translated from the official Calculator repository: https://github.com/microsoft/calculator
 
 Current project status:
 
-- [X] ratpack engine fully translated to Java with tests
-- [X] UI for scientific view
+- [X] Engine code translated from C++ to Java, together with unit tests
+- [X] Fully working scientific view
+- [ ] Standard view
+- [ ] Statistics box
+- [ ] UI based tests
+- [ ] Improve translated code quality by refactoring
+- [ ] Add About box
+- [ ] Test on Linux and Windows
 
-What is missing:
-
-- [ ] Glue code between UI & calculator engine
-- [ ] A lot of polishing e.g. full keyboard support as in the original calc.
-
-# JavaFX Opinionated Application Template
-
-![Build Status](https://github.com/marcin-chwedczuk/javafx-template/actions/workflows/ci.yaml/badge.svg)
-
-* Created for JDK 17+, with Java 9 modules support
-* Multi-module Maven project by default
-* Sass used instead of CSS
-* assertJ and jUnit 5 used for unit testing
-* TestFX used for integration testing
-* Example GitHub action that builds the project and runs integration tests in headless mode
+JDK required to run this project is: 21.
 
 ### How to run application
 ```
